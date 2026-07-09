@@ -1,0 +1,1558 @@
+% !TEX program = pdflatex
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% CẤU HÌNH CHO PDFLATEX
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+% =========================
+% VIỆT HÓA
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP NỘI DUNG
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Ví dụ minh họa,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{luuy}{
+    colback=orange!6,
+    colframe=orange!70!black,
+    title=Lưu ý,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{canhbao}{
+    colback=red!4,
+    colframe=red!60!black,
+    title=Cảnh báo,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+% =========================
+% THÔNG TIN TÀI LIỆU
+% =========================
+\title{
+    \textbf{Tài liệu học tập ANN9}\\
+    \large Stochastic, Batch và Mini-batch Gradient Descent
+}
+\author{Biên soạn theo vai trò trợ giảng chuyên môn}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================================
+\chapter*{Mục tiêu bài học}
+\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+
+Bài ANN9 quay lại phần Gradient Descent và làm rõ ba phương pháp cập nhật tham số phổ biến khi huấn luyện mạng nơ-ron:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Stochastic Gradient Descent.
+    \item Batch Gradient Descent.
+    \item Mini-batch Gradient Descent.
+\end{enumerate}
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Sự khác nhau giữa cập nhật theo từng mẫu, cập nhật theo toàn bộ dữ liệu và cập nhật theo từng nhóm nhỏ dữ liệu.
+    \item Vì sao Stochastic Gradient Descent có đường đi nhiễu nhưng có thể tránh cực trị địa phương tốt hơn.
+    \item Vì sao Batch Gradient Descent ổn định hơn nhưng có thể dễ mắc kẹt ở cực trị địa phương.
+    \item Vì sao Mini-batch Gradient Descent là giải pháp trung gian và được dùng rất phổ biến.
+    \item Hiểu các khái niệm: sample, data point, feature, batch, batch size, iteration và epoch.
+    \item Biết cách tính số lần cập nhật trong một epoch tùy theo batch size.
+    \item Hiểu yêu cầu bài tập: tự lập trình và so sánh ba phương pháp Gradient Descent trên hàm không lồi hai biến.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Nhắc lại Gradient Descent trong huấn luyện ANN}
+
+\section{Mục tiêu của huấn luyện}
+
+Trong mạng nơ-ron, ta có hàm mất mát:
+
+\[
+    L(W)
+\]
+
+Trong đó $W$ đại diện cho toàn bộ tham số của mạng, bao gồm:
+
+\begin{itemize}
+    \item trọng số;
+    \item bias.
+\end{itemize}
+
+Mục tiêu của huấn luyện là tìm bộ tham số $W$ sao cho loss nhỏ nhất:
+
+\[
+    W^*=\operatorname*{arg\,min}_{W}L(W)
+\]
+
+Để cập nhật tham số, ta cần gradient:
+
+\[
+    \frac{\partial L}{\partial W}
+\]
+
+hoặc viết tổng quát hơn:
+
+\[
+    \nabla_W L(W)
+\]
+
+Công thức cập nhật cơ bản:
+
+\[
+    W_{\text{new}}
+    =
+    W_{\text{old}}
+    -
+    \eta \nabla_W L(W_{\text{old}})
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $\eta$ là learning rate;
+    \item $\nabla_W L(W)$ là gradient của loss theo tham số;
+    \item dấu trừ thể hiện việc đi theo hướng làm loss giảm.
+\end{itemize}
+
+\begin{ghinho}
+Backpropagation giúp tính gradient. Gradient Descent dùng gradient đó để cập nhật trọng số và bias.
+\end{ghinho}
+
+\section{Một vấn đề cần làm rõ}
+
+Trong các bài trước, ta thường nói đơn giản rằng:
+
+\[
+    \text{đưa dữ liệu vào}
+    \rightarrow
+    \text{tính loss}
+    \rightarrow
+    \text{tính gradient}
+    \rightarrow
+    \text{cập nhật}
+\]
+
+Nhưng trong thực tế, ta có rất nhiều dữ liệu. Câu hỏi là:
+
+\begin{center}
+\textit{Mỗi lần cập nhật, ta dùng bao nhiêu mẫu dữ liệu?}
+\end{center}
+
+Có ba lựa chọn chính:
+
+\begin{enumerate}
+    \item Dùng một mẫu dữ liệu.
+    \item Dùng toàn bộ tập dữ liệu.
+    \item Dùng một nhóm nhỏ dữ liệu.
+\end{enumerate}
+
+Ba lựa chọn này tạo ra ba phương pháp:
+
+\begin{enumerate}
+    \item Stochastic Gradient Descent.
+    \item Batch Gradient Descent.
+    \item Mini-batch Gradient Descent.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Stochastic Gradient Descent}
+
+\section{Ý tưởng}
+
+Stochastic Gradient Descent, viết tắt là SGD, là phương pháp cập nhật tham số sau mỗi mẫu dữ liệu.
+
+Giả sử tập dữ liệu gồm:
+
+\[
+    D=\{(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)\}
+\]
+
+Với SGD, ta làm như sau:
+
+\begin{enumerate}
+    \item Đưa một mẫu $(x_i,y_i)$ vào mạng.
+    \item Tính output dự đoán.
+    \item Tính loss trên mẫu đó.
+    \item Tính gradient dựa trên mẫu đó.
+    \item Cập nhật tham số ngay.
+\end{enumerate}
+
+Công thức:
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta \nabla_W L_i(W_t)
+\]
+
+Trong đó $L_i$ là loss trên mẫu dữ liệu thứ $i$.
+
+\begin{ghinho}
+SGD cập nhật sau từng sample. Vì vậy, nếu tập dữ liệu có $N$ sample thì trong một epoch, SGD cập nhật $N$ lần.
+\end{ghinho}
+
+\section{Ví dụ trực quan}
+
+Giả sử ta có các ảnh:
+
+\[
+    \text{ảnh chó},\quad
+    \text{ảnh mèo},\quad
+    \text{ảnh xe hơi},\quad
+    \text{ảnh máy bay}
+\]
+
+SGD hoạt động như sau:
+
+\begin{enumerate}
+    \item Đưa ảnh chó vào, tính sai số, cập nhật mạng.
+    \item Đưa ảnh mèo vào, tính sai số, cập nhật mạng.
+    \item Đưa ảnh xe hơi vào, tính sai số, cập nhật mạng.
+    \item Đưa ảnh máy bay vào, tính sai số, cập nhật mạng.
+\end{enumerate}
+
+Mỗi ảnh tạo ra một lần cập nhật.
+
+\section{SGD và online learning}
+
+Vì SGD cập nhật theo từng mẫu, nó có thể dùng trong tình huống online learning.
+
+Online learning là tình huống mô hình vừa được sử dụng, vừa tiếp tục được cập nhật khi có dữ liệu mới.
+
+\begin{vidu}
+Một hệ thống nhận diện ảnh đang hoạt động. Khi thu thập thêm một ảnh mới đã có nhãn, ta có thể đưa ảnh đó vào để cập nhật mô hình ngay. Đây là kiểu cập nhật phù hợp với tinh thần online learning.
+\end{vidu}
+
+\section{Đặc điểm: đường đi nhiễu}
+
+Do mỗi lần chỉ dùng một mẫu dữ liệu, gradient của SGD thường rất nhiễu. Một mẫu riêng lẻ chưa chắc đại diện cho toàn bộ tập dữ liệu.
+
+Vì vậy đường đi của SGD khi tìm cực tiểu thường không mượt. Nó có thể nhảy qua nhảy lại.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % contour ellipses
+    \draw[gray] (0,0) ellipse (3.2 and 2.0);
+    \draw[gray] (0,0) ellipse (2.4 and 1.5);
+    \draw[gray] (0,0) ellipse (1.6 and 1.0);
+    \draw[gray] (0,0) ellipse (0.8 and 0.5);
+    \filldraw[red] (0,0) circle (2pt);
+    \node[red,below] at (0,-0.1) {cực tiểu};
+
+    % noisy path
+    \draw[->,thick,blue] (-3,1.8) -- (-2.4,1.2);
+    \draw[->,thick,blue] (-2.4,1.2) -- (-2.0,1.5);
+    \draw[->,thick,blue] (-2.0,1.5) -- (-1.5,0.8);
+    \draw[->,thick,blue] (-1.5,0.8) -- (-1.1,1.0);
+    \draw[->,thick,blue] (-1.1,1.0) -- (-0.7,0.4);
+    \draw[->,thick,blue] (-0.7,0.4) -- (-0.3,0.5);
+    \draw[->,thick,blue] (-0.3,0.5) -- (-0.1,0.1);
+
+    \node[blue] at (-2.4,2.3) {SGD: đường đi nhiễu};
+\end{tikzpicture}
+\end{center}
+
+\section{Ưu điểm của SGD}
+
+\begin{itemize}
+    \item Cập nhật nhanh sau từng mẫu.
+    \item Có thể dùng cho online learning.
+    \item Không cần đưa toàn bộ dữ liệu vào bộ nhớ cùng lúc.
+    \item Do có nhiễu, đôi khi có thể thoát khỏi cực trị địa phương tốt hơn.
+\end{itemize}
+
+\section{Nhược điểm của SGD}
+
+\begin{itemize}
+    \item Đường đi không ổn định.
+    \item Gradient của từng mẫu có thể lệch nhiều so với gradient thật của toàn bộ dữ liệu.
+    \item Có thể dao động quanh điểm cực tiểu.
+    \item Khó tận dụng tối đa khả năng tính toán song song của phần cứng hiện đại.
+\end{itemize}
+
+\begin{luuy}
+SGD không ``xấu''. Nó chỉ nhiễu. Chính tính nhiễu này vừa là nhược điểm trong việc đi đến cực tiểu nhanh, vừa là ưu điểm trong việc tránh bị kẹt ở một số cực trị địa phương.
+\end{luuy}
+
+% ==========================================================
+\chapter{Batch Gradient Descent}
+
+\section{Ý tưởng}
+
+Batch Gradient Descent là phương pháp dùng toàn bộ tập dữ liệu để tính gradient rồi mới cập nhật một lần.
+
+Với tập dữ liệu:
+
+\[
+    D=\{(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)\}
+\]
+
+Ta tính loss trung bình:
+
+\[
+    L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}L_i(W)
+\]
+
+Gradient toàn bộ tập dữ liệu là:
+
+\[
+    \nabla_W L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W)
+\]
+
+Sau đó cập nhật:
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W_t)
+\]
+
+\begin{ghinho}
+Batch Gradient Descent không cập nhật sau từng mẫu. Nó phải đi qua toàn bộ dữ liệu, tính gradient trung bình, rồi mới cập nhật một lần.
+\end{ghinho}
+
+\section{Ví dụ}
+
+Giả sử có 10,000 ảnh.
+
+Với Batch Gradient Descent:
+
+\begin{enumerate}
+    \item Đưa cả 10,000 ảnh qua mô hình.
+    \item Tính loss và gradient cho từng ảnh.
+    \item Lấy trung bình các gradient.
+    \item Cập nhật trọng số một lần.
+\end{enumerate}
+
+\section{Vì sao lấy trung bình gradient?}
+
+Hàm loss tổng thể thường được định nghĩa là trung bình loss trên toàn bộ dữ liệu:
+
+\[
+    L(W)=\frac{1}{N}\sum_{i=1}^{N}L_i(W)
+\]
+
+Do đó, gradient của loss tổng thể là:
+
+\[
+    \nabla_W L(W)
+    =
+    \nabla_W
+    \left(
+    \frac{1}{N}
+    \sum_{i=1}^{N}L_i(W)
+    \right)
+\]
+
+Vì đạo hàm của tổng bằng tổng đạo hàm:
+
+\[
+    \nabla_W L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W)
+\]
+
+Như vậy, việc lấy trung bình gradient không chỉ là do ``không biết mẫu nào quan trọng hơn''. Bản chất toán học là ta đang tối ưu loss trung bình trên toàn bộ tập dữ liệu.
+
+\section{Đặc điểm: ổn định hơn SGD}
+
+Vì dùng toàn bộ dữ liệu, gradient của Batch Gradient Descent gần với hướng giảm thật của hàm loss tổng thể hơn.
+
+Đường đi thường mượt hơn, ít nhiễu hơn.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % contour ellipses
+    \draw[gray] (0,0) ellipse (3.2 and 2.0);
+    \draw[gray] (0,0) ellipse (2.4 and 1.5);
+    \draw[gray] (0,0) ellipse (1.6 and 1.0);
+    \draw[gray] (0,0) ellipse (0.8 and 0.5);
+    \filldraw[red] (0,0) circle (2pt);
+    \node[red,below] at (0,-0.1) {cực tiểu};
+
+    % smooth path
+    \draw[->,thick,blue] (-3,1.8) -- (-2.2,1.2);
+    \draw[->,thick,blue] (-2.2,1.2) -- (-1.5,0.8);
+    \draw[->,thick,blue] (-1.5,0.8) -- (-0.9,0.45);
+    \draw[->,thick,blue] (-0.9,0.45) -- (-0.4,0.2);
+    \draw[->,thick,blue] (-0.4,0.2) -- (-0.1,0.05);
+
+    \node[blue] at (-2.2,2.3) {Batch: đường đi ổn định hơn};
+\end{tikzpicture}
+\end{center}
+
+\section{Ưu điểm của Batch Gradient Descent}
+
+\begin{itemize}
+    \item Hướng cập nhật ổn định hơn.
+    \item Thể hiện đúng hơn hướng giảm của loss tổng thể.
+    \item Ít nhiễu hơn SGD.
+\end{itemize}
+
+\section{Nhược điểm của Batch Gradient Descent}
+
+\begin{itemize}
+    \item Không phù hợp với online learning.
+    \item Cần xử lý toàn bộ dữ liệu trước khi cập nhật.
+    \item Với dữ liệu rất lớn, một lần cập nhật có thể rất tốn thời gian và bộ nhớ.
+    \item Do quá ổn định, nếu rơi vào cực trị địa phương thì có thể khó thoát ra.
+\end{itemize}
+
+\begin{luuy}
+Batch Gradient Descent rất hiệu quả trong việc đi theo hướng dốc nhất của toàn bộ hàm loss, nhưng chính sự ổn định này có thể làm nó dễ mắc kẹt ở cực trị địa phương hơn so với phương pháp nhiễu như SGD.
+\end{luuy}
+
+% ==========================================================
+\chapter{Đường đồng mức và cực trị địa phương}
+
+\section{Đường đồng mức là gì?}
+
+Trong bài học, giảng viên nhắc đến hình có nhiều vòng tròn hoặc đường cong bao quanh một điểm. Đó là các đường đồng mức, tiếng Anh là \textit{contour lines}.
+
+Với hàm hai biến:
+
+\[
+    f(x,y)
+\]
+
+đường đồng mức là tập các điểm có cùng giá trị hàm:
+
+\[
+    f(x,y)=c
+\]
+
+Trong đó $c$ là một hằng số.
+
+\begin{ghinho}
+Các điểm nằm trên cùng một đường đồng mức có cùng giá trị hàm. Nhưng hai đường đồng mức khác nhau thường tương ứng với hai giá trị hàm khác nhau.
+\end{ghinho}
+
+\section{Không gian hai biến và giá trị hàm}
+
+Nếu ta có hai biến $x$ và $y$, miền tìm kiếm là không gian 2D.
+
+Giá trị $f(x,y)$ có thể xem như chiều cao tại điểm $(x,y)$. Vì vậy, khi vẽ contour, ta biểu diễn bề mặt 3D bằng các đường trên mặt phẳng 2D.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+    \draw[->] (-3.5,0) -- (3.5,0) node[right] {$x$};
+    \draw[->] (0,-2.5) -- (0,2.5) node[above] {$y$};
+
+    \draw[gray] (0,0) ellipse (3 and 2);
+    \draw[gray] (0,0) ellipse (2.2 and 1.45);
+    \draw[gray] (0,0) ellipse (1.4 and 0.9);
+    \draw[gray] (0,0) ellipse (0.6 and 0.4);
+
+    \filldraw[red] (0,0) circle (2pt);
+    \node[red,below right] at (0,0) {vùng thấp};
+
+    \node at (2.7,1.8) {$f(x,y)=c_1$};
+    \node at (1.9,1.2) {$f(x,y)=c_2$};
+    \node at (1.1,0.65) {$f(x,y)=c_3$};
+\end{tikzpicture}
+\end{center}
+
+\section{Cực trị địa phương}
+
+Nếu hàm loss không lồi, nó có thể có nhiều cực trị địa phương.
+
+Cực trị địa phương là điểm thấp nhất trong một vùng nhỏ, nhưng không nhất thiết là thấp nhất toàn bộ.
+
+\[
+    \text{local minimum} \neq \text{global minimum}
+\]
+
+\begin{canhbao}
+Trong tối ưu hóa mạng nơ-ron, một khó khăn lớn là thuật toán có thể mắc kẹt ở cực trị địa phương hoặc vùng nghiệm không tốt.
+\end{canhbao}
+
+\section{Vì sao SGD có thể tránh cực trị địa phương?}
+
+SGD dùng gradient từ từng mẫu dữ liệu. Vì mỗi mẫu chỉ phản ánh một phần dữ liệu, hướng cập nhật có nhiễu.
+
+Nhiễu này làm đường đi không mượt, nhưng đôi khi nó giúp mô hình ``nhảy'' ra khỏi một vùng cực trị địa phương nông.
+
+\begin{vidu}
+Hình dung ta đang đi xuống một thung lũng nhỏ. Nếu đường đi quá ổn định, ta có thể dừng lại trong thung lũng đó. Nếu đường đi có dao động, ta có thể bị đẩy ra khỏi thung lũng nhỏ và tiếp tục đi đến vùng thấp hơn.
+\end{vidu}
+
+% ==========================================================
+\chapter{Mini-batch Gradient Descent}
+
+\section{Ý tưởng}
+
+Mini-batch Gradient Descent là phương pháp trung gian giữa SGD và Batch Gradient Descent.
+
+Thay vì dùng:
+
+\begin{itemize}
+    \item một mẫu duy nhất như SGD;
+    \item toàn bộ dữ liệu như Batch Gradient Descent;
+\end{itemize}
+
+ta dùng một nhóm nhỏ dữ liệu gọi là mini-batch.
+
+Giả sử một mini-batch có $B$ mẫu:
+
+\[
+    \mathcal{B}
+    =
+    \{(x_1,y_1),(x_2,y_2),\ldots,(x_B,y_B)\}
+\]
+
+Gradient trên mini-batch:
+
+\[
+    \nabla_W L_{\mathcal{B}}(W)
+    =
+    \frac{1}{B}
+    \sum_{i=1}^{B}
+    \nabla_W L_i(W)
+\]
+
+Cập nhật:
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \frac{1}{B}
+    \sum_{i=1}^{B}
+    \nabla_W L_i(W_t)
+\]
+
+\section{Batch size}
+
+Batch size là số lượng mẫu trong một mini-batch.
+
+Ký hiệu:
+
+\[
+    B = \text{batch size}
+\]
+
+Nếu:
+
+\[
+    B=1
+\]
+
+thì mini-batch trở thành SGD.
+
+Nếu:
+
+\[
+    B=N
+\]
+
+thì mini-batch trở thành Batch Gradient Descent.
+
+Thông thường, batch size có thể nằm trong khoảng:
+
+\[
+    8 \leq B \leq 256
+\]
+
+hoặc lớn hơn, tùy vào phần cứng, bộ nhớ GPU và bài toán cụ thể.
+
+\begin{ghinho}
+Mini-batch Gradient Descent là giải pháp cân bằng giữa độ nhiễu của SGD và độ ổn định của Batch Gradient Descent.
+\end{ghinho}
+
+\section{Đường đi của mini-batch}
+
+Mini-batch ít nhiễu hơn SGD vì nó lấy trung bình gradient trên nhiều mẫu. Nhưng nó vẫn còn một lượng nhiễu nhất định, nên có thể tránh cực trị địa phương tốt hơn Batch Gradient Descent.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % contour ellipses
+    \draw[gray] (0,0) ellipse (3.2 and 2.0);
+    \draw[gray] (0,0) ellipse (2.4 and 1.5);
+    \draw[gray] (0,0) ellipse (1.6 and 1.0);
+    \draw[gray] (0,0) ellipse (0.8 and 0.5);
+    \filldraw[red] (0,0) circle (2pt);
+    \node[red,below] at (0,-0.1) {cực tiểu};
+
+    % mini-batch path
+    \draw[->,thick,blue] (-3,1.8) -- (-2.3,1.25);
+    \draw[->,thick,blue] (-2.3,1.25) -- (-1.7,1.05);
+    \draw[->,thick,blue] (-1.7,1.05) -- (-1.15,0.55);
+    \draw[->,thick,blue] (-1.15,0.55) -- (-0.65,0.42);
+    \draw[->,thick,blue] (-0.65,0.42) -- (-0.25,0.15);
+
+    \node[blue] at (-2.25,2.3) {Mini-batch: vừa ổn định, vừa còn nhiễu};
+\end{tikzpicture}
+\end{center}
+
+\section{Vì sao mini-batch được dùng phổ biến?}
+
+Mini-batch Gradient Descent có nhiều ưu điểm thực tế:
+
+\begin{itemize}
+    \item cập nhật thường xuyên hơn Batch Gradient Descent;
+    \item ít nhiễu hơn SGD;
+    \item tận dụng tốt tính toán song song trên GPU;
+    \item không cần đưa toàn bộ dữ liệu vào bộ nhớ cùng lúc;
+    \item thường hội tụ hiệu quả trong thực tế.
+\end{itemize}
+
+\begin{ghinho}
+Trong huấn luyện deep learning hiện đại, mini-batch gần như là lựa chọn mặc định.
+\end{ghinho}
+
+% ==========================================================
+\chapter{So sánh ba phương pháp Gradient Descent}
+
+\section{Bảng so sánh}
+
+\begin{center}
+\begin{tabular}{p{0.24\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.22\textwidth}}
+\toprule
+Tiêu chí & SGD & Batch GD & Mini-batch GD \\
+\midrule
+Số mẫu mỗi lần cập nhật & 1 & Toàn bộ dữ liệu & Một nhóm nhỏ \\
+Batch size & $B=1$ & $B=N$ & $1<B<N$ \\
+Độ nhiễu & Cao & Thấp & Trung bình \\
+Độ ổn định & Thấp & Cao & Vừa phải \\
+Khả năng online learning & Có & Không thuận lợi & Có thể, tùy cách dùng \\
+Khả năng thoát local minimum & Tốt hơn do nhiễu & Kém hơn & Khá tốt \\
+Tận dụng GPU & Không tối ưu & Có thể nặng bộ nhớ & Tốt \\
+Mức phổ biến hiện nay & Ít dùng nguyên bản & Ít dùng với dữ liệu lớn & Rất phổ biến \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ba thái cực và giải pháp trung gian}
+
+SGD và Batch Gradient Descent là hai thái cực:
+
+\[
+    B=1
+    \quad \text{và} \quad
+    B=N
+\]
+
+Mini-batch nằm giữa:
+
+\[
+    1 < B < N
+\]
+
+\begin{vidu}
+Có thể hình dung như việc học và chơi. Chỉ học mà không chơi thì không cân bằng; chỉ chơi mà không học cũng không ổn. Cách tốt thường nằm ở giữa. Mini-batch cũng vậy: nó cân bằng giữa tính nhiễu của SGD và tính ổn định của Batch Gradient Descent.
+\end{vidu}
+
+% ==========================================================
+\chapter{Các thuật ngữ quan trọng}
+
+\section{Sample, data point và example}
+
+Một mẫu dữ liệu có thể được gọi bằng nhiều tên:
+
+\begin{itemize}
+    \item sample;
+    \item example;
+    \item data point;
+    \item instance.
+\end{itemize}
+
+Ví dụ trong bài toán dự đoán sức khỏe, một sample có thể là thông tin của một người:
+
+\[
+    x =
+    \begin{bmatrix}
+    \text{chiều cao}\\
+    \text{cân nặng}\\
+    \text{huyết áp}\\
+    \text{nhịp tim}\\
+    \text{tuổi}
+    \end{bmatrix}
+\]
+
+\section{Feature}
+
+Feature là một đặc trưng hoặc thuộc tính của mẫu dữ liệu.
+
+Ví dụ:
+
+\begin{itemize}
+    \item chiều cao;
+    \item cân nặng;
+    \item nhóm máu;
+    \item huyết áp;
+    \item độ tuổi;
+    \item giá trị pixel trong ảnh.
+\end{itemize}
+
+Nếu một người được mô tả bằng chiều cao, cân nặng và huyết áp, thì ta có 3 feature.
+
+\section{Batch}
+
+Batch là một nhóm mẫu dữ liệu được xử lý cùng nhau trong một lần cập nhật hoặc một lần tính toán.
+
+Nếu batch có 32 mẫu:
+
+\[
+    B=32
+\]
+
+thì batch size bằng 32.
+
+\section{Batch size}
+
+Batch size là số sample trong một batch.
+
+\[
+    \text{batch size}=B
+\]
+
+Các trường hợp đặc biệt:
+
+\[
+    B=1
+    \Rightarrow
+    \text{SGD}
+\]
+
+\[
+    B=N
+    \Rightarrow
+    \text{Batch Gradient Descent}
+\]
+
+\[
+    1<B<N
+    \Rightarrow
+    \text{Mini-batch Gradient Descent}
+\]
+
+\section{Iteration}
+
+Iteration là một lần cập nhật tham số.
+
+Nếu dùng mini-batch, mỗi mini-batch thường tạo ra một iteration.
+
+\[
+    \text{1 mini-batch}
+    \rightarrow
+    \text{1 lần cập nhật}
+    \rightarrow
+    \text{1 iteration}
+\]
+
+\section{Epoch}
+
+Một epoch là một lần mô hình đi qua toàn bộ tập dữ liệu huấn luyện.
+
+Nếu tập dữ liệu có $N$ mẫu, thì một epoch nghĩa là tất cả $N$ mẫu đã được dùng một lần để huấn luyện.
+
+\[
+    \text{1 epoch}
+    =
+    \text{đi qua toàn bộ training set một lần}
+\]
+
+\begin{ghinho}
+Epoch không đồng nghĩa với một lần cập nhật. Trong một epoch có thể có rất nhiều lần cập nhật, tùy batch size.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Cách tính số iteration trong một epoch}
+
+\section{Công thức tổng quát}
+
+Giả sử:
+
+\[
+    N = \text{số mẫu dữ liệu}
+\]
+
+\[
+    B = \text{batch size}
+\]
+
+Số iteration trong một epoch xấp xỉ:
+
+\[
+    \text{iterations per epoch}
+    =
+    \left\lceil
+    \frac{N}{B}
+    \right\rceil
+\]
+
+Nếu $N$ chia hết cho $B$:
+
+\[
+    \text{iterations per epoch}
+    =
+    \frac{N}{B}
+\]
+
+\section{Trường hợp SGD}
+
+Với SGD:
+
+\[
+    B=1
+\]
+
+Do đó:
+
+\[
+    \text{iterations per epoch}
+    =
+    \frac{N}{1}
+    =
+    N
+\]
+
+Nếu có 2.4 tỷ ảnh:
+
+\[
+    N=2,400,000,000
+\]
+
+thì SGD cần:
+
+\[
+    2,400,000,000
+\]
+
+lần cập nhật để hoàn thành một epoch.
+
+\section{Trường hợp Batch Gradient Descent}
+
+Với Batch Gradient Descent:
+
+\[
+    B=N
+\]
+
+Do đó:
+
+\[
+    \text{iterations per epoch}
+    =
+    \frac{N}{N}
+    =
+    1
+\]
+
+Tức là mỗi epoch chỉ cập nhật một lần.
+
+\section{Trường hợp Mini-batch Gradient Descent}
+
+Giả sử:
+
+\[
+    N=2,400,000,000
+\]
+
+và:
+
+\[
+    B=1,000,000
+\]
+
+Số iteration trong một epoch:
+
+\[
+    \frac{2,400,000,000}{1,000,000}
+    =
+    2400
+\]
+
+Như vậy, trong một epoch, ta có 2400 lần cập nhật.
+
+\begin{vidu}
+Nếu dùng mini-batch size 1 triệu ảnh, mỗi lần đưa 1 triệu ảnh vào, cập nhật một lần. Sau 2400 mini-batch như vậy, toàn bộ 2.4 tỷ ảnh đã được dùng một lượt. Khi đó kết thúc một epoch.
+\end{vidu}
+
+\section{Nhiều epoch}
+
+Thông thường, một epoch là chưa đủ để mô hình hội tụ.
+
+Ta thường cần:
+
+\[
+    10,\ 50,\ 100,\ 1000
+\]
+
+epoch hoặc nhiều hơn, tùy bài toán.
+
+\begin{ghinho}
+Sau một epoch, mô hình mới chỉ nhìn thấy toàn bộ dữ liệu một lần. Với bài toán phức tạp, cần lặp lại nhiều epoch để mô hình học tốt hơn.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Tại sao Batch GD là hướng dốc nhất còn SGD thì nhiễu?}
+
+\section{Hàm loss tổng thể}
+
+Giả sử loss tổng thể là:
+
+\[
+    L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    L_i(W)
+\]
+
+Gradient thật của loss tổng thể là:
+
+\[
+    \nabla_W L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W)
+\]
+
+Đây là hướng tăng nhanh nhất của loss tổng thể. Do đó:
+
+\[
+    -\nabla_W L(W)
+\]
+
+là hướng giảm nhanh nhất của loss tổng thể.
+
+\section{Batch Gradient Descent}
+
+Batch Gradient Descent dùng đúng:
+
+\[
+    \nabla_W L(W)
+\]
+
+nên nó đi theo hướng giảm dốc nhất của toàn bộ hàm loss.
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \nabla_W L(W_t)
+\]
+
+\section{Stochastic Gradient Descent}
+
+SGD chỉ dùng một mẫu:
+
+\[
+    \nabla_W L_i(W)
+\]
+
+Gradient này là gradient của một mẫu, không phải gradient của toàn bộ tập dữ liệu.
+
+Vì vậy, hướng cập nhật:
+
+\[
+    -\nabla_W L_i(W)
+\]
+
+chỉ là hướng giảm loss của mẫu thứ $i$, không nhất thiết là hướng giảm nhanh nhất của loss tổng thể.
+
+\begin{luuy}
+SGD nhiễu vì mỗi sample có thể kéo tham số theo một hướng hơi khác nhau. Nhưng khi xét trung bình qua nhiều mẫu, các hướng này có xu hướng xấp xỉ gradient tổng thể.
+\end{luuy}
+
+\section{Mini-batch Gradient Descent}
+
+Mini-batch dùng trung bình gradient của một nhóm nhỏ:
+
+\[
+    \frac{1}{B}
+    \sum_{i\in \mathcal{B}}
+    \nabla_W L_i(W)
+\]
+
+Nó gần với gradient tổng thể hơn SGD, nhưng vẫn chưa chính xác bằng Batch Gradient Descent.
+
+Do đó:
+
+\[
+    \text{SGD: nhiễu nhiều}
+\]
+
+\[
+    \text{Mini-batch: nhiễu vừa}
+\]
+
+\[
+    \text{Batch: ít nhiễu nhất}
+\]
+
+% ==========================================================
+\chapter{Bài tập được giao trong bài ANN9}
+
+\section{Nội dung bài tập}
+
+Trong bài học, giảng viên giao bài tập yêu cầu người học tự lập trình để hiểu rõ ``ruột'' của ba phương pháp Gradient Descent.
+
+Yêu cầu chính:
+
+\begin{enumerate}
+    \item Tìm ít nhất hai hàm không lồi.
+    \item Hàm phải là hàm hai biến.
+    \item Giá trị hàm là một số vô hướng.
+    \item Hàm nên có nhiều cực trị địa phương để dễ minh họa.
+    \item Áp dụng ba phương pháp:
+    \begin{enumerate}
+        \item Stochastic Gradient Descent.
+        \item Batch Gradient Descent.
+        \item Mini-batch Gradient Descent.
+    \end{enumerate}
+    \item Với mỗi phương pháp, khảo sát ít nhất 5 điểm khởi tạo khác nhau.
+    \item Tự điều chỉnh learning rate và các tham số liên quan.
+    \item Vẽ hoặc ghi lại đường đi của thuật toán.
+    \item So sánh khả năng hội tụ và khả năng mắc kẹt ở cực trị địa phương.
+\end{enumerate}
+
+\section{Gợi ý hàm không lồi}
+
+Có thể dùng các hàm hai biến sau để minh họa.
+
+\subsection{Hàm Himmelblau}
+
+\[
+    f(x,y)
+    =
+    (x^2+y-11)^2
+    +
+    (x+y^2-7)^2
+\]
+
+Hàm này có nhiều cực tiểu địa phương và thường được dùng để minh họa tối ưu hóa.
+
+\subsection{Hàm Rastrigin hai biến}
+
+\[
+    f(x,y)
+    =
+    20
+    +
+    x^2
+    -
+    10\cos(2\pi x)
+    +
+    y^2
+    -
+    10\cos(2\pi y)
+\]
+
+Hàm này có nhiều vùng lồi lõm và nhiều cực trị địa phương.
+
+\begin{luuy}
+Khi tự lập trình, cần tính đạo hàm riêng theo $x$ và $y$, sau đó cập nhật theo công thức Gradient Descent.
+\end{luuy}
+
+\section{Gradient tổng quát cho hàm hai biến}
+
+Với hàm:
+
+\[
+    f(x,y)
+\]
+
+gradient là:
+
+\[
+    \nabla f(x,y)
+    =
+    \begin{bmatrix}
+    \frac{\partial f}{\partial x}\\
+    \frac{\partial f}{\partial y}
+    \end{bmatrix}
+\]
+
+Cập nhật:
+
+\[
+    \begin{bmatrix}
+    x_{t+1}\\
+    y_{t+1}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    x_t\\
+    y_t
+    \end{bmatrix}
+    -
+    \eta
+    \begin{bmatrix}
+    \frac{\partial f}{\partial x}(x_t,y_t)\\
+    \frac{\partial f}{\partial y}(x_t,y_t)
+    \end{bmatrix}
+\]
+
+\section{Ý nghĩa của việc tự lập trình}
+
+Nếu chỉ dùng thư viện có sẵn, người học có thể không hiểu chính xác:
+
+\begin{itemize}
+    \item gradient được tính như thế nào;
+    \item batch size ảnh hưởng ra sao;
+    \item vì sao SGD nhiễu;
+    \item vì sao Batch GD ổn định;
+    \item vì sao Mini-batch là giải pháp trung gian;
+    \item learning rate làm thay đổi đường đi như thế nào.
+\end{itemize}
+
+\begin{ghinho}
+Tự lập trình bài toán nhỏ giúp hiểu bản chất của thuật toán tốt hơn nhiều so với chỉ gọi một hàm có sẵn trong thư viện.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Pseudocode cho ba phương pháp}
+
+\section{Pseudocode SGD}
+
+\begin{verbatim}
+Khởi tạo W ngẫu nhiên
+For epoch = 1 to num_epochs:
+    Xáo trộn dữ liệu
+    For từng sample (x_i, y_i):
+        Tính loss L_i(W)
+        Tính gradient grad_i
+        W = W - learning_rate * grad_i
+\end{verbatim}
+
+\section{Pseudocode Batch Gradient Descent}
+
+\begin{verbatim}
+Khởi tạo W ngẫu nhiên
+For epoch = 1 to num_epochs:
+    grad_total = 0
+    For từng sample (x_i, y_i):
+        Tính gradient grad_i
+        grad_total = grad_total + grad_i
+    grad_average = grad_total / N
+    W = W - learning_rate * grad_average
+\end{verbatim}
+
+\section{Pseudocode Mini-batch Gradient Descent}
+
+\begin{verbatim}
+Khởi tạo W ngẫu nhiên
+For epoch = 1 to num_epochs:
+    Xáo trộn dữ liệu
+    Chia dữ liệu thành các mini-batch
+    For từng mini-batch B:
+        grad_batch = 0
+        For từng sample trong B:
+            Tính gradient grad_i
+            grad_batch = grad_batch + grad_i
+        grad_average = grad_batch / batch_size
+        W = W - learning_rate * grad_average
+\end{verbatim}
+
+\begin{luuy}
+Trong các thư viện deep learning, việc tính gradient thường được tự động hóa bằng automatic differentiation. Tuy nhiên, về bản chất, các bước phía trên vẫn là nền tảng.
+\end{luuy}
+
+% ==========================================================
+\chapter{Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Gradient Descent & Phương pháp cập nhật tham số theo hướng ngược gradient để giảm loss. & $W=W-\eta\nabla L$. \\
+
+Stochastic Gradient Descent & Cập nhật tham số sau từng sample. & Batch size bằng 1. \\
+
+Batch Gradient Descent & Dùng toàn bộ dữ liệu để tính gradient rồi cập nhật một lần. & Batch size bằng $N$. \\
+
+Mini-batch Gradient Descent & Dùng một nhóm nhỏ dữ liệu để tính gradient rồi cập nhật. & Batch size 32. \\
+
+Gradient & Vector đạo hàm của loss theo tham số. & $\nabla_W L$. \\
+
+Loss function & Hàm mất mát cần tối thiểu hóa. & Cross entropy, MSE. \\
+
+Weight & Trọng số trong mạng nơ-ron. & $w_1,w_2$. \\
+
+Bias & Tham số cộng thêm vào tổng có trọng số. & $b$. \\
+
+Sample & Một mẫu dữ liệu. & Một ảnh con chó. \\
+
+Example & Cách gọi khác của sample. & Một dòng dữ liệu. \\
+
+Data point & Một điểm dữ liệu. & Một người với chiều cao, cân nặng. \\
+
+Feature & Đặc trưng mô tả sample. & Chiều cao, huyết áp. \\
+
+Batch & Một nhóm sample được xử lý cùng nhau. & 32 ảnh. \\
+
+Batch size & Số sample trong một batch. & $B=64$. \\
+
+Iteration & Một lần cập nhật tham số. & Một mini-batch tạo một iteration. \\
+
+Epoch & Một lượt đi qua toàn bộ training set. & 50 epoch. \\
+
+Online learning & Vừa sử dụng mô hình vừa cập nhật khi có dữ liệu mới. & Cập nhật sau mỗi ảnh mới. \\
+
+Contour line & Đường đồng mức, gồm các điểm có cùng giá trị hàm. & $f(x,y)=c$. \\
+
+Local minimum & Cực tiểu địa phương. & Hố nhỏ trên bề mặt loss. \\
+
+Global minimum & Cực tiểu toàn cục. & Điểm có loss nhỏ nhất toàn miền. \\
+
+Non-convex function & Hàm không lồi, có thể có nhiều cực trị địa phương. & Rastrigin. \\
+
+Learning rate & Hệ số quyết định bước cập nhật lớn hay nhỏ. & $\eta=0.001$. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\chapter{Tóm tắt kiến thức trọng tâm}
+
+\section{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Gradient Descent dùng gradient để cập nhật trọng số và bias.
+    \item SGD cập nhật sau từng sample.
+    \item Batch Gradient Descent cập nhật sau khi dùng toàn bộ dữ liệu.
+    \item Mini-batch Gradient Descent cập nhật sau từng nhóm nhỏ dữ liệu.
+    \item SGD có đường đi nhiễu nhưng có thể tránh cực trị địa phương tốt hơn.
+    \item Batch Gradient Descent ổn định hơn nhưng có thể mắc kẹt ở cực trị địa phương.
+    \item Mini-batch cân bằng giữa SGD và Batch Gradient Descent.
+    \item Batch size bằng 1 tương ứng với SGD.
+    \item Batch size bằng toàn bộ dữ liệu tương ứng với Batch Gradient Descent.
+    \item Một epoch là một lần đi qua toàn bộ tập dữ liệu.
+    \item Một iteration là một lần cập nhật tham số.
+    \item Trong một epoch có thể có nhiều iteration.
+    \item Với $N$ mẫu và batch size $B$, số iteration trong một epoch là $\lceil N/B\rceil$.
+    \item Hiện nay, mini-batch được dùng rất phổ biến trong huấn luyện deep learning.
+\end{enumerate}
+
+\section{Công thức quan trọng}
+
+\subsection*{Loss trung bình}
+
+\[
+    L(W)=\frac{1}{N}\sum_{i=1}^{N}L_i(W)
+\]
+
+\subsection*{Gradient toàn bộ dữ liệu}
+
+\[
+    \nabla_W L(W)
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W)
+\]
+
+\subsection*{SGD}
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \nabla_W L_i(W_t)
+\]
+
+\subsection*{Batch Gradient Descent}
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \nabla_W L_i(W_t)
+\]
+
+\subsection*{Mini-batch Gradient Descent}
+
+\[
+    W_{t+1}
+    =
+    W_t
+    -
+    \eta
+    \frac{1}{B}
+    \sum_{i\in \mathcal{B}}
+    \nabla_W L_i(W_t)
+\]
+
+\subsection*{Số iteration trong một epoch}
+
+\[
+    \text{iterations per epoch}
+    =
+    \left\lceil
+    \frac{N}{B}
+    \right\rceil
+\]
+
+% ==========================================================
+\chapter{Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Stochastic Gradient Descent là gì?
+    \item Batch Gradient Descent là gì?
+    \item Mini-batch Gradient Descent là gì?
+    \item Batch size là gì?
+    \item Nếu batch size bằng 1 thì phương pháp trở thành gì?
+    \item Nếu batch size bằng toàn bộ số mẫu dữ liệu thì phương pháp trở thành gì?
+    \item Vì sao SGD có đường đi nhiễu?
+    \item Vì sao Batch Gradient Descent ổn định hơn SGD?
+    \item Vì sao SGD có thể tránh cực trị địa phương tốt hơn?
+    \item Vì sao Batch Gradient Descent có thể dễ mắc kẹt ở cực trị địa phương?
+    \item Vì sao Mini-batch Gradient Descent được dùng phổ biến?
+    \item Đường đồng mức là gì?
+    \item Một epoch là gì?
+    \item Một iteration là gì?
+    \item Với 10,000 mẫu và batch size 100, một epoch có bao nhiêu iteration?
+    \item Với 2.4 tỷ mẫu và batch size 1 triệu, một epoch có bao nhiêu iteration?
+    \item Vì sao cần huấn luyện nhiều epoch?
+    \item Vì sao khi dùng Batch hoặc Mini-batch ta lấy trung bình gradient?
+\end{enumerate}
+
+% ==========================================================
+\chapter{Bài tập vận dụng}
+
+\section*{Bài tập 1: Tính số iteration}
+\addcontentsline{toc}{section}{Bài tập 1: Tính số iteration}
+
+Một tập dữ liệu có:
+
+\[
+    N=50,000
+\]
+
+mẫu. Tính số iteration trong một epoch cho các trường hợp:
+
+\begin{enumerate}
+    \item SGD.
+    \item Batch Gradient Descent.
+    \item Mini-batch với $B=100$.
+    \item Mini-batch với $B=250$.
+\end{enumerate}
+
+\section*{Lời giải gợi ý}
+
+SGD:
+
+\[
+    B=1
+\]
+
+\[
+    \frac{50,000}{1}=50,000
+\]
+
+Batch Gradient Descent:
+
+\[
+    B=N=50,000
+\]
+
+\[
+    \frac{50,000}{50,000}=1
+\]
+
+Mini-batch $B=100$:
+
+\[
+    \frac{50,000}{100}=500
+\]
+
+Mini-batch $B=250$:
+
+\[
+    \frac{50,000}{250}=200
+\]
+
+\section*{Bài tập 2: Nhận diện phương pháp}
+\addcontentsline{toc}{section}{Bài tập 2: Nhận diện phương pháp}
+
+Hãy xác định phương pháp tương ứng:
+
+\begin{enumerate}
+    \item Mỗi lần đưa một ảnh vào rồi cập nhật ngay.
+    \item Đưa toàn bộ dữ liệu vào, lấy trung bình gradient rồi cập nhật.
+    \item Mỗi lần đưa 64 ảnh vào rồi cập nhật.
+\end{enumerate}
+
+\section*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item Stochastic Gradient Descent.
+    \item Batch Gradient Descent.
+    \item Mini-batch Gradient Descent.
+\end{enumerate}
+
+\section*{Bài tập 3: So sánh ưu nhược điểm}
+\addcontentsline{toc}{section}{Bài tập 3: So sánh ưu nhược điểm}
+
+Điền vào bảng sau:
+
+\begin{center}
+\begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
+\toprule
+Phương pháp & Ưu điểm & Nhược điểm \\
+\midrule
+SGD &  &  \\
+Batch GD &  &  \\
+Mini-batch GD &  &  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Lời giải gợi ý}
+
+\begin{center}
+\begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
+\toprule
+Phương pháp & Ưu điểm & Nhược điểm \\
+\midrule
+SGD & Cập nhật nhanh, có thể tránh local minimum & Nhiễu, dao động mạnh \\
+Batch GD & Ổn định, đúng hướng gradient tổng thể & Tốn bộ nhớ, dễ kẹt local minimum \\
+Mini-batch GD & Cân bằng, tận dụng GPU tốt & Cần chọn batch size phù hợp \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Bài tập 4: Bài tập lập trình theo yêu cầu}
+\addcontentsline{toc}{section}{Bài tập 4: Bài tập lập trình theo yêu cầu}
+
+Hãy tự chọn ít nhất hai hàm không lồi hai biến. Với mỗi hàm:
+
+\begin{enumerate}
+    \item Tính đạo hàm riêng theo $x$ và $y$.
+    \item Lập trình ba phương pháp:
+    \begin{enumerate}
+        \item SGD.
+        \item Batch Gradient Descent.
+        \item Mini-batch Gradient Descent.
+    \end{enumerate}
+    \item Khảo sát ít nhất 5 điểm khởi tạo.
+    \item Thử nhiều learning rate khác nhau.
+    \item Vẽ đường đi của nghiệm trên contour plot.
+    \item Nhận xét phương pháp nào ổn định hơn, phương pháp nào dễ thoát local minimum hơn.
+\end{enumerate}
+
+\section*{Gợi ý hàm}
+
+\[
+    f_1(x,y)
+    =
+    (x^2+y-11)^2
+    +
+    (x+y^2-7)^2
+\]
+
+\[
+    f_2(x,y)
+    =
+    20
+    +
+    x^2
+    -
+    10\cos(2\pi x)
+    +
+    y^2
+    -
+    10\cos(2\pi y)
+\]
+
+% ==========================================================
+\chapter*{Kết luận}
+\addcontentsline{toc}{chapter}{Kết luận}
+
+ANN9 làm rõ ba cách cập nhật tham số trong Gradient Descent. Stochastic Gradient Descent cập nhật sau từng mẫu dữ liệu, nên đường đi có nhiều nhiễu nhưng có khả năng tránh cực trị địa phương tốt hơn. Batch Gradient Descent dùng toàn bộ dữ liệu để tính gradient trung bình, nên ổn định hơn và đi theo hướng giảm tốt hơn của loss tổng thể, nhưng có thể tốn kém và dễ bị kẹt trong cực trị địa phương. Mini-batch Gradient Descent là giải pháp trung gian, dùng một nhóm nhỏ dữ liệu cho mỗi lần cập nhật.
+
+Trong thực tế huấn luyện deep learning, mini-batch được dùng rất phổ biến vì nó cân bằng giữa hiệu quả tính toán, độ ổn định và khả năng tổng quát. Bài học cũng nhấn mạnh các thuật ngữ quan trọng như sample, feature, batch size, iteration và epoch. Đặc biệt, cần phân biệt rõ: một epoch là một lượt đi qua toàn bộ dữ liệu, còn một iteration là một lần cập nhật tham số.
+
+\end{document}

@@ -1,0 +1,1182 @@
+% !TEX program = pdflatex
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% CẤU HÌNH CHO PDFLATEX
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+% =========================
+% VIỆT HÓA
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP NỘI DUNG
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Ví dụ minh họa,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{luuy}{
+    colback=orange!6,
+    colframe=orange!70!black,
+    title=Lưu ý,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{canhbao}{
+    colback=red!4,
+    colframe=red!60!black,
+    title=Cảnh báo,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+% =========================
+% THÔNG TIN TÀI LIỆU
+% =========================
+\title{
+    \textbf{Tài liệu học tập ANN7}\\
+    \large Vanishing Gradient, Underfitting và Overfitting
+}
+\author{Biên soạn theo vai trò trợ giảng chuyên môn}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================================
+\chapter*{Mục tiêu bài học}
+\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+
+Bài ANN7 tập trung vào một số vấn đề thực tế khi huấn luyện mạng nơ-ron. Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Vì sao về mặt lý thuyết ta có thể dùng backpropagation và gradient descent để huấn luyện mạng, nhưng thực tế việc huấn luyện không phải lúc nào cũng dễ.
+    \item Hiểu hiện tượng \textit{vanishing gradient}: gradient quá nhỏ làm trọng số cập nhật rất chậm hoặc gần như không cập nhật.
+    \item Biết vì sao các mạng sâu dùng sigmoid dễ gặp vanishing gradient.
+    \item Hiểu vì sao ReLU và các biến thể của nó được dùng phổ biến hơn sigmoid trong nhiều mạng sâu hiện đại.
+    \item Phân biệt được \textit{underfitting}, \textit{good fitting} và \textit{overfitting}.
+    \item Hiểu overfitting qua hai dạng bài toán: phân loại và hồi quy.
+    \item Hiểu vai trò của nhiễu dữ liệu, sai số đo lường và khả năng tổng quát hóa trên dữ liệu mới.
+    \item Phân biệt bài toán phân loại và bài toán hồi quy.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Từ lý thuyết huấn luyện đến vấn đề thực tế}
+
+\section{Nhắc lại quá trình huấn luyện}
+
+Trong các bài trước, ta đã học quy trình huấn luyện mạng nơ-ron:
+
+\[
+    \text{Input}
+    \rightarrow
+    \text{Tính xuôi}
+    \rightarrow
+    \text{Output dự đoán}
+    \rightarrow
+    \text{Tính loss}
+    \rightarrow
+    \text{Lan truyền ngược}
+    \rightarrow
+    \text{Cập nhật trọng số}
+\]
+
+Về mặt logic, nếu có dữ liệu, có hàm mất mát và có thuật toán tối ưu, ta có thể kỳ vọng rằng mô hình sẽ dần hội tụ.
+
+Tuy nhiên, thực tế phức tạp hơn. Có những trường hợp mạng học rất chậm, không học được, hoặc học quá sát dữ liệu huấn luyện đến mức làm việc kém trên dữ liệu mới.
+
+\begin{ghinho}
+Một mô hình học tốt không chỉ là mô hình có loss nhỏ trên dữ liệu huấn luyện. Điều quan trọng hơn là mô hình phải làm việc tốt trên dữ liệu mới chưa từng thấy.
+\end{ghinho}
+
+\section{Ba vấn đề chính trong bài ANN7}
+
+Bài học tập trung vào ba vấn đề quan trọng:
+
+\begin{enumerate}
+    \item \textbf{Vanishing gradient}: gradient biến mất hoặc gần bằng 0.
+    \item \textbf{Underfitting}: mô hình quá đơn giản, chưa học được xu hướng dữ liệu.
+    \item \textbf{Overfitting}: mô hình quá khớp với dữ liệu huấn luyện, làm mất khả năng tổng quát hóa.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Vanishing Gradient}
+
+\section{Vanishing gradient là gì?}
+
+Trong backpropagation, gradient được dùng để cập nhật trọng số:
+
+\[
+    w_{\text{new}}
+    =
+    w_{\text{old}}
+    -
+    \eta
+    \frac{\partial E}{\partial w}
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $w$ là trọng số;
+    \item $\eta$ là learning rate;
+    \item $\frac{\partial E}{\partial w}$ là gradient của hàm mất mát theo trọng số $w$.
+\end{itemize}
+
+Nếu gradient rất nhỏ:
+
+\[
+    \frac{\partial E}{\partial w} \approx 0
+\]
+
+thì bước cập nhật:
+
+\[
+    \eta \frac{\partial E}{\partial w}
+\]
+
+cũng rất nhỏ. Khi đó trọng số gần như không thay đổi.
+
+\begin{ghinho}
+Vanishing gradient là hiện tượng gradient trở nên quá nhỏ trong quá trình lan truyền ngược, khiến các trọng số ở những lớp phía trước cập nhật rất chậm hoặc gần như không cập nhật.
+\end{ghinho}
+
+\section{Ví dụ số đơn giản}
+
+Giả sử:
+
+\[
+    w = 0.5,\qquad \eta = 0.1
+\]
+
+Nếu gradient bình thường:
+
+\[
+    \frac{\partial E}{\partial w}=0.8
+\]
+
+thì:
+
+\[
+    w_{\text{new}}
+    =
+    0.5 - 0.1 \cdot 0.8
+    =
+    0.42
+\]
+
+Trọng số thay đổi đáng kể.
+
+Nhưng nếu gradient rất nhỏ:
+
+\[
+    \frac{\partial E}{\partial w}=0.000001
+\]
+
+thì:
+
+\[
+    w_{\text{new}}
+    =
+    0.5 - 0.1 \cdot 0.000001
+\]
+
+\[
+    w_{\text{new}}
+    =
+    0.4999999
+\]
+
+Trọng số gần như không thay đổi.
+
+\begin{vidu}
+Nếu một mạng có hàng triệu trọng số, và nhiều trọng số ở các lớp đầu chỉ cập nhật với lượng cực nhỏ như vậy, quá trình huấn luyện có thể trở nên rất chậm. Mạng có thể cần rất nhiều thời gian mà vẫn không học được tốt.
+\end{vidu}
+
+\section{Vì sao gradient có thể biến mất?}
+
+Trong backpropagation, gradient thường là tích của nhiều đạo hàm thành phần.
+
+Ví dụ đơn giản:
+
+\[
+    \frac{\partial E}{\partial w_1}
+    =
+    a_1 \cdot a_2 \cdot a_3 \cdot \ldots \cdot a_n
+\]
+
+Nếu nhiều thành phần trong đó nhỏ hơn 1, tích của chúng sẽ càng ngày càng nhỏ.
+
+\[
+    0.5^5 = 0.03125
+\]
+
+\[
+    0.5^{10} = 0.0009765625
+\]
+
+\[
+    0.5^{20} \approx 0.0000009537
+\]
+
+Khi mạng càng sâu, chuỗi nhân trong backpropagation càng dài. Vì vậy, gradient truyền về các lớp đầu có thể trở nên cực kỳ nhỏ.
+
+\begin{ghinho}
+Mạng càng sâu thì gradient càng phải đi qua nhiều lớp. Nếu các đạo hàm trung gian nhỏ, gradient ở các lớp đầu có thể bị ``triệt tiêu''.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Vanishing Gradient và hàm sigmoid}
+
+\section{Hàm sigmoid}
+
+Hàm sigmoid được định nghĩa:
+
+\[
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\]
+
+Đạo hàm của sigmoid có dạng:
+
+\[
+    \sigma'(x)=\sigma(x)(1-\sigma(x))
+\]
+
+Giá trị lớn nhất của đạo hàm sigmoid là:
+
+\[
+    \sigma'(0)=0.25
+\]
+
+Điều này có nghĩa là đạo hàm sigmoid không bao giờ lớn hơn $0.25$.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % Axes
+    \draw[->] (-4.5,0) -- (4.5,0) node[right] {$x$};
+    \draw[->] (0,-0.1) -- (0,1.2) node[above] {$y$};
+
+    % Sigmoid rough curve
+    \draw[domain=-4:4,smooth,variable=\x,thick,blue]
+        plot ({\x},{1/(1+exp(-\x))});
+
+    \node[blue] at (2.8,0.85) {$\sigma(x)$};
+
+    % derivative max indicator
+    \draw[dashed] (0,0) -- (0,0.5);
+    \filldraw[red] (0,0.5) circle (2pt);
+    \node[right] at (0.1,0.5) {$\sigma(0)=0.5$};
+
+\end{tikzpicture}
+\end{center}
+
+\section{Vấn đề của sigmoid trong mạng sâu}
+
+Vì đạo hàm sigmoid thường nhỏ, khi nhân nhiều đạo hàm sigmoid qua nhiều lớp, gradient có thể giảm rất nhanh.
+
+Ví dụ, nếu mỗi lớp tạo ra một hệ số đạo hàm khoảng $0.25$, sau 10 lớp:
+
+\[
+    0.25^{10}
+    =
+    0.00000095367431640625
+\]
+
+Đây là một số rất nhỏ.
+
+Sau 20 lớp:
+
+\[
+    0.25^{20}
+    \approx 9.09 \times 10^{-13}
+\]
+
+Gradient lúc này gần như biến mất.
+
+\begin{canhbao}
+Đây là một lý do quan trọng khiến sigmoid không còn được dùng phổ biến ở các lớp ẩn trong nhiều mạng sâu hiện đại.
+\end{canhbao}
+
+\section{Sigmoid bị bão hòa}
+
+Khi $x$ rất lớn hoặc rất nhỏ, sigmoid gần như nằm ngang.
+
+\[
+    x \gg 0 \Rightarrow \sigma(x)\approx 1
+\]
+
+\[
+    x \ll 0 \Rightarrow \sigma(x)\approx 0
+\]
+
+Ở hai vùng này, đạo hàm rất nhỏ:
+
+\[
+    \sigma'(x)\approx 0
+\]
+
+Khi đạo hàm gần 0, gradient truyền qua neuron đó cũng rất nhỏ.
+
+\begin{vidu}
+Giả sử một neuron sigmoid nhận $x=10$.
+
+\[
+    \sigma(10)\approx 0.99995
+\]
+
+Đạo hàm:
+
+\[
+    \sigma'(10)
+    =
+    \sigma(10)(1-\sigma(10))
+\]
+
+\[
+    \approx
+    0.99995(1-0.99995)
+    \approx 0.00005
+\]
+
+Đạo hàm này rất nhỏ. Nếu nhiều neuron đều rơi vào vùng như vậy, gradient sẽ yếu đi rất nhanh.
+\end{vidu}
+
+% ==========================================================
+\chapter{ReLU và ý tưởng giảm vanishing gradient}
+
+\section{Hàm ReLU}
+
+ReLU, viết đầy đủ là \textit{Rectified Linear Unit}, được định nghĩa:
+
+\[
+    \operatorname{ReLU}(x)=\max(0,x)
+\]
+
+Tức là:
+
+\[
+    \operatorname{ReLU}(x)=
+    \begin{cases}
+    0, & x\leq 0\\
+    x, & x>0
+    \end{cases}
+\]
+
+Đạo hàm của ReLU:
+
+\[
+    \operatorname{ReLU}'(x)=
+    \begin{cases}
+    0, & x<0\\
+    1, & x>0
+    \end{cases}
+\]
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % Axes
+    \draw[->] (-4,0) -- (4,0) node[right] {$x$};
+    \draw[->] (0,-0.5) -- (0,3.5) node[above] {$y$};
+
+    % ReLU
+    \draw[thick,blue] (-3.5,0) -- (0,0);
+    \draw[thick,blue] (0,0) -- (3,3);
+    \node[blue] at (2.5,2.4) {ReLU};
+
+    \node[below] at (0,0) {$0$};
+\end{tikzpicture}
+\end{center}
+
+\section{Vì sao ReLU giúp giảm vanishing gradient?}
+
+Với $x>0$, đạo hàm của ReLU bằng 1.
+
+\[
+    \operatorname{ReLU}'(x)=1
+\]
+
+Khi lan truyền ngược qua nhiều lớp, nhân với 1 không làm gradient nhỏ đi như khi nhân với các số nhỏ hơn 1.
+
+\begin{vidu}
+So sánh hai chuỗi nhân:
+
+\[
+    0.25^{10}\approx 0.0000009537
+\]
+
+nhưng:
+
+\[
+    1^{10}=1
+\]
+
+Vì vậy, ở vùng ReLU hoạt động, gradient có thể truyền ngược tốt hơn nhiều so với sigmoid.
+\end{vidu}
+
+\section{Hạn chế của ReLU}
+
+ReLU không hoàn hảo. Với $x<0$, đạo hàm của ReLU bằng 0. Khi một neuron rơi vào vùng âm và luôn cho output 0, nó có thể khó được cập nhật.
+
+Hiện tượng này thường được gọi là \textit{dying ReLU}.
+
+Để khắc phục, nhiều biến thể của ReLU được đề xuất, ví dụ:
+
+\begin{itemize}
+    \item Leaky ReLU;
+    \item Parametric ReLU;
+    \item ELU;
+    \item SELU.
+\end{itemize}
+
+\begin{luuy}
+Ý chính trong bài học là: các hàm kích hoạt hiện đại được phát triển một phần để giảm vấn đề vanishing gradient và giúp mạng sâu huấn luyện hiệu quả hơn.
+\end{luuy}
+
+% ==========================================================
+\chapter{Underfitting và Overfitting}
+
+\section{Bài toán fitting là gì?}
+
+Khi huấn luyện mô hình, ta muốn mô hình học được quan hệ giữa input và output từ dữ liệu huấn luyện.
+
+Nếu mô hình học quá ít, nó không nắm được xu hướng dữ liệu. Đây là underfitting.
+
+Nếu mô hình học quá sát từng điểm dữ liệu huấn luyện, kể cả nhiễu và điểm bất thường, nó có thể làm việc kém trên dữ liệu mới. Đây là overfitting.
+
+Trường hợp mong muốn là mô hình học được xu hướng chung của dữ liệu.
+
+\begin{ghinho}
+Mục tiêu không phải là nhớ chính xác mọi điểm dữ liệu huấn luyện, mà là học được quy luật tổng quát để áp dụng cho dữ liệu mới.
+\end{ghinho}
+
+\section{Ba trạng thái thường gặp}
+
+\begin{center}
+\begin{tabular}{p{0.25\textwidth}p{0.35\textwidth}p{0.30\textwidth}}
+\toprule
+Trạng thái & Mô tả & Hậu quả \\
+\midrule
+Underfitting & Mô hình quá đơn giản, chưa khớp dữ liệu & Sai nhiều trên cả train và test \\
+Good fitting & Mô hình học được xu hướng chung & Làm việc tốt trên dữ liệu mới \\
+Overfitting & Mô hình quá khớp dữ liệu huấn luyện & Train tốt nhưng test kém \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\chapter{Ví dụ phân loại 2D}
+
+\section{Mô tả ví dụ}
+
+Giả sử ta có dữ liệu 2D, ví dụ:
+
+\[
+    x_1 = \text{chiều cao}, \qquad x_2 = \text{cân nặng}
+\]
+
+Mỗi điểm dữ liệu thuộc một trong hai lớp:
+
+\[
+    \text{Lớp A} \quad \text{hoặc} \quad \text{Lớp B}
+\]
+
+Ví dụ:
+
+\begin{itemize}
+    \item người thuộc nhóm A và nhóm B;
+    \item người thừa cân và không thừa cân;
+    \item người mắc bệnh và không mắc bệnh.
+\end{itemize}
+
+Mô hình cần tìm đường ranh giới để phân chia hai lớp.
+
+\section{Underfitting trong phân loại}
+
+Underfitting xảy ra khi đường phân lớp quá đơn giản so với dữ liệu.
+
+Ví dụ, dữ liệu có xu hướng cong, nhưng mô hình chỉ dùng một đường thẳng đơn giản. Khi đó, nhiều điểm bị phân loại sai.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9,>=Stealth]
+    \draw[->] (0,0) -- (5,0) node[right] {$x_1$};
+    \draw[->] (0,0) -- (0,4) node[above] {$x_2$};
+
+    % Class A circles
+    \foreach \x/\y in {0.8/0.8,1.1/1.2,1.4/1.5,1.8/1.8,2.2/2.0,2.6/2.2,3.0/2.4}
+        \draw[blue,thick] (\x,\y) circle (2pt);
+
+    % Class B crosses
+    \foreach \x/\y in {1.2/3.0,1.7/3.2,2.2/3.0,2.7/2.9,3.2/2.7,3.7/2.5,4.0/2.3}
+        \draw[red,thick] (\x-0.06,\y-0.06) -- (\x+0.06,\y+0.06)
+                          (\x-0.06,\y+0.06) -- (\x+0.06,\y-0.06);
+
+    % Bad linear boundary
+    \draw[thick,orange] (0.6,2.2) -- (4.5,1.6);
+    \node[orange] at (3.3,0.8) {underfitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{vidu}
+Nếu dữ liệu thật có ranh giới cong, nhưng ta dùng mô hình tuyến tính quá đơn giản, mô hình sẽ không học được cấu trúc dữ liệu. Kết quả là nhiều điểm ở cả hai lớp bị phân loại sai.
+\end{vidu}
+
+\section{ fitting trong phân loại}
+
+Good fitting là khi mô hình học được xu hướng chung của dữ liệu. Nó có thể chấp nhận một vài điểm sai do nhiễu hoặc điểm bất thường, nhưng đường phân lớp vẫn hợp lý.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9,>=Stealth]
+    \draw[->] (0,0) -- (5,0) node[right] {$x_1$};
+    \draw[->] (0,0) -- (0,4) node[above] {$x_2$};
+
+    % Class A circles
+    \foreach \x/\y in {0.8/0.8,1.1/1.2,1.4/1.5,1.8/1.8,2.2/2.0,2.6/2.2,3.0/2.4,3.4/2.55}
+        \draw[blue,thick] (\x,\y) circle (2pt);
+
+    % Class B crosses
+    \foreach \x/\y in {1.2/3.0,1.7/3.2,2.2/3.0,2.7/2.9,3.2/2.7,3.7/2.5,4.0/2.3}
+        \draw[red,thick] (\x-0.06,\y-0.06) -- (\x+0.06,\y+0.06)
+                          (\x-0.06,\y+0.06) -- (\x+0.06,\y-0.06);
+
+    % A noisy point
+    \draw[blue,thick] (3.6,2.85) circle (2pt);
+
+    % Good curved boundary
+    \draw[thick,orange,smooth] plot coordinates {
+        (0.7,2.2) (1.3,2.35) (2.0,2.45) (2.8,2.55) (3.6,2.70) (4.3,2.95)
+    };
+    \node[orange] at (3.5,1.0) {good fitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{ghinho}
+Một mô hình tốt không nhất thiết phải phân loại đúng 100\% dữ liệu huấn luyện. Nó cần học được xu hướng chung để dự đoán tốt trên dữ liệu mới.
+\end{ghinho}
+
+\section{Overfitting trong phân loại}
+
+Overfitting xảy ra khi mô hình cố gắng phân loại đúng hoàn hảo mọi điểm trong tập huấn luyện, kể cả điểm nhiễu hoặc điểm bất thường.
+
+Đường phân lớp khi đó có thể trở nên rất ngoằn ngoèo, phức tạp và phi tự nhiên.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9,>=Stealth]
+    \draw[->] (0,0) -- (5,0) node[right] {$x_1$};
+    \draw[->] (0,0) -- (0,4) node[above] {$x_2$};
+
+    % Class A circles
+    \foreach \x/\y in {0.8/0.8,1.1/1.2,1.4/1.5,1.8/1.8,2.2/2.0,2.6/2.2,3.0/2.4,3.6/2.85}
+        \draw[blue,thick] (\x,\y) circle (2pt);
+
+    % Class B crosses
+    \foreach \x/\y in {1.2/3.0,1.7/3.2,2.2/3.0,2.7/2.9,3.2/2.7,3.7/2.5,4.0/2.3}
+        \draw[red,thick] (\x-0.06,\y-0.06) -- (\x+0.06,\y+0.06)
+                          (\x-0.06,\y+0.06) -- (\x+0.06,\y-0.06);
+
+    % Overfit boundary
+    \draw[thick,orange,smooth] plot coordinates {
+        (0.6,2.4) (1.1,2.45) (1.6,2.55) (2.1,2.50)
+        (2.6,2.65) (3.1,2.55) (3.45,3.1) (3.8,2.75) (4.4,2.9)
+    };
+    \node[orange] at (3.3,1.0) {overfitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{canhbao}
+Nếu mô hình quá khớp với dữ liệu huấn luyện, nó có thể đạt sai số gần 0 trên tập huấn luyện nhưng lại dự đoán sai trên dữ liệu thực tế.
+\end{canhbao}
+
+\section{Vì sao phân loại hoàn hảo chưa chắc là tốt?}
+
+Giả sử mô hình phân loại hoàn hảo mọi điểm huấn luyện. Điều này nghe có vẻ tốt, nhưng chưa chắc đúng.
+
+Lý do là bài toán thực tế không chỉ yêu cầu xử lý các điểm đã có. Ta muốn dùng mô hình cho dữ liệu mới trong tương lai.
+
+Nếu đường phân lớp quá phức tạp chỉ để ôm sát dữ liệu huấn luyện, nó có thể đánh mất xu hướng chung.
+
+\begin{vidu}
+Giả sử mô hình dùng để phân loại người mắc bệnh và không mắc bệnh. Nếu trong dữ liệu huấn luyện có một điểm nhiễu, mô hình overfit có thể bẻ cong đường phân lớp chỉ để phân loại đúng điểm đó.
+
+Khi gặp một người mới có đặc trưng gần khu vực đó, mô hình có thể dự đoán sai nghiêm trọng. Ví dụ, người không thuộc nhóm nguy cơ lại bị dự đoán là có bệnh.
+\end{vidu}
+
+% ==========================================================
+\chapter{Nhiễu dữ liệu và sai số đo lường}
+
+\section{Dữ liệu đo được không hoàn hảo}
+
+Trong thực tế, dữ liệu không bao giờ hoàn hảo tuyệt đối. Dữ liệu có thể bị ảnh hưởng bởi:
+
+\begin{itemize}
+    \item sai số cảm biến;
+    \item điều kiện môi trường;
+    \item cách đo;
+    \item sai số do con người nhập liệu;
+    \item nhiễu ngẫu nhiên;
+    \item điểm bất thường.
+\end{itemize}
+
+\section{Ví dụ đo chiều dài}
+
+Giả sử ta cần đo chiều dài một viên gạch bằng thước hoặc cảm biến laser.
+
+Con số đo được không chắc là chiều dài thật tuyệt đối của vật thể. Nó chỉ là giá trị đo lường.
+
+Giá trị đo có thể bị ảnh hưởng bởi:
+
+\begin{itemize}
+    \item độ chính xác của thiết bị;
+    \item góc đặt cảm biến;
+    \item bề mặt phản xạ;
+    \item nhiệt độ và độ ẩm;
+    \item lỗi ghi chép hoặc nhập dữ liệu.
+\end{itemize}
+
+\begin{ghinho}
+Dữ liệu huấn luyện thường chứa nhiễu. Vì vậy, mô hình tốt cần học xu hướng chung thay vì cố gắng khớp hoàn hảo từng điểm dữ liệu.
+\end{ghinho}
+
+\section{Liên hệ với overfitting}
+
+Nếu mô hình quá phức tạp, nó có thể học luôn cả nhiễu trong dữ liệu.
+
+Khi đó, mô hình không chỉ học quy luật thật mà còn học cả sai số đo, điểm bất thường và lỗi nhập liệu.
+
+Đây là nguyên nhân quan trọng dẫn đến overfitting.
+
+% ==========================================================
+\chapter{Ví dụ hồi quy}
+
+\section{Bài toán hồi quy là gì?}
+
+Hồi quy, tiếng Anh là \textit{regression}, là bài toán dự đoán một giá trị liên tục.
+
+Ví dụ:
+
+\begin{itemize}
+    \item dự đoán giá cổ phiếu ngày mai là bao nhiêu;
+    \item dự đoán nhiệt độ ngày mai;
+    \item dự đoán sản lượng điện;
+    \item dự đoán giá nhà;
+    \item dự đoán chi phí sản xuất.
+\end{itemize}
+
+Khác với phân loại, output của hồi quy không phải là một lớp rời rạc, mà là một con số liên tục.
+
+\section{Dữ liệu hồi quy có nhiễu}
+
+Giả sử dữ liệu thật đi theo một đường cong nào đó. Nhưng do nhiễu, các điểm dữ liệu đo được không nằm chính xác trên đường cong thật.
+
+Mô hình cần tìm một đường xấp xỉ phù hợp với xu hướng chung của dữ liệu.
+
+\section{Underfitting trong hồi quy}
+
+Underfitting xảy ra khi mô hình quá đơn giản.
+
+Ví dụ, dữ liệu có dạng cong hoặc dạng sóng, nhưng ta dùng một đường thẳng để xấp xỉ.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.95,>=Stealth]
+    \draw[->] (0,0) -- (6,0) node[right] {$x$};
+    \draw[->] (0,0) -- (0,4) node[above] {$y$};
+
+    % Data points
+    \foreach \x/\y in {0.5/1.0,1/1.5,1.5/2.2,2/2.6,2.5/2.4,3/2.0,3.5/1.7,4/2.0,4.5/2.7,5/3.2,5.5/3.1}
+        \filldraw[blue] (\x,\y) circle (2pt);
+
+    % Underfit line
+    \draw[thick,orange] (0.4,1.5) -- (5.6,2.4);
+    \node[orange] at (4.2,0.8) {underfitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{vidu}
+Nếu dữ liệu nhiệt độ theo thời gian có xu hướng tăng giảm theo mùa, nhưng mô hình chỉ dùng một đường thẳng, mô hình có thể không bắt được dao động thật của dữ liệu.
+\end{vidu}
+
+\section{Good fitting trong hồi quy}
+
+Good fitting là khi mô hình xấp xỉ được xu hướng chính của dữ liệu, dù không đi qua mọi điểm.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.95,>=Stealth]
+    \draw[->] (0,0) -- (6,0) node[right] {$x$};
+    \draw[->] (0,0) -- (0,4) node[above] {$y$};
+
+    % Data points
+    \foreach \x/\y in {0.5/1.0,1/1.5,1.5/2.2,2/2.6,2.5/2.4,3/2.0,3.5/1.7,4/2.0,4.5/2.7,5/3.2,5.5/3.1}
+        \filldraw[blue] (\x,\y) circle (2pt);
+
+    % Good curve
+    \draw[thick,orange,smooth] plot coordinates {
+        (0.4,0.9) (1.0,1.5) (1.7,2.25) (2.4,2.45)
+        (3.0,2.1) (3.6,1.8) (4.2,2.2) (4.8,2.85) (5.6,3.2)
+    };
+    \node[orange] at (4.2,0.8) {good fitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{ghinho}
+Trong hồi quy, mô hình tốt không nhất thiết đi qua tất cả điểm dữ liệu. Nó cần mô tả được xu hướng tổng quát phía sau dữ liệu nhiễu.
+\end{ghinho}
+
+\section{Overfitting trong hồi quy}
+
+Overfitting xảy ra khi mô hình quá phức tạp và cố gắng đi qua gần như tất cả các điểm dữ liệu.
+
+Ví dụ, dùng đa thức bậc rất cao để fit một tập điểm nhiễu.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.95,>=Stealth]
+    \draw[->] (0,0) -- (6,0) node[right] {$x$};
+    \draw[->] (0,0) -- (0,4) node[above] {$y$};
+
+    % Data points
+    \foreach \x/\y in {0.5/1.0,1/1.5,1.5/2.2,2/2.6,2.5/2.4,3/2.0,3.5/1.7,4/2.0,4.5/2.7,5/3.2,5.5/3.1}
+        \filldraw[blue] (\x,\y) circle (2pt);
+
+    % Overfit curve
+    \draw[thick,orange,smooth] plot coordinates {
+        (0.5,1.0) (0.8,1.9) (1.0,1.5) (1.25,1.1)
+        (1.5,2.2) (1.8,3.0) (2.0,2.6) (2.3,1.6)
+        (2.5,2.4) (2.8,2.9) (3.0,2.0) (3.3,1.2)
+        (3.5,1.7) (3.8,2.7) (4.0,2.0) (4.3,1.5)
+        (4.5,2.7) (4.8,3.6) (5.0,3.2) (5.3,2.5) (5.5,3.1)
+    };
+    \node[orange] at (4.2,0.8) {overfitting};
+
+\end{tikzpicture}
+\end{center}
+
+\begin{canhbao}
+Một đường cong đi qua tất cả điểm huấn luyện có thể có sai số huấn luyện bằng 0, nhưng vẫn là mô hình xấu nếu nó không phản ánh xu hướng thật của dữ liệu.
+\end{canhbao}
+
+\section{Ví dụ đa thức bậc cao}
+
+Giả sử dữ liệu thật có thể được mô tả tốt bằng một hàm bậc 4. Nhưng nếu ta dùng đa thức bậc 15, mô hình có thể uốn lượn rất mạnh để đi qua từng điểm dữ liệu.
+
+Khi đó:
+
+\[
+    \text{Training error} \approx 0
+\]
+
+nhưng:
+
+\[
+    \text{Test error} \text{ có thể rất lớn}
+\]
+
+Vì mô hình đã học cả nhiễu, không chỉ học quy luật.
+
+% ==========================================================
+\chapter{Phân loại và hồi quy}
+
+\section{Bài toán phân loại}
+
+Phân loại, tiếng Anh là \textit{classification}, là bài toán dự đoán một nhãn rời rạc.
+
+Ví dụ:
+
+\begin{itemize}
+    \item ảnh là chó hay mèo;
+    \item email là spam hay không spam;
+    \item người có mắc COVID hay không;
+    \item giá cổ phiếu ngày mai tăng, giảm hay không đổi;
+    \item vật thể là xe hơi, máy bay, người hay con vật.
+\end{itemize}
+
+Output thường là một class:
+
+\[
+    y \in \{C_1,C_2,\ldots,C_K\}
+\]
+
+\section{Bài toán hồi quy}
+
+Hồi quy là bài toán dự đoán giá trị liên tục.
+
+Ví dụ:
+
+\begin{itemize}
+    \item giá cổ phiếu ngày mai bằng bao nhiêu;
+    \item giá nhà là bao nhiêu;
+    \item sản lượng điện tháng tới là bao nhiêu;
+    \item nhiệt độ ngày mai là bao nhiêu.
+\end{itemize}
+
+Output thường là một số thực:
+
+\[
+    y \in \mathbb{R}
+\]
+
+\section{So sánh classification và regression}
+
+\begin{center}
+\begin{tabular}{p{0.26\textwidth}p{0.32\textwidth}p{0.32\textwidth}}
+\toprule
+Tiêu chí & Classification & Regression \\
+\midrule
+Loại output & Nhãn rời rạc & Giá trị liên tục \\
+Ví dụ output & Chó, mèo, xe hơi & 25.3 độ C, 1.2 tỷ đồng \\
+Ví dụ bài toán & Email spam hay không & Giá nhà bao nhiêu \\
+Sai số thường dùng & Cross entropy & MSE, MAE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{vidu}
+Cùng là giá cổ phiếu, có thể có hai bài toán khác nhau:
+
+\begin{itemize}
+    \item Dự đoán ngày mai cổ phiếu tăng hay giảm: classification.
+    \item Dự đoán ngày mai cổ phiếu có giá chính xác bao nhiêu: regression.
+\end{itemize}
+\end{vidu}
+
+% ==========================================================
+\chapter{Tổng hợp: Khi nào mô hình học tốt?}
+
+\section{Mô hình học tốt cần cân bằng}
+
+Một mô hình học tốt cần cân bằng giữa hai cực:
+
+\[
+    \text{quá đơn giản}
+    \quad \longleftrightarrow \quad
+    \text{quá phức tạp}
+\]
+
+Nếu quá đơn giản, mô hình underfit.
+
+Nếu quá phức tạp, mô hình dễ overfit.
+
+Trường hợp tốt là mô hình đủ linh hoạt để học xu hướng dữ liệu, nhưng không quá phức tạp đến mức học cả nhiễu.
+
+\section{Dấu hiệu nhận biết}
+
+\begin{center}
+\begin{tabular}{p{0.25\textwidth}p{0.30\textwidth}p{0.35\textwidth}}
+\toprule
+Trường hợp & Dữ liệu huấn luyện & Dữ liệu kiểm tra \\
+\midrule
+Underfitting & Sai số cao & Sai số cao \\
+Good fitting & Sai số thấp vừa phải & Sai số thấp \\
+Overfitting & Sai số rất thấp & Sai số cao \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Liên hệ với loss bằng 0}
+
+Trong lý thuyết, ta thường muốn loss tiến về 0. Nhưng trong thực tế, loss huấn luyện bằng 0 không phải lúc nào cũng là mục tiêu tốt.
+
+Nếu dữ liệu có nhiễu, việc cố gắng đưa loss huấn luyện về 0 có thể làm mô hình học luôn cả nhiễu.
+
+\begin{ghinho}
+Loss thấp trên training set là cần thiết, nhưng chưa đủ. Mô hình phải có khả năng tổng quát hóa tốt trên dữ liệu mới.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.26\textwidth}p{0.48\textwidth}p{0.19\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Vanishing gradient & Gradient trở nên rất nhỏ khi lan truyền ngược, khiến trọng số cập nhật rất chậm. & Gradient $\approx 10^{-9}$. \\
+
+Gradient & Đạo hàm của loss theo tham số, dùng để cập nhật trọng số. & $\frac{\partial E}{\partial w}$. \\
+
+Backpropagation & Quá trình lan truyền ngược sai số để tính gradient. & Tính gradient từ output về input. \\
+
+Sigmoid & Hàm kích hoạt có output từ 0 đến 1. & $\sigma(x)=\frac{1}{1+e^{-x}}$. \\
+
+ReLU & Hàm kích hoạt bằng 0 nếu $x\leq 0$, bằng $x$ nếu $x>0$. & $\max(0,x)$. \\
+
+Dying ReLU & Hiện tượng neuron ReLU rơi vào vùng âm và gần như không hoạt động. & Output luôn bằng 0. \\
+
+Underfitting & Mô hình quá đơn giản, chưa học được xu hướng dữ liệu. & Dùng đường thẳng cho dữ liệu cong. \\
+
+Overfitting & Mô hình quá khớp dữ liệu huấn luyện, học cả nhiễu. & Đường cong đi qua mọi điểm train. \\
+
+Good fitting & Mô hình học được xu hướng chung và làm việc tốt trên dữ liệu mới. & Đường cong xấp xỉ hợp lý. \\
+
+Noise & Nhiễu trong dữ liệu do đo lường, môi trường hoặc lỗi nhập liệu. & Cảm biến laser sai số. \\
+
+Generalization & Khả năng tổng quát hóa, tức làm việc tốt trên dữ liệu mới. & Test error thấp. \\
+
+Training data & Dữ liệu dùng để huấn luyện mô hình. & 500 điểm dữ liệu đã có. \\
+
+Test data & Dữ liệu dùng để kiểm tra khả năng tổng quát hóa. & Dữ liệu mới chưa học. \\
+
+Classification & Bài toán phân loại vào các class rời rạc. & Chó hoặc mèo. \\
+
+Regression & Bài toán dự đoán giá trị liên tục. & Dự đoán giá nhà. \\
+
+Decision boundary & Đường hoặc mặt phân chia giữa các class. & Đường đỏ phân lớp. \\
+
+MSE & Mean Squared Error, sai số bình phương trung bình. & Dùng trong hồi quy. \\
+
+Cross entropy & Hàm mất mát phổ biến cho phân loại. & Phân loại nhiều lớp. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\chapter{Tóm tắt kiến thức trọng tâm}
+
+\section{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Backpropagation về lý thuyết giúp tính gradient và cập nhật trọng số, nhưng thực tế huấn luyện có thể gặp nhiều vấn đề.
+    \item Vanishing gradient xảy ra khi gradient quá nhỏ, làm trọng số cập nhật rất chậm.
+    \item Mạng càng sâu thì gradient càng dễ bị nhỏ đi nếu phải nhân nhiều đạo hàm nhỏ.
+    \item Sigmoid dễ gây vanishing gradient vì đạo hàm của nó nhỏ, đặc biệt ở vùng bão hòa.
+    \item ReLU giúp giảm vanishing gradient ở vùng $x>0$ vì đạo hàm bằng 1.
+    \item Underfitting là mô hình chưa học được xu hướng dữ liệu.
+    \item Overfitting là mô hình học quá sát dữ liệu huấn luyện, kể cả nhiễu.
+    \item Mô hình tốt là mô hình học được xu hướng chung và làm việc tốt trên dữ liệu mới.
+    \item Dữ liệu thực tế luôn có nhiễu, sai số đo lường và điểm bất thường.
+    \item Classification dự đoán nhãn rời rạc; regression dự đoán giá trị liên tục.
+\end{enumerate}
+
+\section{Công thức quan trọng}
+
+\subsection*{Cập nhật trọng số}
+
+\[
+    w_{\text{new}}
+    =
+    w_{\text{old}}
+    -
+    \eta
+    \frac{\partial E}{\partial w}
+\]
+
+\subsection*{Sigmoid}
+
+\[
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\]
+
+\subsection*{Đạo hàm sigmoid}
+
+\[
+    \sigma'(x)=\sigma(x)(1-\sigma(x))
+\]
+
+\subsection*{ReLU}
+
+\[
+    \operatorname{ReLU}(x)=\max(0,x)
+\]
+
+\subsection*{Đạo hàm ReLU}
+
+\[
+    \operatorname{ReLU}'(x)=
+    \begin{cases}
+    0, & x<0\\
+    1, & x>0
+    \end{cases}
+\]
+
+% ==========================================================
+\chapter{Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Vanishing gradient là gì?
+    \item Khi gradient gần bằng 0, trọng số được cập nhật như thế nào?
+    \item Vì sao mạng sâu dễ gặp vanishing gradient hơn mạng nông?
+    \item Vì sao sigmoid có thể gây vanishing gradient?
+    \item Đạo hàm lớn nhất của sigmoid là bao nhiêu?
+    \item ReLU có công thức như thế nào?
+    \item Vì sao ReLU giúp gradient truyền tốt hơn ở vùng $x>0$?
+    \item Underfitting là gì?
+    \item Overfitting là gì?
+    \item Vì sao mô hình có training loss bằng 0 chưa chắc là mô hình tốt?
+    \item Vì sao dữ liệu thực tế thường có nhiễu?
+    \item Trong bài toán phân loại 2D, đường phân lớp tốt có nhất thiết phân loại đúng mọi điểm huấn luyện không?
+    \item Trong hồi quy, vì sao đường cong đi qua mọi điểm dữ liệu có thể là mô hình xấu?
+    \item Classification khác regression như thế nào?
+    \item Cho ví dụ một bài toán classification và một bài toán regression.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Bài tập vận dụng}
+
+\section*{Bài tập 1: Kiểm tra vanishing gradient}
+\addcontentsline{toc}{section}{Bài tập 1: Kiểm tra vanishing gradient}
+
+Giả sử gradient qua mỗi lớp bị nhân với hệ số $0.25$. Tính giá trị gradient còn lại sau 5 lớp và sau 10 lớp nếu gradient ban đầu là 1.
+
+\section*{Lời giải gợi ý}
+
+Sau 5 lớp:
+
+\[
+    1\cdot 0.25^5
+    =
+    0.0009765625
+\]
+
+Sau 10 lớp:
+
+\[
+    1\cdot 0.25^{10}
+    \approx
+    0.0000009537
+\]
+
+Gradient giảm rất nhanh khi số lớp tăng.
+
+\section*{Bài tập 2: Tính đạo hàm sigmoid}
+\addcontentsline{toc}{section}{Bài tập 2: Tính đạo hàm sigmoid}
+
+Cho:
+
+\[
+    \sigma(x)=0.9
+\]
+
+Tính:
+
+\[
+    \sigma'(x)=\sigma(x)(1-\sigma(x))
+\]
+
+\section*{Lời giải gợi ý}
+
+\[
+    \sigma'(x)=0.9(1-0.9)
+\]
+
+\[
+    \sigma'(x)=0.9\cdot 0.1=0.09
+\]
+
+\section*{Bài tập 3: Nhận diện underfitting và overfitting}
+\addcontentsline{toc}{section}{Bài tập 3: Nhận diện underfitting và overfitting}
+
+Hãy xác định trường hợp nào là underfitting, good fitting hoặc overfitting:
+
+\begin{enumerate}
+    \item Mô hình sai nhiều trên cả dữ liệu huấn luyện và dữ liệu kiểm tra.
+    \item Mô hình đúng gần như tuyệt đối trên dữ liệu huấn luyện nhưng sai nhiều trên dữ liệu kiểm tra.
+    \item Mô hình có sai số huấn luyện vừa phải và sai số kiểm tra thấp.
+\end{enumerate}
+
+\section*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item Underfitting.
+    \item Overfitting.
+    \item Good fitting.
+\end{enumerate}
+
+\section*{Bài tập 4: Phân biệt classification và regression}
+\addcontentsline{toc}{section}{Bài tập 4: Phân biệt classification và regression}
+
+Xác định mỗi bài toán sau là classification hay regression:
+
+\begin{enumerate}
+    \item Dự đoán giá nhà.
+    \item Phân loại email spam hoặc không spam.
+    \item Dự đoán sản lượng điện tháng tới.
+    \item Nhận dạng ảnh là chó, mèo hay xe hơi.
+    \item Dự đoán cổ phiếu ngày mai tăng, giảm hay không đổi.
+    \item Dự đoán giá cổ phiếu ngày mai bằng bao nhiêu.
+\end{enumerate}
+
+\section*{Lời giải gợi ý}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Bài toán & Loại bài toán \\
+\midrule
+Dự đoán giá nhà & Regression \\
+Email spam hoặc không spam & Classification \\
+Dự đoán sản lượng điện & Regression \\
+Nhận dạng ảnh chó, mèo, xe hơi & Classification \\
+Cổ phiếu tăng, giảm hay không đổi & Classification \\
+Giá cổ phiếu bằng bao nhiêu & Regression \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\chapter*{Kết luận}
+\addcontentsline{toc}{chapter}{Kết luận}
+
+ANN7 nhấn mạnh rằng huấn luyện mạng nơ-ron không chỉ là áp dụng backpropagation và gradient descent một cách máy móc. Trong thực tế, mạng có thể gặp các vấn đề như vanishing gradient, underfitting và overfitting.
+
+Vanishing gradient làm cho các trọng số ở những lớp đầu cập nhật rất chậm, đặc biệt trong các mạng sâu dùng sigmoid. Đây là một trong những lý do các hàm kích hoạt như ReLU và các biến thể của ReLU trở nên phổ biến.
+
+Underfitting xảy ra khi mô hình quá đơn giản, chưa học được xu hướng dữ liệu. Overfitting xảy ra khi mô hình quá phức tạp, học quá sát dữ liệu huấn luyện và học cả nhiễu. Mô hình tốt là mô hình không nhất thiết đúng hoàn hảo trên dữ liệu huấn luyện, nhưng phải học được xu hướng chung và tổng quát hóa tốt trên dữ liệu mới.
+
+\end{document}

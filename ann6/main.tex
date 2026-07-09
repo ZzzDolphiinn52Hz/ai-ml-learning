@@ -1,0 +1,1749 @@
+% !TEX program = pdflatex
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% CẤU HÌNH CHO PDFLATEX
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+% =========================
+% VIỆT HÓA
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP NỘI DUNG
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ trong ví dụ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Diễn giải ví dụ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{luuy}{
+    colback=orange!6,
+    colframe=orange!70!black,
+    title=Lưu ý khi tính,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+% =========================
+% THÔNG TIN TÀI LIỆU
+% =========================
+\title{
+    \textbf{Tài liệu học tập ANN6}\\
+    \large Giải chi tiết ví dụ lan truyền ngược sai số
+}
+\author{Biên soạn theo vai trò trợ giảng chuyên môn}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================================
+\chapter*{Mục tiêu của tài liệu}
+\addcontentsline{toc}{chapter}{Mục tiêu của tài liệu}
+
+Tài liệu này chỉ tập trung giải thích ví dụ tính toán trong video ANN6. Nội dung không trình bày lại lý thuyết tổng quát, mà đi theo đúng tinh thần của ví dụ:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Tính xuôi để lấy output và sai số tổng.
+    \item Tính ngược để cập nhật các trọng số từ lớp output: $w_5,w_6,w_7,w_8$.
+    \item Tính ngược tiếp để cập nhật các trọng số phía trước: $w_1,w_2,w_3,w_4$.
+    \item Làm rõ điểm dễ sai nhất: khi tính đạo hàm theo $w_1$, output của hidden neuron $h_1$ ảnh hưởng đồng thời đến cả $o_1$ và $o_2$, nên phải cộng cả hai nhánh.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Mô tả ví dụ}
+
+\section{Cấu trúc mạng trong ví dụ}
+
+Ví dụ sử dụng một mạng nơ-ron rất nhỏ:
+
+\begin{itemize}
+    \item 2 input: $i_1,i_2$;
+    \item 2 neuron ẩn: $h_1,h_2$;
+    \item 2 output: $o_1,o_2$.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=2.4cm,y=1.2cm,>=Stealth,
+    neuron/.style={circle,draw,minimum size=9mm},
+    every node/.style={font=\small}
+]
+
+% Input
+\node[neuron] (i1) at (0,0.8) {$i_1$};
+\node[neuron] (i2) at (0,-0.8) {$i_2$};
+
+% Hidden
+\node[neuron] (h1) at (1.8,0.8) {$h_1$};
+\node[neuron] (h2) at (1.8,-0.8) {$h_2$};
+
+% Output
+\node[neuron] (o1) at (3.6,0.8) {$o_1$};
+\node[neuron] (o2) at (3.6,-0.8) {$o_2$};
+
+% Connections input-hidden
+\draw[->] (i1) -- node[above] {$w_1$} (h1);
+\draw[->] (i2) -- node[below] {$w_2$} (h1);
+\draw[->] (i1) -- node[above] {$w_3$} (h2);
+\draw[->] (i2) -- node[below] {$w_4$} (h2);
+
+% Connections hidden-output
+\draw[->] (h1) -- node[above] {$w_5$} (o1);
+\draw[->] (h2) -- node[below] {$w_6$} (o1);
+\draw[->] (h1) -- node[above] {$w_7$} (o2);
+\draw[->] (h2) -- node[below] {$w_8$} (o2);
+
+\node at (0,1.8) {\textbf{Input}};
+\node at (1.8,1.8) {\textbf{Hidden}};
+\node at (3.6,1.8) {\textbf{Output}};
+
+\end{tikzpicture}
+\end{center}
+
+\section{Dữ liệu ban đầu}
+
+Trong ví dụ, ta dùng các giá trị sau:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Đại lượng & Giá trị & Ý nghĩa \\
+\midrule
+$i_1$ & $0.05$ & Input thứ nhất \\
+$i_2$ & $0.10$ & Input thứ hai \\
+$t_1$ & $0.01$ & Target mong muốn của output $o_1$ \\
+$t_2$ & $0.99$ & Target mong muốn của output $o_2$ \\
+$b_h$ & $0.35$ & Bias cho lớp hidden \\
+$b_o$ & $0.60$ & Bias cho lớp output \\
+$\eta$ & $0.5$ & Learning rate \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Các trọng số ban đầu:
+
+\begin{center}
+\begin{tabular}{cccccccc}
+\toprule
+$w_1$ & $w_2$ & $w_3$ & $w_4$ & $w_5$ & $w_6$ & $w_7$ & $w_8$ \\
+\midrule
+0.15 & 0.20 & 0.25 & 0.30 & 0.40 & 0.45 & 0.50 & 0.55 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Hàm kích hoạt được dùng trong ví dụ là sigmoid:
+
+\[
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\]
+
+Đạo hàm sigmoid tại output của nó:
+
+\[
+    \sigma'(x)=\sigma(x)\left(1-\sigma(x)\right)
+\]
+
+Trong khi tính, nếu đã biết output $a=\sigma(x)$, ta dùng nhanh:
+
+\[
+    \frac{da}{dx}=a(1-a)
+\]
+
+% ==========================================================
+\chapter{Tính xuôi trong ví dụ}
+
+\section{Tính output của hidden neuron $h_1$}
+
+Net input vào $h_1$:
+
+\[
+    net_{h_1}=i_1w_1+i_2w_2+b_h
+\]
+
+Thay số:
+
+\[
+    net_{h_1}
+    =
+    0.05\cdot 0.15
+    +
+    0.10\cdot 0.20
+    +
+    0.35
+\]
+
+\[
+    net_{h_1}=0.3775
+\]
+
+Output của $h_1$:
+
+\[
+    out_{h_1}=\sigma(0.3775)
+\]
+
+\[
+    out_{h_1}\approx 0.593269992
+\]
+
+\section{Tính output của hidden neuron $h_2$}
+
+Net input vào $h_2$:
+
+\[
+    net_{h_2}=i_1w_3+i_2w_4+b_h
+\]
+
+Thay số:
+
+\[
+    net_{h_2}
+    =
+    0.05\cdot 0.25
+    +
+    0.10\cdot 0.30
+    +
+    0.35
+\]
+
+\[
+    net_{h_2}=0.3925
+\]
+
+Output của $h_2$:
+
+\[
+    out_{h_2}=\sigma(0.3925)
+\]
+
+\[
+    out_{h_2}\approx 0.596884378
+\]
+
+\section{Tính output $o_1$}
+
+Net input vào $o_1$:
+
+\[
+    net_{o_1}=out_{h_1}w_5+out_{h_2}w_6+b_o
+\]
+
+Thay số:
+
+\[
+    net_{o_1}
+    =
+    0.593269992\cdot 0.40
+    +
+    0.596884378\cdot 0.45
+    +
+    0.60
+\]
+
+\[
+    net_{o_1}\approx 1.105905967
+\]
+
+Output:
+
+\[
+    out_{o_1}=\sigma(1.105905967)
+\]
+
+\[
+    out_{o_1}\approx 0.751365070
+\]
+
+\section{Tính output $o_2$}
+
+Net input vào $o_2$:
+
+\[
+    net_{o_2}=out_{h_1}w_7+out_{h_2}w_8+b_o
+\]
+
+Thay số:
+
+\[
+    net_{o_2}
+    =
+    0.593269992\cdot 0.50
+    +
+    0.596884378\cdot 0.55
+    +
+    0.60
+\]
+
+\[
+    net_{o_2}\approx 1.224921404
+\]
+
+Output:
+
+\[
+    out_{o_2}=\sigma(1.224921404)
+\]
+
+\[
+    out_{o_2}\approx 0.772928465
+\]
+
+% ==========================================================
+\chapter{Tính sai số của ví dụ}
+
+\section{Sai số tại output $o_1$}
+
+Target của $o_1$ là:
+
+\[
+    t_1=0.01
+\]
+
+Output hiện tại:
+
+\[
+    out_{o_1}=0.751365070
+\]
+
+Sai số tại $o_1$:
+
+\[
+    E_{o_1}
+    =
+    \frac{1}{2}
+    (t_1-out_{o_1})^2
+\]
+
+Thay số:
+
+\[
+    E_{o_1}
+    =
+    \frac{1}{2}
+    (0.01-0.751365070)^2
+\]
+
+\[
+    E_{o_1}\approx 0.274811083
+\]
+
+\section{Sai số tại output $o_2$}
+
+Target của $o_2$ là:
+
+\[
+    t_2=0.99
+\]
+
+Output hiện tại:
+
+\[
+    out_{o_2}=0.772928465
+\]
+
+Sai số tại $o_2$:
+
+\[
+    E_{o_2}
+    =
+    \frac{1}{2}
+    (t_2-out_{o_2})^2
+\]
+
+Thay số:
+
+\[
+    E_{o_2}
+    =
+    \frac{1}{2}
+    (0.99-0.772928465)^2
+\]
+
+\[
+    E_{o_2}\approx 0.023560026
+\]
+
+\section{Sai số tổng}
+
+\[
+    E_{total}=E_{o_1}+E_{o_2}
+\]
+
+\[
+    E_{total}
+    =
+    0.274811083
+    +
+    0.023560026
+\]
+
+\[
+    E_{total}\approx 0.298371109
+\]
+
+Làm tròn:
+
+\[
+    E_{total}\approx 0.2984
+\]
+
+\begin{ghinho}
+Trong video, giá trị sai số được nhắc đến là khoảng $0.2984$. Đây chính là sai số tổng sau bước tính xuôi đầu tiên.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Cập nhật các trọng số lớp output}
+
+\section{Cập nhật $w_5$}
+
+Trọng số $w_5$ nối từ $h_1$ đến $o_1$.
+
+Ta cần tính:
+
+\[
+    \frac{\partial E_{total}}{\partial w_5}
+\]
+
+Vì $w_5$ chỉ đi trực tiếp vào $o_1$, nên:
+
+\[
+    \frac{\partial E_{total}}{\partial w_5}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{o_1}}
+    \cdot
+    \frac{\partial out_{o_1}}{\partial net_{o_1}}
+    \cdot
+    \frac{\partial net_{o_1}}{\partial w_5}
+\]
+
+Từng thành phần:
+
+\[
+    \frac{\partial E_{o_1}}{\partial out_{o_1}}
+    =
+    out_{o_1}-t_1
+\]
+
+\[
+    =
+    0.751365070-0.01
+    =
+    0.741365070
+\]
+
+\[
+    \frac{\partial out_{o_1}}{\partial net_{o_1}}
+    =
+    out_{o_1}(1-out_{o_1})
+\]
+
+\[
+    =
+    0.751365070(1-0.751365070)
+    \approx 0.186815602
+\]
+
+\[
+    \frac{\partial net_{o_1}}{\partial w_5}
+    =
+    out_{h_1}
+    =
+    0.593269992
+\]
+
+Vậy:
+
+\[
+    \frac{\partial E_{total}}{\partial w_5}
+    =
+    0.741365070
+    \cdot
+    0.186815602
+    \cdot
+    0.593269992
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_5}
+    \approx 0.082167041
+\]
+
+Cập nhật:
+
+\[
+    w_5^{new}
+    =
+    w_5
+    -
+    \eta
+    \frac{\partial E_{total}}{\partial w_5}
+\]
+
+\[
+    w_5^{new}
+    =
+    0.40
+    -
+    0.5\cdot 0.082167041
+\]
+
+\[
+    w_5^{new}
+    \approx 0.358916480
+\]
+
+\section{Cập nhật $w_6,w_7,w_8$}
+
+Cách làm tương tự như $w_5$.
+
+\subsection*{Với $w_6$}
+
+$w_6$ nối từ $h_2$ đến $o_1$:
+
+\[
+    \frac{\partial E_{total}}{\partial w_6}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{o_1}}
+    \cdot
+    \frac{\partial out_{o_1}}{\partial net_{o_1}}
+    \cdot
+    \frac{\partial net_{o_1}}{\partial w_6}
+\]
+
+Trong đó:
+
+\[
+    \frac{\partial net_{o_1}}{\partial w_6}=out_{h_2}
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_6}
+    =
+    0.741365070
+    \cdot
+    0.186815602
+    \cdot
+    0.596884378
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_6}
+    \approx 0.082667628
+\]
+
+\[
+    w_6^{new}
+    =
+    0.45
+    -
+    0.5\cdot 0.082667628
+\]
+
+\[
+    w_6^{new}\approx 0.408666186
+\]
+
+\subsection*{Với $w_7$}
+
+$w_7$ nối từ $h_1$ đến $o_2$:
+
+\[
+    \frac{\partial E_{total}}{\partial w_7}
+    =
+    \frac{\partial E_{o_2}}{\partial out_{o_2}}
+    \cdot
+    \frac{\partial out_{o_2}}{\partial net_{o_2}}
+    \cdot
+    \frac{\partial net_{o_2}}{\partial w_7}
+\]
+
+\[
+    \frac{\partial E_{o_2}}{\partial out_{o_2}}
+    =
+    out_{o_2}-t_2
+    =
+    0.772928465-0.99
+\]
+
+\[
+    =
+    -0.217071535
+\]
+
+\[
+    \frac{\partial out_{o_2}}{\partial net_{o_2}}
+    =
+    out_{o_2}(1-out_{o_2})
+\]
+
+\[
+    =
+    0.772928465(1-0.772928465)
+    \approx 0.175510052
+\]
+
+\[
+    \frac{\partial net_{o_2}}{\partial w_7}
+    =
+    out_{h_1}
+    =
+    0.593269992
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_7}
+    =
+    -0.217071535
+    \cdot
+    0.175510052
+    \cdot
+    0.593269992
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_7}
+    \approx -0.022602540
+\]
+
+\[
+    w_7^{new}
+    =
+    0.50
+    -
+    0.5(-0.022602540)
+\]
+
+\[
+    w_7^{new}
+    \approx 0.511301270
+\]
+
+\subsection*{Với $w_8$}
+
+$w_8$ nối từ $h_2$ đến $o_2$:
+
+\[
+    \frac{\partial net_{o_2}}{\partial w_8}
+    =
+    out_{h_2}
+    =
+    0.596884378
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_8}
+    =
+    -0.217071535
+    \cdot
+    0.175510052
+    \cdot
+    0.596884378
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_8}
+    \approx -0.022740242
+\]
+
+\[
+    w_8^{new}
+    =
+    0.55
+    -
+    0.5(-0.022740242)
+\]
+
+\[
+    w_8^{new}
+    \approx 0.561370121
+\]
+
+\section{Bảng kết quả cập nhật lớp output}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Trọng số & Giá trị cũ & Gradient & Giá trị mới \\
+\midrule
+$w_5$ & 0.400000000 & 0.082167041 & 0.358916480 \\
+$w_6$ & 0.450000000 & 0.082667628 & 0.408666186 \\
+$w_7$ & 0.500000000 & -0.022602540 & 0.511301270 \\
+$w_8$ & 0.550000000 & -0.022740242 & 0.561370121 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\chapter{Cập nhật bias ở lớp output}
+
+\section{Bias ứng với output $o_1$}
+
+Với bias của $o_1$:
+
+\[
+    \frac{\partial net_{o_1}}{\partial b_{o_1}}=1
+\]
+
+Do đó:
+
+\[
+    \frac{\partial E_{total}}{\partial b_{o_1}}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{o_1}}
+    \cdot
+    \frac{\partial out_{o_1}}{\partial net_{o_1}}
+\]
+
+\[
+    =
+    0.741365070
+    \cdot
+    0.186815602
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial b_{o_1}}
+    \approx 0.138498562
+\]
+
+Nếu bias ban đầu là $0.60$:
+
+\[
+    b_{o_1}^{new}
+    =
+    0.60
+    -
+    0.5\cdot 0.138498562
+\]
+
+\[
+    b_{o_1}^{new}
+    \approx 0.530750719
+\]
+
+\section{Bias ứng với output $o_2$}
+
+\[
+    \frac{\partial E_{total}}{\partial b_{o_2}}
+    =
+    \frac{\partial E_{o_2}}{\partial out_{o_2}}
+    \cdot
+    \frac{\partial out_{o_2}}{\partial net_{o_2}}
+\]
+
+\[
+    =
+    -0.217071535
+    \cdot
+    0.175510052
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial b_{o_2}}
+    \approx -0.038098237
+\]
+
+\[
+    b_{o_2}^{new}
+    =
+    0.60
+    -
+    0.5(-0.038098237)
+\]
+
+\[
+    b_{o_2}^{new}
+    \approx 0.619049118
+\]
+
+\begin{luuy}
+Nếu trong tài liệu gốc dùng chung một bias $b_o$ cho cả hai output, cách cập nhật có thể được trình bày khác. Trong ví dụ học tập này, ta tách thành $b_{o_1}$ và $b_{o_2}$ để thấy rõ mỗi output có một nhánh sai số riêng.
+\end{luuy}
+
+% ==========================================================
+\chapter{Cập nhật các trọng số phía trước}
+
+\section{Điểm quan trọng khi tính $w_1$}
+
+Trọng số $w_1$ nối từ input $i_1$ đến hidden neuron $h_1$.
+
+Khi $w_1$ thay đổi, chuỗi ảnh hưởng không chỉ là:
+
+\[
+    w_1
+    \rightarrow
+    net_{h_1}
+    \rightarrow
+    out_{h_1}
+    \rightarrow
+    net_{o_1}
+    \rightarrow
+    out_{o_1}
+    \rightarrow
+    E
+\]
+
+Chuỗi này chưa đủ.
+
+Vì $out_{h_1}$ đi đến cả $o_1$ và $o_2$, nên $w_1$ ảnh hưởng đến sai số qua cả hai nhánh:
+
+\[
+    out_{h_1}
+    \rightarrow
+    o_1
+    \rightarrow
+    E_{o_1}
+\]
+
+và:
+
+\[
+    out_{h_1}
+    \rightarrow
+    o_2
+    \rightarrow
+    E_{o_2}
+\]
+
+\begin{ghinho}
+Đây là điểm quan trọng nhất trong ví dụ ANN6: khi tính đạo hàm theo $w_1$, phải cộng ảnh hưởng qua cả $o_1$ và $o_2$. Nếu chỉ lấy nhánh qua $o_1$, kết quả sẽ sai.
+\end{ghinho}
+
+\section{Sơ đồ đúng khi tính đạo hàm theo $w_1$}
+
+\begin{center}
+\begin{tikzpicture}[x=1.8cm,y=1.1cm,>=Stealth,
+    box/.style={rectangle,draw,rounded corners,align=center,minimum width=0.5cm,minimum height=0.7cm},
+    every node/.style={font=\small}
+]
+
+\node[box] (w1) at (0,0) {$w_1$};
+\node[box] (neth1) at (1.4,0) {$net_{h_1}$};
+\node[box] (outh1) at (2.9,0) {$out_{h_1}$};
+
+\node[box] (neto1) at (4.4,0.8) {$net_{o_1}$};
+\node[box] (outo1) at (5.9,0.8) {$out_{o_1}$};
+\node[box] (eo1) at (7.4,0.8) {$E_{o_1}$};
+
+\node[box] (neto2) at (4.4,-0.8) {$net_{o_2}$};
+\node[box] (outo2) at (5.9,-0.8) {$out_{o_2}$};
+\node[box] (eo2) at (7.4,-0.8) {$E_{o_2}$};
+
+\node[box] (et) at (8.9,0) {$E_{total}$};
+
+\draw[->] (w1) -- (neth1);
+\draw[->] (neth1) -- (outh1);
+
+\draw[->] (outh1) -- (neto1);
+\draw[->] (neto1) -- (outo1);
+\draw[->] (outo1) -- (eo1);
+
+\draw[->] (outh1) -- (neto2);
+\draw[->] (neto2) -- (outo2);
+\draw[->] (outo2) -- (eo2);
+
+\draw[->] (eo1) -- (et);
+\draw[->] (eo2) -- (et);
+
+\end{tikzpicture}
+\end{center}
+
+\section{Tính $\frac{\partial E_{total}}{\partial out_{h_1}}$}
+
+Vì $out_{h_1}$ ảnh hưởng đến cả $o_1$ và $o_2$:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    +
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+\]
+
+Nhánh qua $o_1$:
+
+\[
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    =
+    \frac{\partial E_{o_1}}{\partial net_{o_1}}
+    \cdot
+    \frac{\partial net_{o_1}}{\partial out_{h_1}}
+\]
+
+Ta đã có:
+
+\[
+    \frac{\partial E_{o_1}}{\partial net_{o_1}}
+    =
+    0.138498562
+\]
+
+và:
+
+\[
+    \frac{\partial net_{o_1}}{\partial out_{h_1}}
+    =
+    w_5
+    =
+    0.40
+\]
+
+Do đó:
+
+\[
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    =
+    0.138498562\cdot 0.40
+\]
+
+\[
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    \approx 0.055399425
+\]
+
+Nhánh qua $o_2$:
+
+\[
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+    =
+    \frac{\partial E_{o_2}}{\partial net_{o_2}}
+    \cdot
+    \frac{\partial net_{o_2}}{\partial out_{h_1}}
+\]
+
+Ta đã có:
+
+\[
+    \frac{\partial E_{o_2}}{\partial net_{o_2}}
+    =
+    -0.038098237
+\]
+
+và:
+
+\[
+    \frac{\partial net_{o_2}}{\partial out_{h_1}}
+    =
+    w_7
+    =
+    0.50
+\]
+
+Do đó:
+
+\[
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+    =
+    -0.038098237\cdot 0.50
+\]
+
+\[
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+    \approx -0.019049119
+\]
+
+Cộng hai nhánh:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    =
+    0.055399425
+    +
+    (-0.019049119)
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    \approx 0.036350306
+\]
+
+\section{Tính gradient của $w_1$}
+
+Ta cần:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+\]
+
+Theo chuỗi:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \cdot
+    \frac{\partial net_{h_1}}{\partial w_1}
+\]
+
+Trong đó:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    \approx 0.036350306
+\]
+
+\[
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    =
+    out_{h_1}(1-out_{h_1})
+\]
+
+\[
+    =
+    0.593269992(1-0.593269992)
+\]
+
+\[
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \approx 0.241300709
+\]
+
+Và:
+
+\[
+    \frac{\partial net_{h_1}}{\partial w_1}=i_1=0.05
+\]
+
+Vậy:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    0.036350306
+    \cdot
+    0.241300709
+    \cdot
+    0.05
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    \approx 0.000438568
+\]
+
+Cập nhật:
+
+\[
+    w_1^{new}
+    =
+    0.15
+    -
+    0.5\cdot 0.000438568
+\]
+
+\[
+    w_1^{new}
+    \approx 0.149780716
+\]
+
+\section{Cập nhật $w_2$}
+
+$w_2$ cũng đi vào $h_1$, nên phần đầu giống $w_1$. Điểm khác là:
+
+\[
+    \frac{\partial net_{h_1}}{\partial w_2}=i_2=0.10
+\]
+
+Do đó:
+
+\[
+    \frac{\partial E_{total}}{\partial w_2}
+    =
+    0.036350306
+    \cdot
+    0.241300709
+    \cdot
+    0.10
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_2}
+    \approx 0.000877135
+\]
+
+Cập nhật:
+
+\[
+    w_2^{new}
+    =
+    0.20
+    -
+    0.5\cdot 0.000877135
+\]
+
+\[
+    w_2^{new}
+    \approx 0.199561432
+\]
+
+% ==========================================================
+\chapter{Cập nhật $w_3$ và $w_4$}
+
+\section{Tính ảnh hưởng qua hidden neuron $h_2$}
+
+Tương tự $h_1$, output $out_{h_2}$ cũng đi đến cả $o_1$ và $o_2$.
+
+Do đó:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_2}}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{h_2}}
+    +
+    \frac{\partial E_{o_2}}{\partial out_{h_2}}
+\]
+
+Nhánh qua $o_1$:
+
+\[
+    \frac{\partial E_{o_1}}{\partial out_{h_2}}
+    =
+    \frac{\partial E_{o_1}}{\partial net_{o_1}}
+    \cdot
+    \frac{\partial net_{o_1}}{\partial out_{h_2}}
+\]
+
+\[
+    =
+    0.138498562\cdot w_6
+\]
+
+\[
+    =
+    0.138498562\cdot 0.45
+\]
+
+\[
+    \approx 0.062324353
+\]
+
+Nhánh qua $o_2$:
+
+\[
+    \frac{\partial E_{o_2}}{\partial out_{h_2}}
+    =
+    \frac{\partial E_{o_2}}{\partial net_{o_2}}
+    \cdot
+    \frac{\partial net_{o_2}}{\partial out_{h_2}}
+\]
+
+\[
+    =
+    -0.038098237\cdot w_8
+\]
+
+\[
+    =
+    -0.038098237\cdot 0.55
+\]
+
+\[
+    \approx -0.020954030
+\]
+
+Cộng lại:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_2}}
+    =
+    0.062324353
+    -
+    0.020954030
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_2}}
+    \approx 0.041370323
+\]
+
+\section{Cập nhật $w_3$}
+
+\[
+    \frac{\partial E_{total}}{\partial w_3}
+    =
+    \frac{\partial E_{total}}{\partial out_{h_2}}
+    \cdot
+    \frac{\partial out_{h_2}}{\partial net_{h_2}}
+    \cdot
+    \frac{\partial net_{h_2}}{\partial w_3}
+\]
+
+Ta có:
+
+\[
+    \frac{\partial out_{h_2}}{\partial net_{h_2}}
+    =
+    out_{h_2}(1-out_{h_2})
+\]
+
+\[
+    =
+    0.596884378(1-0.596884378)
+\]
+
+\[
+    \approx 0.240613417
+\]
+
+Và:
+
+\[
+    \frac{\partial net_{h_2}}{\partial w_3}=i_1=0.05
+\]
+
+Vậy:
+
+\[
+    \frac{\partial E_{total}}{\partial w_3}
+    =
+    0.041370323
+    \cdot
+    0.240613417
+    \cdot
+    0.05
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_3}
+    \approx 0.000497713
+\]
+
+Cập nhật:
+
+\[
+    w_3^{new}
+    =
+    0.25
+    -
+    0.5\cdot 0.000497713
+\]
+
+\[
+    w_3^{new}
+    \approx 0.249751144
+\]
+
+\section{Cập nhật $w_4$}
+
+Với $w_4$:
+
+\[
+    \frac{\partial net_{h_2}}{\partial w_4}=i_2=0.10
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_4}
+    =
+    0.041370323
+    \cdot
+    0.240613417
+    \cdot
+    0.10
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial w_4}
+    \approx 0.000995425
+\]
+
+Cập nhật:
+
+\[
+    w_4^{new}
+    =
+    0.30
+    -
+    0.5\cdot 0.000995425
+\]
+
+\[
+    w_4^{new}
+    \approx 0.299502287
+\]
+
+\section{Bảng kết quả cập nhật lớp hidden}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Trọng số & Giá trị cũ & Gradient & Giá trị mới \\
+\midrule
+$w_1$ & 0.150000000 & 0.000438568 & 0.149780716 \\
+$w_2$ & 0.200000000 & 0.000877135 & 0.199561432 \\
+$w_3$ & 0.250000000 & 0.000497713 & 0.249751144 \\
+$w_4$ & 0.300000000 & 0.000995425 & 0.299502287 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\chapter{Cập nhật bias ở lớp hidden}
+
+\section{Bias ứng với $h_1$}
+
+Vì:
+
+\[
+    \frac{\partial net_{h_1}}{\partial b_{h_1}}=1
+\]
+
+nên:
+
+\[
+    \frac{\partial E_{total}}{\partial b_{h_1}}
+    =
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+\]
+
+\[
+    =
+    0.036350306
+    \cdot
+    0.241300709
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial b_{h_1}}
+    \approx 0.008771355
+\]
+
+Cập nhật:
+
+\[
+    b_{h_1}^{new}
+    =
+    0.35
+    -
+    0.5\cdot 0.008771355
+\]
+
+\[
+    b_{h_1}^{new}
+    \approx 0.345614323
+\]
+
+\section{Bias ứng với $h_2$}
+
+\[
+    \frac{\partial E_{total}}{\partial b_{h_2}}
+    =
+    \frac{\partial E_{total}}{\partial out_{h_2}}
+    \cdot
+    \frac{\partial out_{h_2}}{\partial net_{h_2}}
+\]
+
+\[
+    =
+    0.041370323
+    \cdot
+    0.240613417
+\]
+
+\[
+    \frac{\partial E_{total}}{\partial b_{h_2}}
+    \approx 0.009954255
+\]
+
+Cập nhật:
+
+\[
+    b_{h_2}^{new}
+    =
+    0.35
+    -
+    0.5\cdot 0.009954255
+\]
+
+\[
+    b_{h_2}^{new}
+    \approx 0.345022873
+\]
+
+\begin{luuy}
+Tương tự bias ở lớp output, nếu tài liệu gốc dùng chung một bias cho cả lớp hidden thì cách ghi có thể khác. Việc tách $b_{h_1}$ và $b_{h_2}$ giúp dễ theo dõi từng nhánh tính toán.
+\end{luuy}
+
+% ==========================================================
+\chapter{Tổng kết một lượt cập nhật}
+
+\section{Bảng trọng số trước và sau cập nhật}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+Trọng số & Trước cập nhật & Sau cập nhật \\
+\midrule
+$w_1$ & 0.150000000 & 0.149780716 \\
+$w_2$ & 0.200000000 & 0.199561432 \\
+$w_3$ & 0.250000000 & 0.249751144 \\
+$w_4$ & 0.300000000 & 0.299502287 \\
+$w_5$ & 0.400000000 & 0.358916480 \\
+$w_6$ & 0.450000000 & 0.408666186 \\
+$w_7$ & 0.500000000 & 0.511301270 \\
+$w_8$ & 0.550000000 & 0.561370121 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Bảng bias trước và sau cập nhật}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+Bias & Trước cập nhật & Sau cập nhật \\
+\midrule
+$b_{o_1}$ & 0.600000000 & 0.530750719 \\
+$b_{o_2}$ & 0.600000000 & 0.619049118 \\
+$b_{h_1}$ & 0.350000000 & 0.345614323 \\
+$b_{h_2}$ & 0.350000000 & 0.345022873 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ý nghĩa của một lượt cập nhật}
+
+Sau khi cập nhật xong tất cả trọng số và bias, mạng đã thay đổi một chút so với trạng thái ban đầu. Đây mới chỉ là một lượt cập nhật với một cặp dữ liệu.
+
+Với cặp dữ liệu tiếp theo, ta lại làm:
+
+\[
+    \text{tính xuôi}
+    \rightarrow
+    \text{tính sai số}
+    \rightarrow
+    \text{tính ngược}
+    \rightarrow
+    \text{cập nhật trọng số}
+\]
+
+Quá trình này lặp đi lặp lại rất nhiều lần cho đến khi sai số giảm đến mức chấp nhận được.
+
+% ==========================================================
+\chapter{Những lỗi dễ mắc trong ví dụ}
+
+\section{Lỗi 1: Chỉ tính một nhánh khi cập nhật $w_1$}
+
+Sai lầm thường gặp là viết:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{o_1}}
+    \cdot
+    \frac{\partial out_{o_1}}{\partial net_{o_1}}
+    \cdot
+    \frac{\partial net_{o_1}}{\partial out_{h_1}}
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \cdot
+    \frac{\partial net_{h_1}}{\partial w_1}
+\]
+
+Biểu thức này chỉ đi qua nhánh $o_1$, nên thiếu nhánh $o_2$.
+
+Biểu thức đúng phải là:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    \left(
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    +
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+    \right)
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \cdot
+    \frac{\partial net_{h_1}}{\partial w_1}
+\]
+
+\section{Lỗi 2: Nhầm dấu khi cập nhật}
+
+Công thức cập nhật là:
+
+\[
+    w^{new}=w-\eta\frac{\partial E}{\partial w}
+\]
+
+Nếu gradient dương, trọng số giảm.
+
+Nếu gradient âm, trọng số tăng.
+
+Ví dụ:
+
+\[
+    \frac{\partial E}{\partial w_7}\approx -0.022602540
+\]
+
+Do đó:
+
+\[
+    w_7^{new}
+    =
+    0.50
+    -
+    0.5(-0.022602540)
+\]
+
+\[
+    w_7^{new}>0.50
+\]
+
+Vì gradient âm nên $w_7$ tăng.
+
+\section{Lỗi 3: Dùng nhầm output của neuron}
+
+Khi tính gradient của $w_5$:
+
+\[
+    \frac{\partial net_{o_1}}{\partial w_5}=out_{h_1}
+\]
+
+không phải $out_{h_2}$.
+
+Khi tính gradient của $w_6$:
+
+\[
+    \frac{\partial net_{o_1}}{\partial w_6}=out_{h_2}
+\]
+
+không phải $out_{h_1}$.
+
+\begin{luuy}
+Mỗi trọng số nằm trên một cạnh cụ thể. Đạo hàm của $net$ theo trọng số đó bằng đúng output của neuron ở đầu vào của cạnh đó.
+\end{luuy}
+
+% ==========================================================
+\chapter{Bài tập tự kiểm tra theo ví dụ}
+
+\section*{Bài tập 1: Kiểm tra sai số tổng}
+\addcontentsline{toc}{section}{Bài tập 1: Kiểm tra sai số tổng}
+
+Dùng các giá trị:
+
+\[
+    out_{o_1}=0.751365070,\quad t_1=0.01
+\]
+
+\[
+    out_{o_2}=0.772928465,\quad t_2=0.99
+\]
+
+Hãy tính:
+
+\[
+    E_{total}
+    =
+    \frac{1}{2}(t_1-out_{o_1})^2
+    +
+    \frac{1}{2}(t_2-out_{o_2})^2
+\]
+
+\section*{Đáp án}
+
+\[
+    E_{total}\approx 0.298371109
+\]
+
+\[
+    E_{total}\approx 0.2984
+\]
+
+\section*{Bài tập 2: Tính lại $w_5^{new}$}
+\addcontentsline{toc}{section}{Bài tập 2: Tính lại $w_5^{new}$}
+
+Cho:
+
+\[
+    \frac{\partial E}{\partial w_5}=0.082167041
+\]
+
+\[
+    w_5=0.40,\qquad \eta=0.5
+\]
+
+Tính $w_5^{new}$.
+
+\section*{Đáp án}
+
+\[
+    w_5^{new}
+    =
+    0.40
+    -
+    0.5\cdot 0.082167041
+\]
+
+\[
+    w_5^{new}
+    \approx 0.358916480
+\]
+
+\section*{Bài tập 3: Vì sao $w_7$ tăng?}
+\addcontentsline{toc}{section}{Bài tập 3: Vì sao $w_7$ tăng?}
+
+Cho:
+
+\[
+    \frac{\partial E}{\partial w_7}\approx -0.022602540
+\]
+
+\[
+    w_7=0.50,\qquad \eta=0.5
+\]
+
+Tính $w_7^{new}$ và giải thích vì sao nó tăng.
+
+\section*{Đáp án}
+
+\[
+    w_7^{new}
+    =
+    0.50
+    -
+    0.5(-0.022602540)
+\]
+
+\[
+    w_7^{new}
+    =
+    0.50
+    +
+    0.011301270
+\]
+
+\[
+    w_7^{new}
+    \approx 0.511301270
+\]
+
+Vì gradient âm nên khi trừ gradient, giá trị trọng số tăng.
+
+\section*{Bài tập 4: Viết đúng biểu thức cho $w_1$}
+\addcontentsline{toc}{section}{Bài tập 4: Viết đúng biểu thức cho $w_1$}
+
+Điền vào chỗ trống:
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    \left(
+    \underline{\hspace{3cm}}
+    +
+    \underline{\hspace{3cm}}
+    \right)
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \cdot
+    \frac{\partial net_{h_1}}{\partial w_1}
+\]
+
+\section*{Đáp án}
+
+\[
+    \frac{\partial E_{total}}{\partial w_1}
+    =
+    \left(
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    +
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+    \right)
+    \cdot
+    \frac{\partial out_{h_1}}{\partial net_{h_1}}
+    \cdot
+    \frac{\partial net_{h_1}}{\partial w_1}
+\]
+
+% ==========================================================
+\chapter*{Kết luận}
+\addcontentsline{toc}{chapter}{Kết luận}
+
+Ví dụ ANN6 minh họa cách tính lan truyền ngược bằng tay trên một mạng nhỏ. Sau khi tính xuôi, ta thu được sai số tổng khoảng:
+
+\[
+    E_{total}\approx 0.2984
+\]
+
+Sau đó, ta tính ngược từ lớp output để cập nhật $w_5,w_6,w_7,w_8$, rồi tiếp tục đi về lớp trước để cập nhật $w_1,w_2,w_3,w_4$.
+
+Điểm quan trọng nhất của ví dụ là khi một neuron ở lớp hidden nối đến nhiều output, sai số truyền về neuron đó là tổng ảnh hưởng từ tất cả các nhánh phía sau. Cụ thể, khi tính $w_1$, không được chỉ xét nhánh từ $h_1$ đến $o_1$, mà phải cộng cả nhánh từ $h_1$ đến $o_2$.
+
+\[
+    out_{h_1}
+    \rightarrow
+    o_1
+    \rightarrow
+    E_{o_1}
+\]
+
+\[
+    out_{h_1}
+    \rightarrow
+    o_2
+    \rightarrow
+    E_{o_2}
+\]
+
+Vì vậy:
+
+\[
+    \frac{\partial E_{total}}{\partial out_{h_1}}
+    =
+    \frac{\partial E_{o_1}}{\partial out_{h_1}}
+    +
+    \frac{\partial E_{o_2}}{\partial out_{h_1}}
+\]
+
+Đây là phần ``ruột'' quan trọng của ví dụ, giúp hiểu thật sự điều gì xảy ra bên trong quá trình backpropagation thay vì chỉ dùng thư viện có sẵn.
+
+\end{document}

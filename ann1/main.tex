@@ -1,0 +1,1126 @@
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% CẤU HÌNH CƠ BẢN CHO PDFLATEX
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning}
+
+% =========================
+% VIỆT HÓA MỘT SỐ TÊN MỤC
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\bibname}{Tài liệu tham khảo}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% ĐỊNH DẠNG HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP GHI CHÚ
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Ví dụ minh họa,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{canhbao}{
+    colback=red!4,
+    colframe=red!60!black,
+    title=Lưu ý,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+% =========================
+% THÔNG TIN TÀI LIỆU
+% =========================
+\title{
+    \textbf{Tài liệu học tập ANN1}\\
+    \large Tổng quan về Mạng Nơ-ron Nhân tạo
+}
+\author{Biên soạn theo vai trò trợ giảng chuyên môn}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================================
+\chapter*{Mục tiêu bài học}
+\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+
+Sau khi học xong tài liệu này, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Mạng nơ-ron nhân tạo là gì và vì sao nó được lấy cảm hứng từ nơ-ron sinh học.
+    \item Khái niệm học có giám sát, dữ liệu đầu vào, nhãn và đầu ra.
+    \item Vì sao mạng nơ-ron có khả năng xử lý các quan hệ phi tuyến.
+    \item Mô hình toán học cơ bản của một nơ-ron nhân tạo.
+    \item Ý nghĩa của trọng số, bias, hàm kích hoạt, tham số và siêu tham số.
+    \item Cấu trúc của mạng truyền thẳng nhiều lớp.
+    \item Cách hình dung ANN qua các ví dụ: nhận dạng ảnh, điều khiển bằng sóng não, dự đoán cổ phiếu và xe tự lái.
+\end{enumerate}
+
+% ==========================================================
+\chapter{Tổng quan về mạng nơ-ron nhân tạo}
+
+\section{Mạng nơ-ron nhân tạo là gì?}
+
+Mạng nơ-ron nhân tạo, tiếng Anh là \textit{Artificial Neural Network} và thường viết tắt là ANN, là một hệ thống tính toán lấy cảm hứng từ mạng nơ-ron sinh học trong não bộ con người.
+
+Một ANN bao gồm nhiều phần tử tính toán nhỏ gọi là \textbf{nơ-ron nhân tạo}. Mỗi nơ-ron có:
+
+\begin{itemize}
+    \item nhiều ngõ vào, còn gọi là \textit{input};
+    \item một ngõ ra, còn gọi là \textit{output};
+    \item các trọng số biểu diễn mức độ ảnh hưởng của từng ngõ vào;
+    \item một quy tắc tính toán để biến các ngõ vào thành ngõ ra.
+\end{itemize}
+
+\begin{ghinho}
+Mạng nơ-ron nhân tạo không được lập trình bằng các luật cứng theo kiểu ``nếu--thì'' cho mọi trường hợp. Thay vào đó, mạng học từ dữ liệu. Khi được cung cấp nhiều ví dụ, mạng tự điều chỉnh các tham số bên trong để tìm ra quan hệ giữa đầu vào và đầu ra.
+\end{ghinho}
+
+\section{ANN học từ dữ liệu như thế nào?}
+
+Trong bài học, giảng viên nhấn mạnh trường hợp \textbf{học có giám sát}. Đây là dạng học trong đó ta cung cấp cho mô hình các cặp dữ liệu:
+
+\[
+    (\text{input}, \text{output})
+\]
+
+hoặc viết theo ký hiệu thông dụng:
+
+\[
+    (x, y)
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x$ là dữ liệu đầu vào, ví dụ một ảnh, một đoạn âm thanh, một chuỗi giá cổ phiếu;
+    \item $y$ là nhãn hoặc đầu ra đúng, ví dụ ảnh là ``chó'', ảnh là ``mèo'', giá cổ phiếu ngày tiếp theo, hoặc lệnh điều khiển xe.
+\end{itemize}
+
+Mục tiêu của quá trình học là tìm được một hàm xấp xỉ:
+
+\[
+    \hat{y} = f(x)
+\]
+
+sao cho $\hat{y}$, tức đầu ra dự đoán của mô hình, càng gần với $y$, tức đầu ra đúng, càng tốt.
+
+\begin{vidu}
+Giả sử ta muốn dạy máy phân loại email thành ``spam'' và ``không spam''.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Dữ liệu đầu vào & Nhãn đúng & Ý nghĩa \\
+\midrule
+Email quảng cáo trúng thưởng & Spam & Email rác \\
+Email từ giảng viên gửi bài tập & Không spam & Email hợp lệ \\
+Email chứa nhiều liên kết lạ & Spam & Email đáng ngờ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Mô hình học từ nhiều ví dụ như vậy. Sau khi học xong, nếu gặp một email mới, mô hình sẽ dự đoán email đó là spam hay không spam.
+\end{vidu}
+
+\section{Tại sao ANN quan trọng?}
+
+Một điểm rất quan trọng của ANN là khả năng xử lý các mối quan hệ \textbf{phi tuyến}. Trong thực tế, nhiều bài toán không thể được giải quyết tốt bằng một công thức tuyến tính đơn giản.
+
+Ví dụ, khi đưa một ảnh xám vào máy tính và yêu cầu máy xác định đó là ảnh con chó hay con mèo, mỗi điểm ảnh chỉ là một con số biểu diễn độ sáng. Nếu ảnh có kích thước lớn, số lượng điểm ảnh có thể lên đến hàng chục nghìn hoặc hàng triệu.
+
+Câu hỏi đặt ra là: có thể chỉ cộng tuyến tính các giá trị điểm ảnh để kết luận ảnh là chó hay mèo không?
+
+Câu trả lời thường là không. Quan hệ giữa các điểm ảnh và ý nghĩa của bức ảnh là rất phức tạp. Mắt, tai, hình dáng, bối cảnh, cạnh, vùng sáng tối và rất nhiều đặc trưng khác cùng kết hợp lại theo cách phi tuyến. Đây chính là lý do ANN trở nên hữu ích.
+
+\begin{ghinho}
+ANN đặc biệt mạnh trong những bài toán mà con người khó viết công thức tường minh, nhưng lại có thể cung cấp nhiều ví dụ dữ liệu để máy học.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Các lĩnh vực ứng dụng của ANN}
+
+\section{Xử lý ngôn ngữ tự nhiên}
+
+Trong xử lý ngôn ngữ tự nhiên, ANN có thể được dùng cho các bài toán như:
+
+\begin{itemize}
+    \item phân loại văn bản;
+    \item lọc email spam;
+    \item tóm tắt tài liệu;
+    \item dịch máy;
+    \item sinh văn bản;
+    \item kiểm tra chính tả;
+    \item nhận dạng giọng nói.
+\end{itemize}
+
+\begin{vidu}
+Một hệ thống tóm tắt văn bản có thể nhận đầu vào là một tài liệu dài 100 trang và sinh ra một bản tóm tắt vài đoạn. Để làm được điều đó, mô hình phải học cách nhận biết đâu là ý chính, đâu là thông tin phụ và cách diễn đạt lại nội dung một cách ngắn gọn.
+\end{vidu}
+
+\section{Nhận dạng hình ảnh, âm thanh và video}
+
+ANN được dùng rất nhiều trong xử lý ảnh, âm thanh và video:
+
+\begin{itemize}
+    \item nhận dạng ảnh;
+    \item phân loại ảnh y khoa;
+    \item đọc biển số xe;
+    \item kiểm tra chữ ký;
+    \item nhận dạng ký tự;
+    \item xử lý ảnh siêu âm, ảnh X-quang, ảnh MRI.
+\end{itemize}
+
+\begin{vidu}
+Trong bài toán đọc biển số xe, ảnh chụp biển số là input. Output có thể là chuỗi ký tự như ``51F-123.45''. Hệ thống phải nhận dạng từng ký tự trong ảnh dù ánh sáng, góc chụp và chất lượng ảnh có thể khác nhau.
+\end{vidu}
+
+\section{Điều khiển và tự động hóa}
+
+ANN cũng có thể được dùng để điều khiển hệ thống:
+
+\begin{itemize}
+    \item xe tự lái;
+    \item máy bay tự động;
+    \item robot di chuyển theo hướng mong muốn;
+    \item phát hiện lỗi trong hệ thống;
+    \item dự đoán quỹ đạo vật thể;
+    \item điều khiển thiết bị bằng tín hiệu não.
+\end{itemize}
+
+\begin{vidu}
+Trong xe tự lái, input có thể là ảnh camera phía trước xe. Output có thể gồm góc lái, mức ga và mức phanh. Mạng học từ dữ liệu lái xe của con người để đưa ra hành động phù hợp trong tình huống mới.
+\end{vidu}
+
+\section{Dự đoán chuỗi thời gian}
+
+Chuỗi thời gian là loại dữ liệu thay đổi theo thời gian. Ví dụ:
+
+\begin{itemize}
+    \item thời tiết từng ngày;
+    \item giá cổ phiếu;
+    \item nhu cầu điện năng;
+    \item chi phí sản phẩm;
+    \item lượng khách hàng theo từng tháng.
+\end{itemize}
+
+\begin{vidu}
+Để dự báo thời tiết ngày hôm nay, ta thường phải xét thời tiết các ngày trước đó, độ ẩm, áp suất, hướng gió, nhiệt độ và nhiều yếu tố khác. Đây là một bài toán chuỗi thời gian điển hình.
+\end{vidu}
+
+\section{Y khoa, giáo dục và kinh doanh}
+
+Trong y khoa, ANN có thể hỗ trợ phát hiện ung thư, phân tích ảnh y khoa, nhận biết bệnh từ dữ liệu xét nghiệm hoặc hình ảnh.
+
+Trong giáo dục, ANN có thể hỗ trợ xây dựng hệ thống học thích nghi. Người học nhanh có thể nhận bài khó hơn, trong khi người học chậm có thể được ôn lại phần nền tảng.
+
+Trong kinh doanh và ngân hàng, ANN có thể dùng để:
+
+\begin{itemize}
+    \item phân tích hành vi khách hàng;
+    \item phân nhóm khách hàng;
+    \item dự đoán rủi ro tín dụng;
+    \item nghiên cứu thị trường;
+    \item phát hiện giao dịch bất thường.
+\end{itemize}
+
+% ==========================================================
+\chapter{Học có giám sát và quá trình thu thập dữ liệu}
+
+\section{Khái niệm học có giám sát}
+
+Học có giám sát, tiếng Anh là \textit{supervised learning}, là phương pháp học máy trong đó mỗi mẫu dữ liệu huấn luyện đều có nhãn đúng đi kèm.
+
+Một tập dữ liệu huấn luyện có dạng:
+
+\[
+    D = \{(x_1,y_1), (x_2,y_2), \ldots, (x_N,y_N)\}
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $N$ là số lượng mẫu dữ liệu;
+    \item $x_i$ là input thứ $i$;
+    \item $y_i$ là output hoặc nhãn đúng tương ứng.
+\end{itemize}
+
+Mô hình sẽ học một hàm:
+
+\[
+    f: X \rightarrow Y
+\]
+
+để biến input thành output.
+
+\section{Quy trình tổng quát}
+
+Một quy trình học có giám sát thường gồm các bước sau:
+
+\begin{enumerate}
+    \item Xác định bài toán cần giải.
+    \item Xác định input và output.
+    \item Thu thập nhiều cặp dữ liệu input--output.
+    \item Huấn luyện mô hình trên dữ liệu đã thu thập.
+    \item Kiểm tra mô hình trên dữ liệu mới.
+    \item Triển khai mô hình để sử dụng thực tế.
+\end{enumerate}
+
+\begin{ghinho}
+Trong học có giám sát, chất lượng dữ liệu đóng vai trò cực kỳ quan trọng. Nếu dữ liệu sai, thiếu, nhiễu hoặc gán nhãn không nhất quán, mô hình học được cũng có thể sai.
+\end{ghinho}
+
+\section{Ví dụ: điều khiển thiết bị bằng sóng não}
+
+Trong transcript, giảng viên đưa ra ví dụ về việc sử dụng thiết bị ghi sóng não để điều khiển đèn, máy lạnh hoặc các thiết bị khác.
+
+\subsection{Mô tả bài toán}
+
+Người dùng đội một thiết bị có gắn các điện cực để thu tín hiệu điện não. Khi người dùng nghĩ đến một lệnh, ví dụ ``bật đèn'', thiết bị sẽ ghi lại dạng sóng tương ứng.
+
+Ta cần xây dựng một hệ thống học có giám sát để ánh xạ:
+
+\[
+    \text{Dạng sóng não} \longrightarrow \text{Lệnh điều khiển}
+\]
+
+\subsection{Cách thu thập dữ liệu}
+
+Ta thu thập nhiều cặp dữ liệu:
+
+\[
+    (x_i, y_i)
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x_i$ là tín hiệu sóng não tại một thời điểm;
+    \item $y_i$ là lệnh tương ứng, ví dụ ``bật đèn'', ``tắt đèn'', ``bật máy lạnh'', ``tắt máy lạnh''.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Lần đo & Input: tín hiệu sóng não & Output: lệnh đúng \\
+\midrule
+1 & Dạng sóng khi nghĩ ``bật đèn'' & Bật đèn \\
+2 & Dạng sóng khi nghĩ ``tắt đèn'' & Tắt đèn \\
+3 & Dạng sóng khi nghĩ ``bật máy lạnh'' & Bật máy lạnh \\
+4 & Dạng sóng khi nghĩ ``tắt máy lạnh'' & Tắt máy lạnh \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Giai đoạn sử dụng}
+
+Sau khi huấn luyện, người dùng đội thiết bị, suy nghĩ một lệnh. Hệ thống nhận dạng dạng sóng, dự đoán lệnh và gửi tín hiệu đến cơ cấu chấp hành.
+
+\[
+    \text{Sóng não mới} \rightarrow \text{Mô hình ANN} \rightarrow \text{Lệnh dự đoán} \rightarrow \text{Thiết bị}
+\]
+
+% ==========================================================
+\chapter{Từ nơ-ron sinh học đến nơ-ron nhân tạo}
+
+\section{Nơ-ron sinh học}
+
+Một nơ-ron sinh học trong não người có nhiều kết nối đầu vào và một đầu ra chính. Các tín hiệu đi vào nơ-ron, được xử lý, sau đó truyền tiếp đến các nơ-ron khác.
+
+Điểm quan trọng không chỉ là số lượng nơ-ron, mà là cách các nơ-ron kết nối với nhau. Khi ta học tập, luyện tập và sử dụng một kỹ năng thường xuyên, các kết nối liên quan được củng cố. Ngược lại, những kết nối ít được sử dụng có thể yếu dần.
+
+\begin{ghinho}
+Việc học không chỉ là ghi nhớ thông tin trừu tượng. Về bản chất, học tập còn gắn với sự thay đổi và củng cố các kết nối trong não bộ.
+\end{ghinho}
+
+\section{Nơ-ron nhân tạo}
+
+Nơ-ron nhân tạo là mô hình tính toán mô phỏng đơn giản hóa nơ-ron sinh học. Nó nhận nhiều input và sinh ra một output.
+
+Giả sử nơ-ron có $n$ input:
+
+\[
+    x_1, x_2, \ldots, x_n
+\]
+
+Mỗi input có một trọng số tương ứng:
+
+\[
+    w_1, w_2, \ldots, w_n
+\]
+
+Ngoài ra, nơ-ron còn có một hằng số dịch gọi là bias, ký hiệu là $b$.
+
+Đầu tiên, nơ-ron tính tổng có trọng số:
+
+\[
+    z = w_1x_1 + w_2x_2 + \cdots + w_nx_n + b
+\]
+
+Viết gọn:
+
+\[
+    z = \sum_{i=1}^{n} w_i x_i + b
+\]
+
+Sau đó, giá trị $z$ được đưa qua một hàm kích hoạt $\varphi$:
+
+\[
+    y = \varphi(z)
+\]
+
+Do đó, công thức tổng quát của một nơ-ron nhân tạo là:
+
+\[
+    y = \varphi\left(\sum_{i=1}^{n} w_i x_i + b\right)
+\]
+
+\begin{vidu}
+Giả sử một nơ-ron có hai input:
+
+\[
+    x_1 = 2, \qquad x_2 = 3
+\]
+
+Trọng số và bias là:
+
+\[
+    w_1 = 0.5, \qquad w_2 = -1, \qquad b = 1
+\]
+
+Ta tính:
+
+\[
+    z = w_1x_1 + w_2x_2 + b
+\]
+
+\[
+    z = 0.5 \cdot 2 + (-1)\cdot 3 + 1 = 1 - 3 + 1 = -1
+\]
+
+Nếu dùng hàm kích hoạt sigmoid:
+
+\[
+    \sigma(z) = \frac{1}{1+e^{-z}}
+\]
+
+thì output là:
+
+\[
+    y = \sigma(-1) = \frac{1}{1+e^1} \approx 0.269
+\]
+\end{vidu}
+
+\section{Ý nghĩa của trọng số}
+
+Trọng số $w_i$ cho biết input $x_i$ ảnh hưởng mạnh hay yếu đến output.
+
+\begin{itemize}
+    \item Nếu $|w_i|$ lớn, input $x_i$ có ảnh hưởng mạnh.
+    \item Nếu $|w_i|$ nhỏ, input $x_i$ có ảnh hưởng yếu.
+    \item Nếu $w_i > 0$, input làm tăng giá trị tổng $z$.
+    \item Nếu $w_i < 0$, input làm giảm giá trị tổng $z$.
+\end{itemize}
+
+\section{Ý nghĩa của bias}
+
+Bias $b$ giúp mô hình linh hoạt hơn. Nếu không có bias, hàm tuyến tính bên trong nơ-ron luôn bị ràng buộc đi qua gốc tọa độ trong một số trường hợp đơn giản. Bias cho phép dịch chuyển ngưỡng kích hoạt của nơ-ron.
+
+\begin{vidu}
+Xét nơ-ron một input:
+
+\[
+    z = wx + b
+\]
+
+Nếu $w=1$ và $b=0$, ta có:
+
+\[
+    z = x
+\]
+
+Nếu $w=1$ và $b=-5$, ta có:
+
+\[
+    z = x - 5
+\]
+
+Khi đó, nơ-ron chỉ có xu hướng kích hoạt mạnh khi $x$ đủ lớn hơn 5. Bias ở đây đóng vai trò như một ngưỡng.
+\end{vidu}
+
+% ==========================================================
+\chapter{Hàm kích hoạt}
+
+\section{Vai trò của hàm kích hoạt}
+
+Hàm kích hoạt, tiếng Anh là \textit{activation function}, là hàm được đặt sau tổng có trọng số trong nơ-ron.
+
+Nếu không có hàm kích hoạt phi tuyến, nhiều lớp tuyến tính ghép lại vẫn chỉ tương đương một phép biến đổi tuyến tính. Khi đó, mạng khó giải quyết các bài toán phức tạp như nhận dạng ảnh, phân loại văn bản hay điều khiển xe tự lái.
+
+\begin{ghinho}
+Hàm kích hoạt là thành phần giúp mạng nơ-ron học được các quan hệ phi tuyến.
+\end{ghinho}
+
+\section{Hàm sigmoid}
+
+Hàm sigmoid được định nghĩa bởi:
+
+\[
+    \sigma(x) = \frac{1}{1+e^{-x}}
+\]
+
+Giá trị của sigmoid luôn nằm trong khoảng:
+
+\[
+    0 < \sigma(x) < 1
+\]
+
+\subsection{Tính chất}
+
+\begin{itemize}
+    \item Khi $x$ rất lớn, $\sigma(x)$ gần bằng 1.
+    \item Khi $x$ rất nhỏ, $\sigma(x)$ gần bằng 0.
+    \item Khi $x=0$, $\sigma(0)=0.5$.
+\end{itemize}
+
+\begin{vidu}
+Tính một vài giá trị của sigmoid:
+
+\[
+    \sigma(0)=\frac{1}{1+e^0}=0.5
+\]
+
+\[
+    \sigma(2)=\frac{1}{1+e^{-2}}\approx 0.881
+\]
+
+\[
+    \sigma(-2)=\frac{1}{1+e^2}\approx 0.119
+\]
+
+Nếu output cần biểu diễn xác suất, ví dụ xác suất email là spam, sigmoid là một lựa chọn dễ hiểu vì nó cho giá trị từ 0 đến 1.
+\end{vidu}
+
+\section{Hàm tanh}
+
+Hàm $\tanh$ được định nghĩa bởi:
+
+\[
+    \tanh(x) = \frac{e^x-e^{-x}}{e^x+e^{-x}}
+\]
+
+Giá trị của $\tanh$ nằm trong khoảng:
+
+\[
+    -1 < \tanh(x) < 1
+\]
+
+\subsection{Tính chất}
+
+\begin{itemize}
+    \item Khi $x$ rất lớn, $\tanh(x)$ gần bằng 1.
+    \item Khi $x$ rất nhỏ, $\tanh(x)$ gần bằng -1.
+    \item Khi $x=0$, $\tanh(0)=0$.
+\end{itemize}
+
+\section{So sánh sigmoid và tanh}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Tiêu chí & Sigmoid & Tanh \\
+\midrule
+Công thức & $\dfrac{1}{1+e^{-x}}$ & $\dfrac{e^x-e^{-x}}{e^x+e^{-x}}$ \\
+Miền giá trị & $(0,1)$ & $(-1,1)$ \\
+Giá trị tại $x=0$ & $0.5$ & $0$ \\
+Ứng dụng trực quan & Xác suất nhị phân & Tín hiệu có âm và dương \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{canhbao}
+Từ ``logistic'' trong ``logistic sigmoid'' không liên quan trực tiếp đến ngành logistics và chuỗi cung ứng. Trong ANN, logistic thường chỉ dạng hàm toán học sigmoid.
+\end{canhbao}
+
+% ==========================================================
+\chapter{Tham số, siêu tham số và huấn luyện mạng}
+
+\section{Tham số của mô hình}
+
+Tham số, tiếng Anh là \textit{parameter}, là những đại lượng được mô hình học từ dữ liệu.
+
+Trong một nơ-ron nhân tạo, các tham số chính là:
+
+\[
+    w_1, w_2, \ldots, w_n, b
+\]
+
+Tức là:
+
+\begin{itemize}
+    \item các trọng số;
+    \item bias.
+\end{itemize}
+
+Khi mạng có nhiều nơ-ron, ta phải tìm tất cả trọng số và bias của tất cả các nơ-ron.
+
+\section{Siêu tham số}
+
+Siêu tham số, tiếng Anh là \textit{hyperparameter}, là những lựa chọn được xác định trước khi huấn luyện, không được học trực tiếp từ dữ liệu theo cách thông thường.
+
+Ví dụ:
+
+\begin{itemize}
+    \item số lớp ẩn;
+    \item số nơ-ron trong mỗi lớp;
+    \item loại hàm kích hoạt;
+    \item tốc độ học;
+    \item số vòng huấn luyện;
+    \item kích thước batch.
+\end{itemize}
+
+\begin{vidu}
+Nếu ta chọn mạng có 3 lớp ẩn, mỗi lớp 64 nơ-ron và dùng hàm kích hoạt $\tanh$, thì những lựa chọn này là siêu tham số. Trong quá trình huấn luyện, mô hình sẽ học trọng số và bias, nhưng không tự động đổi số lớp từ 3 thành 5 nếu ta không thiết kế cơ chế riêng.
+\end{vidu}
+
+\section{Huấn luyện mạng là gì?}
+
+Huấn luyện mạng là quá trình điều chỉnh các tham số sao cho mô hình dự đoán đúng hơn trên dữ liệu huấn luyện.
+
+Giả sử mô hình dự đoán:
+
+\[
+    \hat{y}_i = f(x_i)
+\]
+
+Nhãn đúng là $y_i$. Ta cần một hàm mất mát, tiếng Anh là \textit{loss function}, để đo sai số giữa $\hat{y}_i$ và $y_i$.
+
+Với bài toán dự đoán số, một hàm mất mát phổ biến là sai số bình phương trung bình:
+
+\[
+    L = \frac{1}{N}\sum_{i=1}^{N}(\hat{y}_i-y_i)^2
+\]
+
+Mục tiêu huấn luyện là tìm các tham số làm cho $L$ nhỏ nhất có thể.
+
+\section{Model sau khi huấn luyện}
+
+Sau khi huấn luyện thành công, ta thu được một \textbf{model}. Model này đã chứa các tham số học được và có thể được dùng để dự đoán trên dữ liệu mới.
+
+\[
+    \text{Dữ liệu mới} \rightarrow \text{Model đã huấn luyện} \rightarrow \text{Dự đoán}
+\]
+
+% ==========================================================
+\chapter{Cấu trúc mạng nơ-ron}
+
+\section{Lớp input, lớp ẩn và lớp output}
+
+Một mạng nơ-ron thường gồm ba loại lớp:
+
+\begin{itemize}
+    \item \textbf{Lớp input}: nhận dữ liệu đầu vào.
+    \item \textbf{Lớp ẩn}: xử lý và biến đổi thông tin.
+    \item \textbf{Lớp output}: sinh ra kết quả cuối cùng.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=2.0cm,y=1.0cm,>=Stealth,
+    neuron/.style={circle,draw,minimum size=8mm},
+    every node/.style={font=\small}
+]
+
+% Input layer
+\node[neuron] (i1) at (0,1) {$x_1$};
+\node[neuron] (i2) at (0,0) {$x_2$};
+\node[neuron] (i3) at (0,-1) {$x_3$};
+
+% Hidden layer
+\node[neuron] (h1) at (1.7,1.2) {$h_1$};
+\node[neuron] (h2) at (1.7,0.4) {$h_2$};
+\node[neuron] (h3) at (1.7,-0.4) {$h_3$};
+\node[neuron] (h4) at (1.7,-1.2) {$h_4$};
+
+% Output layer
+\node[neuron] (o1) at (3.4,0.4) {$y_1$};
+\node[neuron] (o2) at (3.4,-0.4) {$y_2$};
+
+% Connections input-hidden
+\foreach \i in {i1,i2,i3}
+    \foreach \h in {h1,h2,h3,h4}
+        \draw[->] (\i) -- (\h);
+
+% Connections hidden-output
+\foreach \h in {h1,h2,h3,h4}
+    \foreach \o in {o1,o2}
+        \draw[->] (\h) -- (\o);
+
+% Labels
+\node at (0,2) {\textbf{Input}};
+\node at (1.7,2) {\textbf{Lớp ẩn}};
+\node at (3.4,2) {\textbf{Output}};
+
+\end{tikzpicture}
+\end{center}
+
+\section{Kết nối đầy đủ}
+
+Trong mạng kết nối đầy đủ, tiếng Anh là \textit{fully connected network}, mỗi nơ-ron của một lớp được nối với tất cả nơ-ron ở lớp kế tiếp.
+
+Tuy nhiên, các nơ-ron trong cùng một lớp thường không nối trực tiếp với nhau trong mạng truyền thẳng cơ bản.
+
+\section{Mạng truyền thẳng nhiều lớp}
+
+Mạng truyền thẳng, tiếng Anh là \textit{feedforward neural network}, là mạng trong đó thông tin đi theo một chiều:
+
+\[
+    \text{Input} \rightarrow \text{Các lớp ẩn} \rightarrow \text{Output}
+\]
+
+Nếu mạng có nhiều lớp ẩn, ta gọi là mạng truyền thẳng nhiều lớp.
+
+\begin{ghinho}
+Trong bài học, cấu trúc được khảo sát chủ yếu là mạng truyền thẳng nhiều lớp. Đây là một trong những cấu trúc ANN cơ bản và phổ biến nhất.
+\end{ghinho}
+
+\section{Deep Learning}
+
+Deep Learning thường được dịch là học sâu, nhưng cần hiểu đúng bản chất: ``sâu'' ở đây liên quan đến việc mạng có nhiều lớp xử lý liên tiếp.
+
+Một mạng càng có nhiều lớp ẩn thì càng có khả năng học các biểu diễn phức tạp hơn. Tuy nhiên, nhiều lớp hơn không phải lúc nào cũng tốt hơn. Mạng sâu hơn thường cần:
+
+\begin{itemize}
+    \item nhiều dữ liệu hơn;
+    \item phần cứng mạnh hơn;
+    \item kỹ thuật huấn luyện tốt hơn;
+    \item kiểm soát overfitting tốt hơn.
+\end{itemize}
+
+% ==========================================================
+\chapter{Ví dụ 1: Dự đoán giá cổ phiếu}
+
+\section{Mô tả bài toán}
+
+Giả sử ta muốn dự đoán giá cổ phiếu ngày hôm nay dựa vào giá của 5 ngày gần nhất.
+
+Input là:
+
+\[
+    x = [p_{t-5}, p_{t-4}, p_{t-3}, p_{t-2}, p_{t-1}]
+\]
+
+Output là:
+
+\[
+    y = p_t
+\]
+
+Trong đó $p_t$ là giá cổ phiếu tại ngày cần dự đoán.
+
+\section{Dữ liệu huấn luyện}
+
+Ta cần thu thập nhiều cặp dữ liệu:
+
+\[
+    ([p_{t-5},p_{t-4},p_{t-3},p_{t-2},p_{t-1}], p_t)
+\]
+
+\begin{center}
+\begin{tabular}{llllll}
+\toprule
+Ngày $t-5$ & Ngày $t-4$ & Ngày $t-3$ & Ngày $t-2$ & Ngày $t-1$ & Ngày $t$ \\
+\midrule
+100 & 102 & 101 & 103 & 104 & 105 \\
+102 & 101 & 103 & 104 & 105 & 107 \\
+101 & 103 & 104 & 105 & 107 & 106 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Trong bảng trên, 5 cột đầu là input, cột cuối là output đúng.
+
+\section{Mạng nơ-ron cho bài toán}
+
+Vì input có 5 giá trị, lớp input có thể có 5 nơ-ron. Vì output là một giá cổ phiếu, lớp output có thể có 1 nơ-ron.
+
+\[
+    \mathbb{R}^5 \rightarrow \mathbb{R}
+\]
+
+\begin{vidu}
+Nếu 5 giá gần nhất là:
+
+\[
+    [101, 103, 104, 105, 107]
+\]
+
+mô hình có thể dự đoán:
+
+\[
+    \hat{y} = 106.5
+\]
+
+Nếu giá thật là:
+
+\[
+    y = 106
+\]
+
+thì sai số là:
+
+\[
+    \hat{y} - y = 106.5 - 106 = 0.5
+\]
+
+Sai số bình phương là:
+
+\[
+    (0.5)^2 = 0.25
+\]
+\end{vidu}
+
+% ==========================================================
+\chapter{Ví dụ 2: Xe tự lái}
+
+\section{Mô tả bài toán}
+
+Trong ví dụ xe tự lái, ta cần xây dựng một mô hình nhận dữ liệu từ camera và sinh ra các lệnh điều khiển xe.
+
+Input có thể là ảnh camera phía trước xe. Output có thể gồm:
+
+\begin{itemize}
+    \item góc lái;
+    \item mức ga;
+    \item mức phanh.
+\end{itemize}
+
+Ta có thể viết:
+
+\[
+    \text{Ảnh camera} \rightarrow \text{ANN} \rightarrow
+    \begin{bmatrix}
+    \text{góc lái}\\
+    \text{ga}\\
+    \text{phanh}
+    \end{bmatrix}
+\]
+
+\section{Input là ảnh}
+
+Nếu dùng ảnh xám, mỗi pixel có giá trị từ 0 đến 255:
+
+\[
+    0 \leq x_i \leq 255
+\]
+
+Nếu ảnh có kích thước $100 \times 100$, số pixel là:
+
+\[
+    100 \times 100 = 10\,000
+\]
+
+Khi đó, input có thể là vector gồm 10.000 giá trị:
+
+\[
+    x = [x_1, x_2, \ldots, x_{10000}]
+\]
+
+\section{Thu thập dữ liệu}
+
+Trong quá trình lái xe thật, ta ghi lại đồng thời:
+
+\begin{itemize}
+    \item ảnh camera tại từng thời điểm;
+    \item góc lái tương ứng;
+    \item mức ga tương ứng;
+    \item mức phanh tương ứng.
+\end{itemize}
+
+Mỗi mẫu dữ liệu có dạng:
+
+\[
+    (\text{ảnh}, \text{góc lái}, \text{ga}, \text{phanh})
+\]
+
+\section{Mô hình học những gì được dạy}
+
+Một điểm quan trọng trong bài học là: mô hình sẽ học từ dữ liệu mà ta cung cấp. Nếu dữ liệu được thu bởi một tài xế cẩn thận, mô hình có xu hướng học cách lái cẩn thận. Nếu dữ liệu được thu bởi một tài xế lái ẩu, mô hình có thể học hành vi lái ẩu.
+
+\begin{canhbao}
+Mô hình không tự biết thế nào là ``lái xe tốt'' nếu dữ liệu huấn luyện không phản ánh điều đó. Trong học có giám sát, chất lượng nhãn và chất lượng người tạo dữ liệu ảnh hưởng trực tiếp đến hành vi của mô hình.
+\end{canhbao}
+
+\begin{vidu}
+Hai nhóm dữ liệu khác nhau:
+
+\begin{itemize}
+    \item Dữ liệu A: tài xế giảm tốc khi gặp đèn vàng, giữ làn, tuân thủ tốc độ.
+    \item Dữ liệu B: tài xế vượt ẩu, lấn làn, vượt đèn đỏ.
+\end{itemize}
+
+Nếu huấn luyện hai mô hình trên hai bộ dữ liệu này, hai mô hình có thể cho hành vi rất khác nhau dù kiến trúc mạng giống nhau.
+\end{vidu}
+
+% ==========================================================
+\chapter{Ví dụ 3: Nhận dạng chó và mèo từ ảnh}
+
+\section{Mô tả bài toán}
+
+Input là một ảnh, output là nhãn:
+
+\[
+    y \in \{\text{chó}, \text{mèo}\}
+\]
+
+Nếu ảnh là ảnh xám, mỗi pixel là một con số. Tuy nhiên, việc phân loại chó hay mèo không chỉ phụ thuộc vào một pixel riêng lẻ mà phụ thuộc vào cấu trúc tổng thể của ảnh.
+
+\section{Vì sao đây là bài toán phi tuyến?}
+
+Nếu ta chỉ dùng tổ hợp tuyến tính:
+
+\[
+    z = w_1x_1 + w_2x_2 + \cdots + w_nx_n + b
+\]
+
+thì mô hình chỉ học được ranh giới tuyến tính trong không gian dữ liệu. Nhưng ảnh chó và mèo có sự biến thiên rất phức tạp: tư thế khác nhau, ánh sáng khác nhau, nền khác nhau, giống loài khác nhau.
+
+Do đó, cần các lớp ẩn và hàm kích hoạt phi tuyến để mô hình học được đặc trưng phức tạp hơn.
+
+\begin{ghinho}
+Bài toán nhận dạng ảnh là ví dụ điển hình cho thấy sức mạnh của mạng nơ-ron: máy học từ rất nhiều ví dụ thay vì con người phải tự viết mọi quy tắc nhận dạng.
+\end{ghinho}
+
+% ==========================================================
+\chapter{Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.23\textwidth}p{0.47\textwidth}p{0.22\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+ANN & Artificial Neural Network, tức mạng nơ-ron nhân tạo. Đây là hệ thống tính toán lấy cảm hứng từ mạng nơ-ron sinh học. & Mạng phân loại ảnh chó/mèo. \\
+
+Nơ-ron nhân tạo & Phần tử tính toán cơ bản trong ANN, nhận nhiều input và sinh một output. & Một nơ-ron nhận giá cổ phiếu các ngày trước và tạo tín hiệu dự đoán. \\
+
+Input & Dữ liệu đầu vào của mô hình. & Ảnh camera, tín hiệu sóng não, giá cổ phiếu 5 ngày trước. \\
+
+Output & Kết quả đầu ra của mô hình. & Nhãn ``chó'', ``mèo'', giá dự đoán, góc lái. \\
+
+Label & Nhãn đúng đi kèm dữ liệu trong học có giám sát. & Email được gán nhãn ``spam''. \\
+
+Học có giám sát & Phương pháp học từ các cặp input--output đúng. & Học từ ảnh và nhãn chó/mèo. \\
+
+Training & Quá trình huấn luyện mô hình bằng dữ liệu. & Điều chỉnh trọng số để giảm sai số dự đoán. \\
+
+Model & Mô hình đã học được quan hệ từ dữ liệu. & Mô hình dự đoán giá cổ phiếu sau khi huấn luyện. \\
+
+Trọng số & Hệ số cho biết mức ảnh hưởng của từng input đến nơ-ron. & $w_1=0.8$ nghĩa là input $x_1$ có ảnh hưởng đáng kể. \\
+
+Bias & Hằng số cộng thêm vào tổng có trọng số, giúp dịch ngưỡng kích hoạt. & $z=w_1x_1+w_2x_2+b$. \\
+
+Hàm kích hoạt & Hàm biến đổi tổng có trọng số thành output của nơ-ron, thường là hàm phi tuyến. & Sigmoid, tanh. \\
+
+Sigmoid & Hàm kích hoạt có giá trị từ 0 đến 1. & Dùng để biểu diễn xác suất email là spam. \\
+
+Tanh & Hàm kích hoạt có giá trị từ -1 đến 1. & Dùng khi cần output có cả giá trị âm và dương. \\
+
+Tham số & Đại lượng được học từ dữ liệu. & Trọng số và bias. \\
+
+Siêu tham số & Đại lượng do người thiết kế chọn trước khi huấn luyện. & Số lớp ẩn, số nơ-ron, loại hàm kích hoạt. \\
+
+Lớp input & Lớp nhận dữ liệu đầu vào. & 10.000 pixel ảnh được đưa vào lớp input. \\
+
+Lớp ẩn & Lớp trung gian xử lý thông tin giữa input và output. & Một mạng có 3 lớp ẩn. \\
+
+Lớp output & Lớp sinh ra kết quả cuối cùng. & Một nơ-ron output dự đoán giá cổ phiếu. \\
+
+Kết nối đầy đủ & Mỗi nơ-ron của lớp trước nối với tất cả nơ-ron của lớp sau. & Fully connected layer. \\
+
+Mạng truyền thẳng & Mạng trong đó tín hiệu đi từ input qua lớp ẩn đến output, không quay ngược vòng trong lúc dự đoán. & Feedforward neural network. \\
+
+Deep Learning & Học sâu; thường chỉ các mạng có nhiều lớp ẩn. & Mạng nhiều lớp dùng trong nhận dạng ảnh. \\
+
+Phi tuyến & Quan hệ không thể biểu diễn tốt bằng một đường thẳng hoặc tổ hợp tuyến tính đơn giản. & Quan hệ giữa pixel ảnh và nhãn chó/mèo. \\
+
+Pixel & Điểm ảnh, đơn vị nhỏ nhất của ảnh số. & Ảnh xám có pixel giá trị từ 0 đến 255. \\
+
+Chuỗi thời gian & Dữ liệu được ghi nhận theo thứ tự thời gian. & Giá cổ phiếu từng ngày, nhiệt độ từng giờ. \\
+
+Cơ cấu chấp hành & Bộ phận thực hiện lệnh điều khiển từ hệ thống. & Đèn, động cơ, phanh, tay lái. \\
+
+Sóng điện não & Tín hiệu điện sinh ra từ hoạt động của não. & Tín hiệu dùng để điều khiển bật/tắt đèn. \\
+
+BCI & Brain--Computer Interface, tức giao diện não--máy tính. & Hệ thống dùng sóng não để điều khiển thiết bị. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\chapter{Tóm tắt kiến thức trọng tâm}
+
+\section{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item ANN là hệ thống tính toán lấy cảm hứng từ mạng nơ-ron sinh học.
+    \item ANN học bằng cách khảo sát dữ liệu và ví dụ.
+    \item Trong học có giám sát, dữ liệu huấn luyện gồm các cặp input--output.
+    \item Một nơ-ron nhân tạo tính:
+    \[
+        y = \varphi\left(\sum_{i=1}^{n}w_ix_i+b\right)
+    \]
+    \item Trọng số và bias là tham số được học từ dữ liệu.
+    \item Hàm kích hoạt giúp mạng học quan hệ phi tuyến.
+    \item Sigmoid cho output từ 0 đến 1; tanh cho output từ -1 đến 1.
+    \item Mạng truyền thẳng nhiều lớp gồm input layer, hidden layers và output layer.
+    \item Mô hình học theo dữ liệu được cung cấp; dữ liệu xấu có thể tạo ra mô hình xấu.
+\end{enumerate}
+
+\section{Sơ đồ tư duy ngắn gọn}
+
+\[
+\boxed{
+\text{Dữ liệu}
+\rightarrow
+\text{Huấn luyện}
+\rightarrow
+\text{Tham số học được}
+\rightarrow
+\text{Model}
+\rightarrow
+\text{Dự đoán trên dữ liệu mới}
+}
+\]
+
+% ==========================================================
+\chapter{Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Mạng nơ-ron nhân tạo lấy cảm hứng từ đâu?
+    \item Học có giám sát khác gì so với việc lập trình luật thủ công?
+    \item Vì sao bài toán phân biệt ảnh chó và mèo thường là bài toán phi tuyến?
+    \item Viết công thức toán học của một nơ-ron nhân tạo.
+    \item Trọng số và bias có vai trò gì?
+    \item Hàm kích hoạt dùng để làm gì?
+    \item So sánh sigmoid và tanh về miền giá trị.
+    \item Tham số khác siêu tham số như thế nào?
+    \item Trong bài toán dự đoán giá cổ phiếu từ 5 ngày trước, input và output là gì?
+    \item Trong bài toán xe tự lái, vì sao chất lượng tài xế thu thập dữ liệu ảnh hưởng đến mô hình?
+\end{enumerate}
+
+% ==========================================================
+\chapter{Bài tập vận dụng}
+
+\section*{Bài tập 1: Tính output của nơ-ron}
+\addcontentsline{toc}{section}{Bài tập 1: Tính output của nơ-ron}
+
+Cho:
+
+\[
+    x_1=1,\quad x_2=4,\quad w_1=2,\quad w_2=-0.5,\quad b=1
+\]
+
+\begin{enumerate}
+    \item Tính $z=w_1x_1+w_2x_2+b$.
+    \item Tính $y=\sigma(z)$ với:
+    \[
+        \sigma(z)=\frac{1}{1+e^{-z}}
+    \]
+\end{enumerate}
+
+\section*{Lời giải gợi ý}
+
+\[
+    z = 2\cdot 1 + (-0.5)\cdot 4 + 1 = 2 - 2 + 1 = 1
+\]
+
+\[
+    y = \sigma(1)=\frac{1}{1+e^{-1}}\approx 0.731
+\]
+
+\section*{Bài tập 2: Xác định input và output}
+\addcontentsline{toc}{section}{Bài tập 2: Xác định input và output}
+
+Với mỗi bài toán sau, hãy xác định input và output:
+
+\begin{enumerate}
+    \item Nhận dạng biển số xe.
+    \item Dự đoán thời tiết ngày mai.
+    \item Điều khiển đèn bằng sóng não.
+    \item Phân loại email spam.
+\end{enumerate}
+
+\section*{Gợi ý}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Bài toán & Input & Output \\
+\midrule
+Nhận dạng biển số & Ảnh biển số & Chuỗi ký tự biển số \\
+Dự đoán thời tiết & Dữ liệu thời tiết các ngày trước & Thời tiết ngày mai \\
+Điều khiển bằng sóng não & Tín hiệu điện não & Lệnh điều khiển \\
+Phân loại email spam & Nội dung email & Spam hoặc không spam \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\chapter*{Kết luận}
+\addcontentsline{toc}{chapter}{Kết luận}
+
+Bài học ANN1 cung cấp nền tảng đầu tiên về mạng nơ-ron nhân tạo. Trọng tâm của bài là hiểu ANN như một hệ thống học từ dữ liệu, mô phỏng một phần ý tưởng từ nơ-ron sinh học, có khả năng xử lý các quan hệ phi tuyến và được ứng dụng rộng rãi trong nhận dạng, dự đoán, điều khiển, y khoa, giáo dục và kinh doanh.
+
+Muốn hiểu sâu hơn ANN, người học cần tiếp tục nắm các nội dung tiếp theo như lan truyền tiến, hàm mất mát, lan truyền ngược, gradient descent, overfitting, regularization và các kiến trúc mạng chuyên biệt như CNN, RNN, Transformer.
+
+\end{document}

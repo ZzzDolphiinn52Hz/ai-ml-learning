@@ -1,0 +1,72 @@
+\babel@toc {vietnamese}{}\relax 
+\contentsline {chapter}{Mục tiêu bài học}{2}{chapter*.2}%
+\contentsline {chapter}{\numberline {1}Nhắc lại bài toán học có giám sát}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Mạng nơ-ron cần học ánh xạ}{3}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Dữ liệu trong học có giám sát}{3}{section.1.2}%
+\contentsline {chapter}{\numberline {2}Thông số ban đầu của mạng nơ-ron}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Tham số của từng nơ-ron}{5}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Mạng có rất nhiều tham số}{5}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Khởi tạo ngẫu nhiên}{6}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Vì sao output ban đầu thường sai?}{6}{section.2.4}%
+\contentsline {chapter}{\numberline {3}Lan truyền tiến}{7}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Ý tưởng của lan truyền tiến}{7}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Sơ đồ lan truyền tiến}{7}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Lan truyền tiến qua nhiều lớp}{7}{section.3.3}%
+\contentsline {chapter}{\numberline {4}Sai số và ý tưởng huấn luyện}{9}{chapter.4}%
+\contentsline {section}{\numberline {4.1}So sánh output dự đoán với output mong muốn}{9}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Hàm mất mát}{9}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Huấn luyện là giảm sai số}{10}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Lan truyền ngược sai số}{11}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Backpropagation là gì?}{11}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Ý tưởng trực quan}{11}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Cập nhật từng bước}{12}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Liên hệ với điều khiển tự động}{12}{section.5.4}%
+\contentsline {chapter}{\numberline {6}Quá trình huấn luyện lặp}{14}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Huấn luyện qua từng mẫu}{14}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Epoch}{14}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Vì sao cần lặp nhiều lần?}{14}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Thời gian huấn luyện}{15}{section.6.4}%
+\contentsline {chapter}{\numberline {7}Bài toán phân loại nhiều lớp}{16}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Khái niệm class}{16}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Thiết kế output cho bài toán nhiều lớp}{16}{section.7.2}%
+\contentsline {subsection}{\numberline {7.2.1}Cách 1: Một output nhận giá trị 1, 2, 3, 4}{16}{subsection.7.2.1}%
+\contentsline {subsection}{\numberline {7.2.2}Cách 2: Hai output theo mã nhị phân}{16}{subsection.7.2.2}%
+\contentsline {subsection}{\numberline {7.2.3}Cách 3: Bốn output theo one-hot vector}{17}{subsection.7.2.3}%
+\contentsline {chapter}{\numberline {8}One-hot encoding}{18}{chapter.8}%
+\contentsline {section}{\numberline {8.1}One-hot vector là gì?}{18}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Bảng mã hóa one-hot}{18}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Output dự đoán của mạng}{18}{section.8.3}%
+\contentsline {chapter}{\numberline {9}Đo sai số giữa hai vector}{20}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Vì sao cần đo sai số giữa hai vector?}{20}{section.9.1}%
+\contentsline {chapter}{\numberline {10}Hàm mất mát dựa trên chuẩn L2 - NORM 2}{21}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Chuẩn L2 của vector}{21}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Sai số L2 giữa hai vector}{21}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Ví dụ tính sai số L2}{21}{section.10.3}%
+\contentsline {chapter}{\numberline {11}Đo khác biệt bằng góc giữa hai vector}{23}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Tích vô hướng}{23}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Góc giữa hai vector}{23}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Ý nghĩa}{24}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Cosine similarity}{24}{section.11.4}%
+\contentsline {chapter}{\numberline {12}Cross entropy}{25}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Ý tưởng của cross entropy}{25}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Cross entropy với one-hot label}{25}{section.12.2}%
+\contentsline {section}{\numberline {12.3}Ví dụ tính cross entropy}{26}{section.12.3}%
+\contentsline {section}{\numberline {12.4}So sánh các cách đo sai số}{26}{section.12.4}%
+\contentsline {chapter}{\numberline {13}Mô hình học được những gì?}{27}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Mô hình chỉ học trong phạm vi dữ liệu được dạy}{27}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Số lượng class trong các bộ dữ liệu lớn}{27}{section.13.2}%
+\contentsline {section}{\numberline {13.3}Không phải cứ huấn luyện là thành công}{27}{section.13.3}%
+\contentsline {chapter}{\numberline {14}Tổng hợp quy trình huấn luyện ANN}{29}{chapter.14}%
+\contentsline {section}{\numberline {14.1}Quy trình tổng quát}{29}{section.14.1}%
+\contentsline {section}{\numberline {14.2}Sơ đồ tổng quát}{30}{section.14.2}%
+\contentsline {chapter}{\numberline {15}Bảng thuật ngữ chuyên ngành}{31}{chapter.15}%
+\contentsline {chapter}{\numberline {16}Tóm tắt kiến thức trọng tâm}{33}{chapter.16}%
+\contentsline {section}{\numberline {16.1}Các ý chính cần nhớ}{33}{section.16.1}%
+\contentsline {section}{\numberline {16.2}Công thức quan trọng}{33}{section.16.2}%
+\contentsline {chapter}{\numberline {17}Câu hỏi ôn tập}{35}{chapter.17}%
+\contentsline {chapter}{\numberline {18}Bài tập vận dụng}{36}{chapter.18}%
+\contentsline {section}{Bài tập 1: One-hot encoding}{36}{section*.9}%
+\contentsline {section}{Bài tập 2: Tính chuẩn L2}{36}{section*.11}%
+\contentsline {section}{Bài tập 3: Tính cross entropy}{37}{section*.13}%
+\contentsline {section}{Bài tập 4: Xác định output layer}{37}{section*.15}%
+\contentsline {chapter}{Kết luận}{38}{chapter*.17}%
