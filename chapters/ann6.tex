@@ -1,90 +1,8 @@
-% !TEX program = pdflatex
-\documentclass[12pt,a4paper]{report}
 
-% =========================
-% CẤU HÌNH CHO PDFLATEX
-% =========================
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[most]{tcolorbox}
-\usetikzlibrary{arrows.meta,positioning,calc}
-
-% =========================
-% VIỆT HÓA
-% =========================
-\renewcommand{\contentsname}{Mục lục}
-\renewcommand{\chaptername}{Chương}
-\renewcommand{\figurename}{Hình}
-\renewcommand{\tablename}{Bảng}
-
-% =========================
-% HYPERLINK
-% =========================
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black
-}
-
-% =========================
-% HỘP NỘI DUNG
-% =========================
-\newtcolorbox{ghinho}{
-    colback=blue!4,
-    colframe=blue!60!black,
-    title=Ghi nhớ trong ví dụ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{vidu}{
-    colback=green!4,
-    colframe=green!50!black,
-    title=Diễn giải ví dụ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{luuy}{
-    colback=orange!6,
-    colframe=orange!70!black,
-    title=Lưu ý khi tính,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-% =========================
-% THÔNG TIN TÀI LIỆU
-% =========================
-\title{
-    \textbf{Tài liệu học tập ANN6}\\
-    \large Giải chi tiết ví dụ lan truyền ngược sai số
-}
-\author{Biên soạn theo vai trò trợ giảng chuyên môn}
-\date{\today}
-
-\begin{document}
-
-\maketitle
-\tableofcontents
-\newpage
 
 % ==========================================================
-\chapter*{Mục tiêu của tài liệu}
-\addcontentsline{toc}{chapter}{Mục tiêu của tài liệu}
+\section*{Learning Objectives -- Mục tiêu của tài liệu}
+\addcontentsline{toc}{section}{Mục tiêu của tài liệu}
 
 Tài liệu này chỉ tập trung giải thích ví dụ tính toán trong video ANN6. Nội dung không trình bày lại lý thuyết tổng quát, mà đi theo đúng tinh thần của ví dụ:
 
@@ -96,9 +14,9 @@ Tài liệu này chỉ tập trung giải thích ví dụ tính toán trong vide
 \end{enumerate}
 
 % ==========================================================
-\chapter{Mô tả ví dụ}
+\section{Example Description -- Mô tả ví dụ}
 
-\section{Cấu trúc mạng trong ví dụ}
+\subsection{Cấu trúc mạng trong ví dụ}
 
 Ví dụ sử dụng một mạng nơ-ron rất nhỏ:
 
@@ -145,7 +63,7 @@ Ví dụ sử dụng một mạng nơ-ron rất nhỏ:
 \end{tikzpicture}
 \end{center}
 
-\section{Dữ liệu ban đầu}
+\subsection{Dữ liệu ban đầu}
 
 Trong ví dụ, ta dùng các giá trị sau:
 
@@ -196,9 +114,9 @@ Trong khi tính, nếu đã biết output $a=\sigma(x)$, ta dùng nhanh:
 \]
 
 % ==========================================================
-\chapter{Tính xuôi trong ví dụ}
+\section{Forward Pass Example -- Tính xuôi trong ví dụ}
 
-\section{Tính output của hidden neuron $h_1$}
+\subsection{Tính output của hidden neuron $h_1$}
 
 Net input vào $h_1$:
 
@@ -232,7 +150,7 @@ Output của $h_1$:
     out_{h_1}\approx 0.593269992
 \]
 
-\section{Tính output của hidden neuron $h_2$}
+\subsection{Tính output của hidden neuron $h_2$}
 
 Net input vào $h_2$:
 
@@ -266,7 +184,7 @@ Output của $h_2$:
     out_{h_2}\approx 0.596884378
 \]
 
-\section{Tính output $o_1$}
+\subsection{Tính output $o_1$}
 
 Net input vào $o_1$:
 
@@ -300,7 +218,7 @@ Output:
     out_{o_1}\approx 0.751365070
 \]
 
-\section{Tính output $o_2$}
+\subsection{Tính output $o_2$}
 
 Net input vào $o_2$:
 
@@ -335,9 +253,9 @@ Output:
 \]
 
 % ==========================================================
-\chapter{Tính sai số của ví dụ}
+\section{Error Calculation Example -- Tính sai số của ví dụ}
 
-\section{Sai số tại output $o_1$}
+\subsection{Sai số tại output $o_1$}
 
 Target của $o_1$ là:
 
@@ -373,7 +291,7 @@ Thay số:
     E_{o_1}\approx 0.274811083
 \]
 
-\section{Sai số tại output $o_2$}
+\subsection{Sai số tại output $o_2$}
 
 Target của $o_2$ là:
 
@@ -409,7 +327,7 @@ Thay số:
     E_{o_2}\approx 0.023560026
 \]
 
-\section{Sai số tổng}
+\subsection{Sai số tổng}
 
 \[
     E_{total}=E_{o_1}+E_{o_2}
@@ -438,9 +356,9 @@ Trong video, giá trị sai số được nhắc đến là khoảng $0.2984$. �
 \end{ghinho}
 
 % ==========================================================
-\chapter{Cập nhật các trọng số lớp output}
+\section{Updating Output Layer Weights -- Cập nhật các trọng số lớp output}
 
-\section{Cập nhật $w_5$}
+\subsection{Cập nhật $w_5$}
 
 Trọng số $w_5$ nối từ $h_1$ đến $o_1$.
 
@@ -538,7 +456,7 @@ Cập nhật:
     \approx 0.358916480
 \]
 
-\section{Cập nhật $w_6,w_7,w_8$}
+\subsection{Cập nhật $w_6,w_7,w_8$}
 
 Cách làm tương tự như $w_5$.
 
@@ -704,7 +622,7 @@ $w_8$ nối từ $h_2$ đến $o_2$:
     \approx 0.561370121
 \]
 
-\section{Bảng kết quả cập nhật lớp output}
+\subsection{Bảng kết quả cập nhật lớp output}
 
 \begin{center}
 \begin{tabular}{cccc}
@@ -720,9 +638,9 @@ $w_8$ & 0.550000000 & -0.022740242 & 0.561370121 \\
 \end{center}
 
 % ==========================================================
-\chapter{Cập nhật bias ở lớp output}
+\section{Cập nhật bias ở lớp output}
 
-\section{Bias ứng với output $o_1$}
+\subsection{Bias ứng với output $o_1$}
 
 Với bias của $o_1$:
 
@@ -767,7 +685,7 @@ Nếu bias ban đầu là $0.60$:
     \approx 0.530750719
 \]
 
-\section{Bias ứng với output $o_2$}
+\subsection{Bias ứng với output $o_2$}
 
 \[
     \frac{\partial E_{total}}{\partial b_{o_2}}
@@ -807,9 +725,9 @@ Nếu trong tài liệu gốc dùng chung một bias $b_o$ cho cả hai output, 
 \end{luuy}
 
 % ==========================================================
-\chapter{Cập nhật các trọng số phía trước}
+\section{Cập nhật các trọng số phía trước}
 
-\section{Điểm quan trọng khi tính $w_1$}
+\subsection{Điểm quan trọng khi tính $w_1$}
 
 Trọng số $w_1$ nối từ input $i_1$ đến hidden neuron $h_1$.
 
@@ -855,7 +773,7 @@ và:
 Đây là điểm quan trọng nhất trong ví dụ ANN6: khi tính đạo hàm theo $w_1$, phải cộng ảnh hưởng qua cả $o_1$ và $o_2$. Nếu chỉ lấy nhánh qua $o_1$, kết quả sẽ sai.
 \end{ghinho}
 
-\section{Sơ đồ đúng khi tính đạo hàm theo $w_1$}
+\subsection{Sơ đồ đúng khi tính đạo hàm theo $w_1$}
 
 \begin{center}
 \begin{tikzpicture}[x=1.8cm,y=1.1cm,>=Stealth,
@@ -894,7 +812,7 @@ và:
 \end{tikzpicture}
 \end{center}
 
-\section{Tính $\frac{\partial E_{total}}{\partial out_{h_1}}$}
+\subsection{Tính $\frac{\partial E_{total}}{\partial out_{h_1}}$}
 
 Vì $out_{h_1}$ ảnh hưởng đến cả $o_1$ và $o_2$:
 
@@ -1003,7 +921,7 @@ Cộng hai nhánh:
     \approx 0.036350306
 \]
 
-\section{Tính gradient của $w_1$}
+\subsection{Tính gradient của $w_1$}
 
 Ta cần:
 
@@ -1084,7 +1002,7 @@ Cập nhật:
     \approx 0.149780716
 \]
 
-\section{Cập nhật $w_2$}
+\subsection{Cập nhật $w_2$}
 
 $w_2$ cũng đi vào $h_1$, nên phần đầu giống $w_1$. Điểm khác là:
 
@@ -1125,9 +1043,9 @@ Cập nhật:
 \]
 
 % ==========================================================
-\chapter{Cập nhật $w_3$ và $w_4$}
+\section{Cập nhật $w_3$ và $w_4$}
 
-\section{Tính ảnh hưởng qua hidden neuron $h_2$}
+\subsection{Tính ảnh hưởng qua hidden neuron $h_2$}
 
 Tương tự $h_1$, output $out_{h_2}$ cũng đi đến cả $o_1$ và $o_2$.
 
@@ -1204,7 +1122,7 @@ Cộng lại:
     \approx 0.041370323
 \]
 
-\section{Cập nhật $w_3$}
+\subsection{Cập nhật $w_3$}
 
 \[
     \frac{\partial E_{total}}{\partial w_3}
@@ -1271,7 +1189,7 @@ Cập nhật:
     \approx 0.249751144
 \]
 
-\section{Cập nhật $w_4$}
+\subsection{Cập nhật $w_4$}
 
 Với $w_4$:
 
@@ -1309,7 +1227,7 @@ Cập nhật:
     \approx 0.299502287
 \]
 
-\section{Bảng kết quả cập nhật lớp hidden}
+\subsection{Bảng kết quả cập nhật lớp hidden}
 
 \begin{center}
 \begin{tabular}{cccc}
@@ -1325,9 +1243,9 @@ $w_4$ & 0.300000000 & 0.000995425 & 0.299502287 \\
 \end{center}
 
 % ==========================================================
-\chapter{Cập nhật bias ở lớp hidden}
+\section{Cập nhật bias ở lớp hidden}
 
-\section{Bias ứng với $h_1$}
+\subsection{Bias ứng với $h_1$}
 
 Vì:
 
@@ -1372,7 +1290,7 @@ Cập nhật:
     \approx 0.345614323
 \]
 
-\section{Bias ứng với $h_2$}
+\subsection{Bias ứng với $h_2$}
 
 \[
     \frac{\partial E_{total}}{\partial b_{h_2}}
@@ -1414,9 +1332,9 @@ Tương tự bias ở lớp output, nếu tài liệu gốc dùng chung một bi
 \end{luuy}
 
 % ==========================================================
-\chapter{Tổng kết một lượt cập nhật}
+\section{Tổng kết một lượt cập nhật}
 
-\section{Bảng trọng số trước và sau cập nhật}
+\subsection{Bảng trọng số trước và sau cập nhật}
 
 \begin{center}
 \begin{tabular}{ccc}
@@ -1435,7 +1353,7 @@ $w_8$ & 0.550000000 & 0.561370121 \\
 \end{tabular}
 \end{center}
 
-\section{Bảng bias trước và sau cập nhật}
+\subsection{Bảng bias trước và sau cập nhật}
 
 \begin{center}
 \begin{tabular}{ccc}
@@ -1450,7 +1368,7 @@ $b_{h_2}$ & 0.350000000 & 0.345022873 \\
 \end{tabular}
 \end{center}
 
-\section{Ý nghĩa của một lượt cập nhật}
+\subsection{Ý nghĩa của một lượt cập nhật}
 
 Sau khi cập nhật xong tất cả trọng số và bias, mạng đã thay đổi một chút so với trạng thái ban đầu. Đây mới chỉ là một lượt cập nhật với một cặp dữ liệu.
 
@@ -1469,9 +1387,9 @@ Với cặp dữ liệu tiếp theo, ta lại làm:
 Quá trình này lặp đi lặp lại rất nhiều lần cho đến khi sai số giảm đến mức chấp nhận được.
 
 % ==========================================================
-\chapter{Những lỗi dễ mắc trong ví dụ}
+\section{Những lỗi dễ mắc trong ví dụ}
 
-\section{Lỗi 1: Chỉ tính một nhánh khi cập nhật $w_1$}
+\subsection{Lỗi 1: Chỉ tính một nhánh khi cập nhật $w_1$}
 
 Sai lầm thường gặp là viết:
 
@@ -1507,7 +1425,7 @@ Biểu thức đúng phải là:
     \frac{\partial net_{h_1}}{\partial w_1}
 \]
 
-\section{Lỗi 2: Nhầm dấu khi cập nhật}
+\subsection{Lỗi 2: Nhầm dấu khi cập nhật}
 
 Công thức cập nhật là:
 
@@ -1541,7 +1459,7 @@ Do đó:
 
 Vì gradient âm nên $w_7$ tăng.
 
-\section{Lỗi 3: Dùng nhầm output của neuron}
+\subsection{Lỗi 3: Dùng nhầm output của neuron}
 
 Khi tính gradient của $w_5$:
 
@@ -1564,9 +1482,9 @@ Mỗi trọng số nằm trên một cạnh cụ thể. Đạo hàm của $net$ 
 \end{luuy}
 
 % ==========================================================
-\chapter{Bài tập tự kiểm tra theo ví dụ}
+\section{Bài tập tự kiểm tra theo ví dụ}
 
-\section*{Bài tập 1: Kiểm tra sai số tổng}
+\subsection*{Bài tập 1: Kiểm tra sai số tổng}
 \addcontentsline{toc}{section}{Bài tập 1: Kiểm tra sai số tổng}
 
 Dùng các giá trị:
@@ -1589,7 +1507,7 @@ Hãy tính:
     \frac{1}{2}(t_2-out_{o_2})^2
 \]
 
-\section*{Đáp án}
+\subsection*{Đáp án}
 
 \[
     E_{total}\approx 0.298371109
@@ -1599,7 +1517,7 @@ Hãy tính:
     E_{total}\approx 0.2984
 \]
 
-\section*{Bài tập 2: Tính lại $w_5^{new}$}
+\subsection*{Bài tập 2: Tính lại $w_5^{new}$}
 \addcontentsline{toc}{section}{Bài tập 2: Tính lại $w_5^{new}$}
 
 Cho:
@@ -1614,7 +1532,7 @@ Cho:
 
 Tính $w_5^{new}$.
 
-\section*{Đáp án}
+\subsection*{Đáp án}
 
 \[
     w_5^{new}
@@ -1629,7 +1547,7 @@ Tính $w_5^{new}$.
     \approx 0.358916480
 \]
 
-\section*{Bài tập 3: Vì sao $w_7$ tăng?}
+\subsection*{Bài tập 3: Vì sao $w_7$ tăng?}
 \addcontentsline{toc}{section}{Bài tập 3: Vì sao $w_7$ tăng?}
 
 Cho:
@@ -1644,7 +1562,7 @@ Cho:
 
 Tính $w_7^{new}$ và giải thích vì sao nó tăng.
 
-\section*{Đáp án}
+\subsection*{Đáp án}
 
 \[
     w_7^{new}
@@ -1669,7 +1587,7 @@ Tính $w_7^{new}$ và giải thích vì sao nó tăng.
 
 Vì gradient âm nên khi trừ gradient, giá trị trọng số tăng.
 
-\section*{Bài tập 4: Viết đúng biểu thức cho $w_1$}
+\subsection*{Bài tập 4: Viết đúng biểu thức cho $w_1$}
 \addcontentsline{toc}{section}{Bài tập 4: Viết đúng biểu thức cho $w_1$}
 
 Điền vào chỗ trống:
@@ -1688,7 +1606,7 @@ Vì gradient âm nên khi trừ gradient, giá trị trọng số tăng.
     \frac{\partial net_{h_1}}{\partial w_1}
 \]
 
-\section*{Đáp án}
+\subsection*{Đáp án}
 
 \[
     \frac{\partial E_{total}}{\partial w_1}
@@ -1705,8 +1623,8 @@ Vì gradient âm nên khi trừ gradient, giá trị trọng số tăng.
 \]
 
 % ==========================================================
-\chapter*{Kết luận}
-\addcontentsline{toc}{chapter}{Kết luận}
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
 
 Ví dụ ANN6 minh họa cách tính lan truyền ngược bằng tay trên một mạng nhỏ. Sau khi tính xuôi, ta thu được sai số tổng khoảng:
 
@@ -1746,4 +1664,3 @@ Vì vậy:
 
 Đây là phần ``ruột'' quan trọng của ví dụ, giúp hiểu thật sự điều gì xảy ra bên trong quá trình backpropagation thay vì chỉ dùng thư viện có sẵn.
 
-\end{document}

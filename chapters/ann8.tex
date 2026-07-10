@@ -1,98 +1,8 @@
-% !TEX program = pdflatex
-\documentclass[12pt,a4paper]{report}
 
-% =========================
-% CẤU HÌNH CHO PDFLATEX
-% =========================
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[most]{tcolorbox}
-\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
-
-% =========================
-% VIỆT HÓA
-% =========================
-\renewcommand{\contentsname}{Mục lục}
-\renewcommand{\chaptername}{Chương}
-\renewcommand{\figurename}{Hình}
-\renewcommand{\tablename}{Bảng}
-
-% =========================
-% HYPERLINK
-% =========================
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black
-}
-
-% =========================
-% HỘP NỘI DUNG
-% =========================
-\newtcolorbox{ghinho}{
-    colback=blue!4,
-    colframe=blue!60!black,
-    title=Ghi nhớ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{vidu}{
-    colback=green!4,
-    colframe=green!50!black,
-    title=Ví dụ minh họa,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{luuy}{
-    colback=orange!6,
-    colframe=orange!70!black,
-    title=Lưu ý,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{canhbao}{
-    colback=red!4,
-    colframe=red!60!black,
-    title=Cảnh báo,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-% =========================
-% THÔNG TIN TÀI LIỆU
-% =========================
-\title{
-    \textbf{Tài liệu học tập ANN8}\\
-    \large Nguyên nhân và cách xử lý Underfitting, Overfitting
-}
-\author{Biên soạn theo vai trò trợ giảng chuyên môn}
-\date{\today}
-
-\begin{document}
-
-\maketitle
-\tableofcontents
-\newpage
 
 % ==========================================================
-\chapter*{Mục tiêu bài học}
-\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
 
 Bài ANN8 tiếp tục nội dung về underfitting và overfitting, nhưng tập trung hơn vào nguyên nhân và các kỹ thuật xử lý. Sau khi học xong, người học cần nắm được:
 
@@ -108,9 +18,9 @@ Bài ANN8 tiếp tục nội dung về underfitting và overfitting, nhưng tậ
 \end{enumerate}
 
 % ==========================================================
-\chapter{Ôn lại Underfitting và Overfitting}
+\section{Underfitting \& Overfitting Recap -- Ôn lại Underfitting và Overfitting}
 
-\section{Underfitting}
+\subsection{Underfitting}
 
 Underfitting là tình huống mô hình chưa khớp được với dữ liệu. Nói cách khác, mô hình chưa học được xu hướng tổng quát của dữ liệu.
 
@@ -128,7 +38,7 @@ Thường gặp khi:
 Underfitting nghĩa là mô hình chưa đủ khả năng học bài toán. Dù có tiếp tục dùng mô hình quá đơn giản, sai số vẫn có thể không giảm đến mức mong muốn.
 \end{ghinho}
 
-\section{Overfitting}
+\subsection{Overfitting}
 
 Overfitting là tình huống mô hình quá khớp với dữ liệu huấn luyện. Khi đó, sai số trên tập huấn luyện có thể rất thấp, thậm chí gần bằng 0, nhưng mô hình lại làm việc kém trên dữ liệu mới.
 
@@ -146,7 +56,7 @@ Thường gặp khi:
 Overfitting nguy hiểm hơn underfitting ở chỗ: trên tập huấn luyện, mô hình có vẻ rất tốt vì loss thấp. Nếu không kiểm tra đúng cách, ta có thể nhầm rằng mô hình đã làm việc tốt.
 \end{canhbao}
 
-\section{So sánh ngắn gọn}
+\subsection{So sánh ngắn gọn}
 
 \begin{center}
 \begin{tabular}{p{0.24\textwidth}p{0.34\textwidth}p{0.32\textwidth}}
@@ -161,9 +71,9 @@ Overfitting & Train rất tốt, test kém & Mô hình quá phức tạp hoặc 
 \end{center}
 
 % ==========================================================
-\chapter{Ví dụ Underfitting và Overfitting trong phân loại}
+\section{Underfitting \& Overfitting: Classification -- Ví dụ Underfitting và Overfitting trong phân loại}
 
-\section{Mô tả bài toán phân loại}
+\subsection{Mô tả bài toán phân loại}
 
 Giả sử ta có dữ liệu 2D, ví dụ:
 
@@ -179,7 +89,7 @@ Mỗi điểm dữ liệu thuộc một trong hai class:
 
 Mục tiêu là tìm một đường ranh giới để phân biệt hai class.
 
-\section{Underfitting trong phân loại}
+\subsection{Underfitting trong phân loại}
 
 Nếu ranh giới thật cần là một đường cong, nhưng ta chỉ dùng một đường thẳng, mô hình có thể không phân chia tốt hai class.
 
@@ -208,7 +118,7 @@ Nếu ranh giới thật cần là một đường cong, nhưng ta chỉ dùng m
 Nếu dữ liệu có xu hướng cong nhưng mô hình chỉ có khả năng tạo đường thẳng, ta xoay hoặc dịch đường thẳng thế nào cũng khó phân loại tốt. Đây là ví dụ điển hình của underfitting.
 \end{vidu}
 
-\section{Overfitting trong phân loại}
+\subsection{Overfitting trong phân loại}
 
 Ngược lại, nếu mô hình quá mạnh, nó có thể tạo ra một đường ranh giới rất ngoằn ngoèo để phân loại đúng mọi điểm huấn luyện, kể cả các điểm nhiễu.
 
@@ -241,9 +151,9 @@ Overfitting trong phân loại thường biểu hiện bằng ranh giới quyế
 \end{ghinho}
 
 % ==========================================================
-\chapter{Ví dụ Underfitting và Overfitting trong hồi quy}
+\section{Underfitting \& Overfitting: Regression -- Ví dụ Underfitting và Overfitting trong hồi quy}
 
-\section{Mô tả bài toán hồi quy}
+\subsection{Mô tả bài toán hồi quy}
 
 Hồi quy là bài toán dự đoán giá trị liên tục.
 
@@ -258,7 +168,7 @@ Ví dụ:
 
 Ta có một tập điểm dữ liệu và cần tìm một mô hình khớp với xu hướng chung của dữ liệu.
 
-\section{Underfitting trong hồi quy}
+\subsection{Underfitting trong hồi quy}
 
 Nếu dữ liệu có dạng cong nhưng ta dùng đường thẳng, mô hình không đủ khả năng mô tả dữ liệu.
 
@@ -276,7 +186,7 @@ Nếu dữ liệu có dạng cong nhưng ta dùng đường thẳng, mô hình k
 \end{tikzpicture}
 \end{center}
 
-\section{Good fitting trong hồi quy}
+\subsection{Good fitting trong hồi quy}
 
 Mô hình tốt không cần đi qua toàn bộ điểm dữ liệu. Nó cần xấp xỉ được xu hướng tổng quát.
 
@@ -297,7 +207,7 @@ Mô hình tốt không cần đi qua toàn bộ điểm dữ liệu. Nó cần x
 \end{tikzpicture}
 \end{center}
 
-\section{Overfitting trong hồi quy}
+\subsection{Overfitting trong hồi quy}
 
 Nếu dùng đa thức bậc rất cao, mô hình có thể uốn lượn để đi qua gần như toàn bộ điểm dữ liệu. Sai số train có thể bằng 0, nhưng mô hình mất xu hướng tổng quát.
 
@@ -326,9 +236,9 @@ Trong hồi quy, việc tăng bậc đa thức quá cao có thể làm mô hình
 \end{canhbao}
 
 % ==========================================================
-\chapter{Nguyên nhân gây Underfitting}
+\section{Causes of Underfitting -- Nguyên nhân gây Underfitting}
 
-\section{Mô hình quá đơn giản}
+\subsection{Mô hình quá đơn giản}
 
 Nguyên nhân chính của underfitting là mô hình không đủ khả năng biểu diễn bài toán.
 
@@ -344,7 +254,7 @@ Ví dụ:
 Nếu yêu cầu một mạng nơ-ron rất nhỏ nhận dạng ảnh chó, mèo, xe hơi, máy bay từ ảnh thực tế, mạng đó có thể không đủ khả năng học bài toán dù huấn luyện rất lâu.
 \end{vidu}
 
-\section{Huấn luyện chưa đủ}
+\subsection{Huấn luyện chưa đủ}
 
 Một nguyên nhân khác là mô hình đủ mạnh nhưng chưa được huấn luyện đủ lâu.
 
@@ -354,7 +264,7 @@ Ví dụ, một bài toán cần huấn luyện khoảng một tuần mới đ�
 Underfitting có thể do mô hình yếu, nhưng cũng có thể do mô hình chưa được huấn luyện đủ.
 \end{ghinho}
 
-\section{Cách xử lý underfitting}
+\subsection{Cách xử lý underfitting}
 
 Một số cách xử lý:
 
@@ -371,9 +281,9 @@ Với bài toán phân loại ảnh 1000 class, một mạng nhỏ tự thiết 
 \end{vidu}
 
 % ==========================================================
-\chapter{Nguyên nhân gây Overfitting}
+\section{Causes of Overfitting -- Nguyên nhân gây Overfitting}
 
-\section{Mô hình quá phức tạp}
+\subsection{Mô hình quá phức tạp}
 
 Nếu mô hình quá mạnh so với bài toán, nó có thể học cả những chi tiết nhỏ, nhiễu hoặc điểm bất thường trong tập huấn luyện.
 
@@ -385,7 +295,7 @@ Ví dụ:
     \item số tham số lớn trong khi dữ liệu ít.
 \end{itemize}
 
-\section{Dữ liệu quá ít}
+\subsection{Dữ liệu quá ít}
 
 Nếu dữ liệu ít, mô hình dễ ghi nhớ dữ liệu huấn luyện thay vì học quy luật tổng quát.
 
@@ -393,7 +303,7 @@ Nếu dữ liệu ít, mô hình dễ ghi nhớ dữ liệu huấn luyện thay 
 Một bài toán phân loại ảnh có 1000 class nhưng chỉ có khoảng 1000 ảnh cho mỗi class. Với bài toán ảnh phức tạp, số lượng này có thể vẫn còn ít, đặc biệt khi ảnh có nhiều biến thể về góc chụp, ánh sáng, vị trí đối tượng và nền ảnh.
 \end{vidu}
 
-\section{Dữ liệu thiếu đa dạng}
+\subsection{Dữ liệu thiếu đa dạng}
 
 Không chỉ số lượng, tính đa dạng của dữ liệu cũng rất quan trọng.
 
@@ -404,9 +314,9 @@ Dữ liệu đủ nhiều chưa chắc đã đủ tốt. Dữ liệu còn cần 
 \end{ghinho}
 
 % ==========================================================
-\chapter{Giải pháp cho Overfitting: Đơn giản hóa mô hình}
+\section{Giải pháp cho Overfitting: Đơn giản hóa mô hình}
 
-\section{Giảm độ phức tạp mô hình}
+\subsection{Giảm độ phức tạp mô hình}
 
 Nếu mô hình quá mạnh, một hướng xử lý là làm mô hình đơn giản hơn.
 
@@ -419,7 +329,7 @@ Ví dụ:
     \item chọn kiến trúc phù hợp hơn với độ khó của bài toán.
 \end{itemize}
 
-\section{Loại bỏ bớt đặc trưng}
+\subsection{Loại bỏ bớt đặc trưng}
 
 Nếu input có quá nhiều đặc trưng, mô hình có thể học các quan hệ phụ không cần thiết. Khi đó có thể cân nhắc loại bỏ một số đặc trưng.
 
@@ -432,15 +342,15 @@ Không nên bỏ đặc trưng một cách tùy tiện. Cần dựa vào hiểu 
 \end{luuy}
 
 % ==========================================================
-\chapter{Giải pháp cho Overfitting: Tăng dữ liệu}
+\section{Giải pháp cho Overfitting: Tăng dữ liệu}
 
-\section{Tại sao cần thêm dữ liệu?}
+\subsection{Tại sao cần thêm dữ liệu?}
 
 Một nguyên nhân phổ biến gây overfitting là thiếu dữ liệu. Khi dữ liệu quá ít, mô hình dễ học thuộc tập huấn luyện.
 
 Cách trực tiếp nhất là thu thập thêm dữ liệu mới, thật, độc lập và đa dạng.
 
-\section{Ví dụ ImageNet}
+\subsection{Ví dụ ImageNet}
 
 Trong bài học, giảng viên nhắc đến một bài toán nhận dạng ảnh quy mô lớn với khoảng:
 
@@ -466,7 +376,7 @@ Với bài toán thị giác máy tính phức tạp, con số này vẫn có th
 Trong deep learning, dữ liệu ảnh thường cần số lượng rất lớn và độ đa dạng cao. Một vài nghìn ảnh cho mỗi class có thể vẫn chưa đủ nếu bài toán phức tạp.
 \end{ghinho}
 
-\section{Ví dụ nhận diện khuôn mặt}
+\subsection{Ví dụ nhận diện khuôn mặt}
 
 Bài toán nhận diện khuôn mặt còn có thể cần lượng dữ liệu lớn hơn rất nhiều. Có những hệ thống được huấn luyện với hàng chục triệu hoặc hàng trăm triệu ảnh khuôn mặt.
 
@@ -483,9 +393,9 @@ Bài toán nhận diện khuôn mặt còn có thể cần lượng dữ liệu 
 \end{itemize}
 
 % ==========================================================
-\chapter{Data Augmentation}
+\section{Data Augmentation}
 
-\section{Data augmentation là gì?}
+\subsection{Data augmentation là gì?}
 
 Data augmentation là kỹ thuật làm tăng số lượng và độ đa dạng của dữ liệu huấn luyện bằng cách biến đổi dữ liệu gốc.
 
@@ -505,7 +415,7 @@ Với ảnh, ta có thể tạo thêm ảnh mới từ ảnh ban đầu bằng c
 Mục tiêu của data augmentation không phải là tạo ảnh kỳ quặc, mà là tạo thêm các tình huống hợp lý có thể xảy ra trong thực tế.
 \end{ghinho}
 
-\section{Cắt ảnh và dịch cửa sổ}
+\subsection{Cắt ảnh và dịch cửa sổ}
 
 Giả sử ta có một ảnh con chó. Nếu trong mọi ảnh huấn luyện, con chó luôn nằm chính giữa, mô hình có thể học sai rằng con chó phải nằm ở giữa ảnh.
 
@@ -536,7 +446,7 @@ Ta có thể cắt các vùng khác nhau của ảnh để tạo thêm nhiều �
 Từ một ảnh gốc, ta có thể lấy nhiều vùng crop khác nhau. Nhờ đó, mô hình học rằng đối tượng có thể xuất hiện ở nhiều vị trí khác nhau, không nhất thiết nằm ở trung tâm.
 \end{vidu}
 
-\section{Lật đối xứng}
+\subsection{Lật đối xứng}
 
 Nếu tất cả ảnh voi trong tập huấn luyện đều quay mặt sang phải, mô hình có thể không nhận ra voi quay mặt sang trái. Khi đó, ta có thể dùng phép lật đối xứng.
 
@@ -550,7 +460,7 @@ Nếu tất cả ảnh voi trong tập huấn luyện đều quay mặt sang ph�
 Với ảnh động vật, lật ngang thường hợp lý. Một con voi quay mặt sang trái hay sang phải vẫn là con voi.
 \end{vidu}
 
-\section{Xoay ảnh}
+\subsection{Xoay ảnh}
 
 Với một số đối tượng, ta có thể xoay ảnh một góc nhỏ để tăng độ đa dạng.
 
@@ -566,7 +476,7 @@ Tuy nhiên, không phải bài toán nào cũng cho phép xoay tùy ý.
 Cần bảo đảm ảnh sau khi augmentation vẫn có ý nghĩa. Ví dụ, xoay ảnh con voi 180 độ làm voi chổng chân lên trời có thể không phù hợp nếu bài toán thực tế không bao giờ gặp tình huống đó.
 \end{luuy}
 
-\section{Thay đổi màu sắc và độ sáng}
+\subsection{Thay đổi màu sắc và độ sáng}
 
 Nếu tất cả ảnh hoa hồng trong tập huấn luyện có cùng màu sắc và độ sáng, mô hình có thể phụ thuộc quá nhiều vào màu đó.
 
@@ -583,7 +493,7 @@ Ta có thể thay đổi:
 Hoa hồng có thể xuất hiện dưới nhiều điều kiện ánh sáng khác nhau. Nếu chỉ học ảnh hoa hồng có màu đỏ tươi và ánh sáng chuẩn, mô hình có thể nhận sai hoa hồng trong ảnh tối hơn, sáng hơn hoặc có màu lệch.
 \end{vidu}
 
-\section{Augmentation phải phù hợp với bài toán}
+\subsection{Augmentation phải phù hợp với bài toán}
 
 Không phải phép biến đổi nào cũng hợp lý.
 
@@ -605,7 +515,7 @@ Hoa hồng & Đổi sáng, màu, crop & Biến màu quá giả tạo \\
 Data augmentation không phải là biến đổi dữ liệu vô tội vạ. Nếu tạo ra ảnh quá giả hoặc không có khả năng xảy ra trong thực tế, mô hình có thể học sai.
 \end{canhbao}
 
-\section{Tác dụng về số lượng dữ liệu}
+\subsection{Tác dụng về số lượng dữ liệu}
 
 Trong transcript, giảng viên nêu ví dụ: nếu một ảnh có thể biến thành 2048 ảnh khác bằng các kỹ thuật augmentation, thì tập dữ liệu tăng rất mạnh.
 
@@ -640,15 +550,15 @@ Data augmentation vừa tăng số lượng ảnh, vừa tăng độ đa dạng 
 \end{ghinho}
 
 % ==========================================================
-\chapter{Train, Validation và Test Set}
+\section{Train, Validation và Test Set}
 
-\section{Vì sao phải chia dữ liệu?}
+\subsection{Vì sao phải chia dữ liệu?}
 
 Nếu chỉ huấn luyện và đánh giá trên cùng một tập dữ liệu, ta không biết mô hình có thực sự tổng quát hóa tốt hay chỉ đang học thuộc dữ liệu.
 
 Do đó, dữ liệu thường được chia thành nhiều tập.
 
-\section{Chia thành hai tập}
+\subsection{Chia thành hai tập}
 
 Cách đơn giản:
 
@@ -665,7 +575,7 @@ Ví dụ:
     20\% \text{ test}
 \]
 
-\section{Chia thành ba tập}
+\subsection{Chia thành ba tập}
 
 Trong thực tế, thường nên chia thành ba tập:
 
@@ -698,7 +608,7 @@ Ví dụ:
 \end{tikzpicture}
 \end{center}
 
-\section{Vai trò của training set}
+\subsection{Vai trò của training set}
 
 Training set là tập được dùng để cập nhật tham số của mô hình.
 
@@ -712,7 +622,7 @@ Training set là tập được dùng để cập nhật tham số của mô hì
     \text{cập nhật trọng số}
 \]
 
-\section{Vai trò của validation set}
+\subsection{Vai trò của validation set}
 
 Validation set không dùng để cập nhật trọng số trực tiếp. Nó được dùng để đánh giá mô hình trong quá trình huấn luyện.
 
@@ -729,7 +639,7 @@ Ta dùng validation set để:
 Validation set được dùng trong quá trình huấn luyện để đánh giá và lựa chọn mô hình, nhưng không được dùng để cập nhật trọng số như training set.
 \end{ghinho}
 
-\section{Vai trò của test set}
+\subsection{Vai trò của test set}
 
 Test set là tập dữ liệu chỉ dùng để đánh giá cuối cùng.
 
@@ -737,7 +647,7 @@ Test set là tập dữ liệu chỉ dùng để đánh giá cuối cùng.
 Test set không được dùng trong quá trình huấn luyện, không được dùng để chỉnh mô hình, không được dùng để chọn hyperparameter. Test set chỉ được dùng khi ta đã quyết định mô hình cuối cùng.
 \end{canhbao}
 
-\section{Ví dụ chia dữ liệu}
+\subsection{Ví dụ chia dữ liệu}
 
 Giả sử có 1,000 ảnh.
 
@@ -764,9 +674,9 @@ Trong quá trình làm mô hình:
 \end{itemize}
 
 % ==========================================================
-\chapter{Nguyên tắc sử dụng Test Set}
+\section{Nguyên tắc sử dụng Test Set}
 
-\section{Không được dùng test set nhiều lần để chỉnh mô hình}
+\subsection{Không được dùng test set nhiều lần để chỉnh mô hình}
 
 Một lỗi nghiêm trọng là:
 
@@ -785,13 +695,13 @@ Cách làm này làm mô hình hoặc quá trình lựa chọn mô hình dần d
 Nếu dùng test set nhiều lần để quyết định chỉnh mô hình, test set không còn là tập kiểm tra độc lập nữa. Kết quả báo cáo sau đó có thể đánh giá sai năng lực thật của mô hình.
 \end{canhbao}
 
-\section{Vì sao đây là lỗi nghiêm trọng?}
+\subsection{Vì sao đây là lỗi nghiêm trọng?}
 
 Test set có vai trò mô phỏng dữ liệu mới trong thực tế. Nếu ta liên tục nhìn vào test set để chỉnh mô hình, ta đã làm mất tính độc lập của nó.
 
 Khi đó, kết quả trên test set không còn phản ánh khả năng tổng quát hóa thật.
 
-\section{Liên hệ với nghiên cứu khoa học}
+\subsection{Liên hệ với nghiên cứu khoa học}
 
 Trong nghiên cứu khoa học, nếu báo cáo kết quả trên một test set đã bị dùng nhiều lần để chỉnh mô hình, kết quả có thể gây hiểu lầm rằng mô hình tốt hơn thực tế.
 
@@ -801,7 +711,7 @@ Trong nghiên cứu khoa học, nếu báo cáo kết quả trên một test set
 Test set là bài kiểm tra cuối cùng. Nếu đã dùng test set để chỉnh mô hình, cần có một test set độc lập mới để đánh giá cuối cùng.
 \end{ghinho}
 
-\section{Nếu lỡ dùng test set thì làm sao?}
+\subsection{Nếu lỡ dùng test set thì làm sao?}
 
 Nếu đã lỡ dùng test set trong quá trình phát triển mô hình, cách xử lý đúng là:
 
@@ -812,9 +722,9 @@ Nếu đã lỡ dùng test set trong quá trình phát triển mô hình, cách 
 \end{itemize}
 
 % ==========================================================
-\chapter{Cross-validation}
+\section{Cross-validation}
 
-\section{Ý tưởng}
+\subsection{Ý tưởng}
 
 Khi dữ liệu ít, việc tách riêng một test set cố định có thể làm lãng phí dữ liệu. Một hướng xử lý là kiểm tra chéo, tiếng Anh là \textit{cross-validation}.
 
@@ -827,7 +737,7 @@ Khi dữ liệu ít, việc tách riêng một test set cố định có thể l
     \item tổng hợp kết quả.
 \end{itemize}
 
-\section{Ví dụ K-fold cross-validation}
+\subsection{Ví dụ K-fold cross-validation}
 
 Giả sử chia dữ liệu thành 5 phần:
 
@@ -858,9 +768,9 @@ Trong transcript, cross-validation chỉ được nhắc như một hướng li�
 \end{luuy}
 
 % ==========================================================
-\chapter{Early Stopping}
+\section{Early Stopping -- Early Stopping}
 
-\section{Early stopping là gì?}
+\subsection{Early stopping là gì?}
 
 Early stopping, hay dừng sớm, là kỹ thuật dừng quá trình huấn luyện khi mô hình bắt đầu có dấu hiệu overfitting.
 
@@ -873,7 +783,7 @@ Ta theo dõi loss trên:
 
 Thông thường, training loss sẽ giảm dần. Nhưng nếu validation loss giảm đến một mức nào đó rồi bắt đầu tăng trở lại, đó là dấu hiệu mô hình đang overfit.
 
-\section{Minh họa}
+\subsection{Minh họa}
 
 \begin{center}
 \begin{tikzpicture}[scale=1.0,>=Stealth]
@@ -902,7 +812,7 @@ Thông thường, training loss sẽ giảm dần. Nhưng nếu validation loss 
 \end{tikzpicture}
 \end{center}
 
-\section{Ý nghĩa}
+\subsection{Ý nghĩa}
 
 Giả sử ban đầu dự định huấn luyện 100,000 bước. Nhưng sau 70,000 bước, validation loss bắt đầu tăng, trong khi training loss vẫn giảm. Khi đó nên dừng huấn luyện và giữ mô hình tại thời điểm validation loss tốt nhất.
 
@@ -910,16 +820,16 @@ Giả sử ban đầu dự định huấn luyện 100,000 bước. Nhưng sau 70
 Early stopping giúp tránh tình trạng mô hình tiếp tục học quá sát training set sau khi đã đạt khả năng tổng quát hóa tốt nhất trên validation set.
 \end{ghinho}
 
-\section{Không phải cứ early stopping là mô hình tốt}
+\subsection{Không phải cứ early stopping là mô hình tốt}
 
 Dừng sớm chỉ giúp giảm overfitting. Nó không đảm bảo mô hình cuối cùng chắc chắn tốt.
 
 Nếu mô hình quá yếu, dữ liệu sai, hoặc bài toán chưa được thiết kế đúng, early stopping vẫn không cứu được mô hình.
 
 % ==========================================================
-\chapter{Dropout}
+\section{Dropout -- Dropout}
 
-\section{Dropout là gì?}
+\subsection{Dropout là gì?}
 
 Dropout là kỹ thuật trong quá trình huấn luyện, tại mỗi thời điểm, ta ngẫu nhiên loại bỏ một số neuron khỏi mạng với một xác suất nào đó.
 
@@ -935,7 +845,7 @@ thì trung bình khoảng một nửa số neuron được giữ lại, một n�
 Dropout chỉ dùng trong quá trình training. Khi test hoặc sử dụng mô hình thật, ta dùng toàn bộ mạng.
 \end{ghinho}
 
-\section{Một thời điểm trong dropout là gì?}
+\subsection{Một thời điểm trong dropout là gì?}
 
 Trong bài học, một ``thời điểm'' có thể hiểu là một lần đưa một mẫu dữ liệu vào mạng.
 
@@ -947,7 +857,7 @@ Ví dụ:
     \item tiếp tục như vậy cho các mẫu tiếp theo.
 \end{itemize}
 
-\section{Minh họa dropout}
+\subsection{Minh họa dropout}
 
 \begin{center}
 \begin{tikzpicture}[x=2cm,y=1cm,>=Stealth,
@@ -985,7 +895,7 @@ Ví dụ:
 \end{tikzpicture}
 \end{center}
 
-\section{Vì sao dropout giúp giảm overfitting?}
+\subsection{Vì sao dropout giúp giảm overfitting?}
 
 Có hai cách hiểu trực quan.
 
@@ -1009,13 +919,13 @@ Nếu không có dropout, một neuron có thể phụ thuộc quá mạnh vào 
 Dropout buộc các neuron phải ``học cách làm việc với nhiều đồng đội khác nhau'', thay vì phụ thuộc quá mức vào một vài neuron cố định.
 \end{ghinho}
 
-\section{Dropout và robust model}
+\subsection{Dropout và robust model}
 
 Một mô hình robust là mô hình vẫn hoạt động tốt trong nhiều tình huống khác nhau.
 
 Dropout giúp tăng tính robust vì trong quá trình train, mạng thường xuyên phải làm việc trong điều kiện thiếu một số neuron. Nhờ đó, mạng học được biểu diễn phân tán hơn và ít nhạy với từng neuron riêng lẻ.
 
-\section{Vì sao không dùng dropout khi test?}
+\subsection{Vì sao không dùng dropout khi test?}
 
 Trong training, mỗi lần chỉ một phần neuron hoạt động. Nhưng khi test, ta muốn dùng toàn bộ năng lực của mạng đã học.
 
@@ -1029,7 +939,7 @@ Vì vậy:
     \text{Testing: không dùng dropout}
 \]
 
-\section{Vấn đề scale tín hiệu}
+\subsection{Vấn đề scale tín hiệu}
 
 Giả sử trong training, mỗi neuron được giữ lại với xác suất:
 
@@ -1063,7 +973,7 @@ thì khi test:
 Trong nhiều thư viện hiện đại, người ta thường dùng biến thể gọi là inverted dropout: scale ngay trong lúc training, nên khi test không cần nhân thêm. Ý chính cần nhớ trong bài này là phải giữ mức tín hiệu giữa training và testing nhất quán.
 \end{luuy}
 
-\section{Xác suất dropout}
+\subsection{Xác suất dropout}
 
 Giá trị $p$ là một hyperparameter. Ví dụ phổ biến:
 
@@ -1078,9 +988,9 @@ Không nên hiểu rằng $p=0.5$ luôn là tốt nhất. Nó chỉ là một l�
 \end{luuy}
 
 % ==========================================================
-\chapter{Tổng hợp các kỹ thuật xử lý Overfitting}
+\section{Tổng hợp các kỹ thuật xử lý Overfitting}
 
-\section{Các kỹ thuật chính}
+\subsection{Các kỹ thuật chính}
 
 \begin{center}
 \begin{tabular}{p{0.28\textwidth}p{0.60\textwidth}}
@@ -1099,7 +1009,7 @@ Cross-validation & Đánh giá ổn định hơn khi dữ liệu ít \\
 \end{tabular}
 \end{center}
 
-\section{Kỹ thuật nào quan trọng nhất?}
+\subsection{Kỹ thuật nào quan trọng nhất?}
 
 Không có một kỹ thuật duy nhất giải quyết mọi trường hợp. Trong thực tế thường phải kết hợp nhiều kỹ thuật.
 
@@ -1115,7 +1025,7 @@ Ví dụ với bài toán ảnh:
 \end{itemize}
 
 % ==========================================================
-\chapter{Bảng thuật ngữ chuyên ngành}
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
 
 \small
 \begin{longtable}{p{0.26\textwidth}p{0.48\textwidth}p{0.19\textwidth}}
@@ -1170,9 +1080,9 @@ Generalization & Khả năng tổng quát hóa trên dữ liệu mới. & Test a
 \normalsize
 
 % ==========================================================
-\chapter{Tóm tắt kiến thức trọng tâm}
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
 
-\section{Các ý chính cần nhớ}
+\subsection{Các ý chính cần nhớ}
 
 \begin{enumerate}
     \item Underfitting xảy ra khi mô hình quá đơn giản hoặc chưa được huấn luyện đủ.
@@ -1191,7 +1101,7 @@ Generalization & Khả năng tổng quát hóa trên dữ liệu mới. & Test a
     \item Dropout chỉ dùng trong training, không dùng trong testing.
 \end{enumerate}
 
-\section{Công thức và con số cần nhớ}
+\subsection{Công thức và con số cần nhớ}
 
 \subsection*{Tỷ lệ chia dữ liệu ví dụ}
 
@@ -1228,7 +1138,7 @@ Generalization & Khả năng tổng quát hóa trên dữ liệu mới. & Test a
 \]
 
 % ==========================================================
-\chapter{Câu hỏi ôn tập}
+\section{Review Questions -- Câu hỏi ôn tập}
 
 \begin{enumerate}
     \item Underfitting là gì?
@@ -1252,9 +1162,9 @@ Generalization & Khả năng tổng quát hóa trên dữ liệu mới. & Test a
 \end{enumerate}
 
 % ==========================================================
-\chapter{Bài tập vận dụng}
+\section{Practice Exercises -- Bài tập vận dụng}
 
-\section*{Bài tập 1: Nhận diện lỗi mô hình}
+\subsection*{Bài tập 1: Nhận diện lỗi mô hình}
 \addcontentsline{toc}{section}{Bài tập 1: Nhận diện lỗi mô hình}
 
 Xác định trường hợp sau là underfitting hay overfitting:
@@ -1266,7 +1176,7 @@ Xác định trường hợp sau là underfitting hay overfitting:
     \item Mô hình dùng đa thức bậc rất cao và đi qua mọi điểm training.
 \end{enumerate}
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \begin{enumerate}
     \item Underfitting.
@@ -1275,7 +1185,7 @@ Xác định trường hợp sau là underfitting hay overfitting:
     \item Overfitting.
 \end{enumerate}
 
-\section*{Bài tập 2: Chia dữ liệu}
+\subsection*{Bài tập 2: Chia dữ liệu}
 \addcontentsline{toc}{section}{Bài tập 2: Chia dữ liệu}
 
 Bạn có 10,000 ảnh. Hãy chia theo tỷ lệ:
@@ -1286,7 +1196,7 @@ Bạn có 10,000 ảnh. Hãy chia theo tỷ lệ:
 
 Tính số ảnh trong mỗi tập.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Training:
 
@@ -1306,12 +1216,12 @@ Test:
     10,000 \times 0.15 = 1,500
 \]
 
-\section*{Bài tập 3: Data augmentation}
+\subsection*{Bài tập 3: Data augmentation}
 \addcontentsline{toc}{section}{Bài tập 3: Data augmentation}
 
 Một tập dữ liệu có 5,000 ảnh. Nếu mỗi ảnh được augmentation thành 100 ảnh, tổng số ảnh sau augmentation là bao nhiêu?
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \[
     5,000 \times 100 = 500,000
@@ -1319,7 +1229,7 @@ Một tập dữ liệu có 5,000 ảnh. Nếu mỗi ảnh được augmentation
 
 Vậy sau augmentation có 500,000 ảnh.
 
-\section*{Bài tập 4: Chọn augmentation phù hợp}
+\subsection*{Bài tập 4: Chọn augmentation phù hợp}
 \addcontentsline{toc}{section}{Bài tập 4: Chọn augmentation phù hợp}
 
 Với từng bài toán, hãy cho biết phép augmentation nào hợp lý hơn:
@@ -1331,7 +1241,7 @@ Với từng bài toán, hãy cho biết phép augmentation nào hợp lý hơn:
     \item Nhận dạng con voi trong ảnh tự nhiên.
 \end{enumerate}
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \begin{enumerate}
     \item Có thể xoay ảnh nhiều góc nếu cây búa có thể xuất hiện ở nhiều hướng.
@@ -1340,7 +1250,7 @@ Với từng bài toán, hãy cho biết phép augmentation nào hợp lý hơn:
     \item Có thể crop, lật ngang, xoay nhẹ; không nên lật ngược voi nếu bài toán không có tình huống đó.
 \end{enumerate}
 
-\section*{Bài tập 5: Dropout}
+\subsection*{Bài tập 5: Dropout}
 \addcontentsline{toc}{section}{Bài tập 5: Dropout}
 
 Một layer có 100 neuron. Nếu dùng dropout với xác suất giữ lại:
@@ -1351,7 +1261,7 @@ Một layer có 100 neuron. Nếu dùng dropout với xác suất giữ lại:
 
 Trung bình mỗi lần training có bao nhiêu neuron được giữ lại?
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \[
     100 \times 0.5 = 50
@@ -1360,8 +1270,8 @@ Trung bình mỗi lần training có bao nhiêu neuron được giữ lại?
 Trung bình có 50 neuron được giữ lại.
 
 % ==========================================================
-\chapter*{Kết luận}
-\addcontentsline{toc}{chapter}{Kết luận}
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
 
 ANN8 giải thích sâu hơn nguyên nhân và cách xử lý underfitting, overfitting. Underfitting thường xảy ra khi mô hình quá đơn giản hoặc chưa được huấn luyện đủ. Overfitting thường xảy ra khi mô hình quá phức tạp, dữ liệu quá ít hoặc thiếu đa dạng.
 
@@ -1371,4 +1281,3 @@ Một điểm rất quan trọng của bài học là nguyên tắc sử dụng 
 
 Cuối cùng, dropout được trình bày như một kỹ thuật rất phổ biến để giảm overfitting. Nó ngẫu nhiên loại bỏ neuron trong quá trình training, buộc mạng học biểu diễn mạnh mẽ hơn và ít phụ thuộc vào một số neuron cụ thể.
 
-\end{document}

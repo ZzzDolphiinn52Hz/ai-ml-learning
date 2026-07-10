@@ -1,0 +1,1350 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này mở đầu cho phần \textit{Convolutional Neural Network}, viết tắt là CNN, hay còn gọi là mạng nơ-ron tích chập.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item CNN là gì và vì sao CNN quan trọng trong deep learning.
+    \item Vì sao CNN được thiết kế đặc biệt phù hợp cho dữ liệu hình ảnh.
+    \item Nhận biết cấu trúc tổng quát của một mạng CNN.
+    \item Phân biệt CNN với mạng nơ-ron fully connected thông thường.
+    \item Hiểu vì sao mạng fully connected gặp vấn đề khi xử lý ảnh lớn.
+    \item Hiểu hai ý tưởng quan trọng của CNN:
+    \begin{enumerate}
+        \item \textit{local connectivity} -- kết nối cục bộ;
+        \item \textit{weight sharing} -- trọng số dùng chung.
+    \end{enumerate}
+    \item Hiểu kernel là gì.
+    \item Biết cách thực hiện phép convolution bằng cách trượt kernel trên ảnh.
+    \item Hiểu activation map là gì.
+    \item Biết cách nối phần convolution với fully connected layer trong ví dụ nhận dạng chữ X/O.
+\end{enumerate}
+
+% ==========================================================
+\section{Convolutional Neural Network -- Mạng nơ-ron tích chập}
+
+\subsection{CNN là gì?}
+
+CNN là viết tắt của:
+
+\[
+    \text{Convolutional Neural Network}
+\]
+
+Trong tiếng Việt, CNN thường được gọi là:
+
+\[
+    \text{mạng nơ-ron tích chập}
+\]
+
+Nếu các mạng nơ-ron trước đây ta học là mạng nơ-ron thông thường, thì CNN là một kiểu mạng nơ-ron đặc biệt hơn, được thiết kế để xử lý tốt dữ liệu có cấu trúc không gian, đặc biệt là ảnh.
+
+\begin{ghinho}
+CNN là một kiến trúc rất quan trọng trong deep learning, đặc biệt trong lĩnh vực thị giác máy tính.
+\end{ghinho}
+
+\subsection{CNN được thiết kế để giải quyết bài toán gì?}
+
+CNN ban đầu được thiết kế chủ yếu để xử lý các bài toán liên quan đến hình ảnh.
+
+Ví dụ:
+
+\begin{itemize}
+    \item phân loại ảnh;
+    \item nhận dạng khuôn mặt;
+    \item nhận dạng vật thể;
+    \item phát hiện vật thể trong ảnh;
+    \item phân tích ảnh y tế;
+    \item nhận dạng hành động;
+    \item hỗ trợ xe tự lái.
+\end{itemize}
+
+Trong bài học này, ta tập trung vào bài toán:
+
+\[
+    \text{ảnh đầu vào}
+    \longrightarrow
+    \text{class dự đoán}
+\]
+
+Ví dụ:
+
+\[
+    \text{ảnh}
+    \longrightarrow
+    \text{chó, mèo, xe hơi, máy bay, ...}
+\]
+
+% ==========================================================
+\section{CNN Applications -- Ứng dụng của CNN}
+
+\subsection{Thị giác máy tính}
+
+CNN được sử dụng rất nhiều trong \textit{computer vision} -- thị giác máy tính.
+
+Một số bài toán tiêu biểu:
+
+\begin{itemize}
+    \item nhận dạng khuôn mặt;
+    \item nhận dạng đối tượng;
+    \item phân loại ảnh;
+    \item mô tả nội dung ảnh;
+    \item nhận dạng hành động trong video.
+\end{itemize}
+
+\begin{vidu}
+Nếu đưa vào một tấm ảnh, hệ thống có thể gán nhãn rằng đó là ``một con chó đang chơi trên bãi cỏ'' hoặc ``một người đang lướt sóng ở bãi biển''.
+\end{vidu}
+
+\subsection{Một số lĩnh vực khác}
+
+Ngoài ảnh, CNN cũng có thể được dùng trong các bài toán khác như:
+
+\begin{itemize}
+    \item nhận dạng giọng nói;
+    \item phân loại văn bản;
+    \item xử lý tín hiệu;
+    \item phân tích chuỗi thời gian.
+\end{itemize}
+
+Tuy nhiên, trong phần CNN đầu tiên này, ta chủ yếu khảo sát CNN trong bối cảnh xử lý ảnh.
+
+% ==========================================================
+\section{General CNN Architecture -- Cấu trúc tổng quát của CNN}
+
+\subsection{Các thành phần chính}
+
+Một mạng CNN dùng cho phân loại ảnh thường có cấu trúc tổng quát như sau:
+
+\[
+    \text{Input image}
+    \rightarrow
+    \text{Convolution layers}
+    \rightarrow
+    \text{Pooling layers}
+    \rightarrow
+    \text{Fully connected layers}
+    \rightarrow
+    \text{Output}
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item \textbf{Convolution layer}: lớp tích chập, dùng để trích xuất đặc trưng từ ảnh.
+    \item \textbf{Pooling layer}: lớp giảm kích thước dữ liệu, giúp giữ lại thông tin quan trọng.
+    \item \textbf{Fully connected layer}: lớp kết nối đầy đủ, dùng để phân loại dựa trên các đặc trưng đã học.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1cm,>=Stealth,
+    box/.style={rectangle,draw,rounded corners,align=center,
+    minimum width=2.7cm,minimum height=0.9cm,font=\small}
+]
+
+\node[box] (input) {Ảnh đầu vào};
+\node[box,right=of input] (conv) {Convolution\\Pooling};
+\node[box,right=of conv] (fc) {Fully connected};
+\node[box,right=of fc] (output) {Output\\class};
+
+\draw[->] (input) -- (conv);
+\draw[->] (conv) -- (fc);
+\draw[->] (fc) -- (output);
+
+\end{tikzpicture}
+\end{center}
+
+\begin{ghinho}
+Trong CNN, phần đầu thường dùng convolution và pooling để học đặc trưng ảnh. Phần sau dùng fully connected layer để đưa ra quyết định phân loại.
+\end{ghinho}
+
+\subsection{Số lớp trong CNN}
+
+Trong hình minh họa, ta có thể thấy một vài convolution layer và pooling layer. Tuy nhiên, trong thực tế, số lớp có thể rất nhiều.
+
+Một CNN có thể có:
+
+\begin{itemize}
+    \item vài lớp convolution;
+    \item vài chục lớp convolution;
+    \item thậm chí hàng trăm lớp trong các mạng rất sâu.
+\end{itemize}
+
+\begin{luuy}
+Hình vẽ trong slide thường chỉ minh họa ý tưởng. Một mạng CNN thực tế có thể phức tạp hơn nhiều.
+\end{luuy}
+
+% ==========================================================
+\section{Image Representation -- Biểu diễn ảnh trong máy tính}
+
+\subsection{Ảnh xám}
+
+Một ảnh xám có thể được biểu diễn bằng một ma trận.
+
+Ví dụ, ảnh kích thước $H \times W$:
+
+\[
+    X =
+    \begin{bmatrix}
+    x_{11} & x_{12} & \cdots & x_{1W}\\
+    x_{21} & x_{22} & \cdots & x_{2W}\\
+    \vdots & \vdots & \ddots & \vdots\\
+    x_{H1} & x_{H2} & \cdots & x_{HW}
+    \end{bmatrix}
+\]
+
+Mỗi phần tử $x_{ij}$ là một pixel.
+
+Với ảnh 8-bit, giá trị pixel thường nằm trong khoảng:
+
+\[
+    0 \leq x_{ij} \leq 255
+\]
+
+\subsection{Ảnh màu}
+
+Ảnh màu thường có 3 kênh:
+
+\[
+    R,\quad G,\quad B
+\]
+
+Do đó, ảnh màu kích thước $H \times W$ được biểu diễn dưới dạng:
+
+\[
+    H \times W \times 3
+\]
+
+\begin{vidu}
+Một ảnh màu kích thước $32 \times 32$ có số giá trị là:
+
+\[
+    32 \cdot 32 \cdot 3 = 3072
+\]
+
+Tức là ảnh này có 3072 giá trị đầu vào.
+\end{vidu}
+
+% ==========================================================
+\section{Problem with Fully Connected Networks -- Vấn đề của mạng fully connected khi xử lý ảnh}
+
+\subsection{Flatten ảnh thành vector}
+
+Với mạng nơ-ron thông thường, khi xử lý ảnh, ta thường biến ảnh thành một vector dài.
+
+Ví dụ, ảnh màu kích thước:
+
+\[
+    32 \times 32 \times 3
+\]
+
+sẽ được biến thành vector có:
+
+\[
+    32 \cdot 32 \cdot 3 = 3072
+\]
+
+phần tử.
+
+Sau đó, mỗi neuron ở lớp kế tiếp sẽ nhận toàn bộ 3072 giá trị này.
+
+\subsection{Số trọng số tăng rất nhanh}
+
+Nếu một neuron nhận toàn bộ 3072 input, thì riêng neuron đó đã cần 3072 trọng số.
+
+Nếu ảnh lớn hơn, vấn đề nghiêm trọng hơn.
+
+Ví dụ, ảnh màu kích thước:
+
+\[
+    200 \times 200 \times 3
+\]
+
+có số input là:
+
+\[
+    200 \cdot 200 \cdot 3 = 120000
+\]
+
+Như vậy, một neuron fully connected cần:
+
+\[
+    120000
+\]
+
+trọng số.
+
+Nếu lớp đó có 1000 neuron, số trọng số là:
+
+\[
+    120000 \cdot 1000 = 120000000
+\]
+
+Đó mới chỉ là một lớp.
+
+\begin{canhbao}
+Khi dùng mạng fully connected cho ảnh lớn, số lượng tham số có thể trở nên khổng lồ. Điều này làm tăng chi phí tính toán và dễ dẫn đến overfitting.
+\end{canhbao}
+
+\subsection{Liên hệ với overfitting}
+
+Khi mô hình có quá nhiều tham số, nó có khả năng học quá sát dữ liệu huấn luyện.
+
+Điều này dễ dẫn đến:
+
+\[
+    \text{overfitting}
+\]
+
+Tức là mô hình làm tốt trên tập huấn luyện nhưng làm kém trên dữ liệu mới.
+
+% ==========================================================
+\section{Key Ideas of CNN -- Hai ý tưởng quan trọng của CNN}
+
+\subsection{Local connectivity -- Kết nối cục bộ}
+
+Trong mạng fully connected, một neuron có thể nhận toàn bộ input.
+
+Trong CNN, một neuron chỉ nhìn một vùng nhỏ của ảnh.
+
+Ý tưởng này gọi là:
+
+\[
+    \text{local connectivity}
+\]
+
+hay:
+
+\[
+    \text{kết nối cục bộ}
+\]
+
+\begin{vidu}
+Thay vì nhìn toàn bộ ảnh $200 \times 200 \times 3$, một kernel có thể chỉ nhìn một vùng nhỏ $3 \times 3 \times 3$.
+\end{vidu}
+
+Số trọng số khi đó giảm rất mạnh:
+
+\[
+    3 \cdot 3 \cdot 3 = 27
+\]
+
+so với:
+
+\[
+    200 \cdot 200 \cdot 3 = 120000
+\]
+
+\begin{ghinho}
+Local connectivity giúp CNN giảm số tham số bằng cách chỉ xử lý từng vùng nhỏ của ảnh.
+\end{ghinho}
+
+\subsection{Weight sharing -- Trọng số dùng chung}
+
+Ý tưởng thứ hai là:
+
+\[
+    \text{weight sharing}
+\]
+
+hay:
+
+\[
+    \text{trọng số dùng chung}
+\]
+
+Thay vì mỗi vị trí trong ảnh có một bộ trọng số riêng, CNN dùng cùng một kernel để quét qua nhiều vị trí khác nhau.
+
+Nếu kernel là:
+
+\[
+    K =
+    \begin{bmatrix}
+    k_{11} & k_{12}\\
+    k_{21} & k_{22}
+    \end{bmatrix}
+\]
+
+thì cùng bốn trọng số này được dùng ở tất cả các vị trí mà kernel trượt qua.
+
+\begin{ghinho}
+Weight sharing giúp CNN tiếp tục giảm số lượng tham số vì cùng một bộ trọng số được tái sử dụng trên toàn ảnh.
+\end{ghinho}
+
+\subsection{Tác dụng của hai ý tưởng này}
+
+Hai ý tưởng này giúp CNN:
+
+\begin{itemize}
+    \item giảm rất mạnh số lượng tham số;
+    \item giảm nguy cơ overfitting;
+    \item tận dụng cấu trúc không gian của ảnh;
+    \item phát hiện cùng một đặc trưng ở nhiều vị trí khác nhau.
+\end{itemize}
+
+% ==========================================================
+\section{Kernel and Filter -- Kernel và bộ lọc}
+
+\subsection{Kernel là gì?}
+
+Kernel là một ma trận nhỏ chứa các trọng số được dùng để quét trên ảnh.
+
+Ví dụ kernel kích thước $2 \times 2$:
+
+\[
+    K =
+    \begin{bmatrix}
+    k_{11} & k_{12}\\
+    k_{21} & k_{22}
+    \end{bmatrix}
+\]
+
+Trong thực tế, kernel có thể có kích thước:
+
+\[
+    3 \times 3,\quad 5 \times 5,\quad 7 \times 7,\quad 11 \times 11
+\]
+
+\begin{luuy}
+Trong bài CNN1, kernel $2 \times 2$ được dùng để minh họa cho dễ tính tay. Trong mạng thực tế, kernel $3 \times 3$ rất phổ biến.
+\end{luuy}
+
+\subsection{Kernel học được từ đâu?}
+
+Trong ví dụ, ta có thể thấy các giá trị kernel được cho sẵn. Tuy nhiên, trong mạng CNN thật, các giá trị này không phải do ta tự đặt thủ công.
+
+Chúng được học thông qua quá trình huấn luyện:
+
+\[
+    \text{forward}
+    \rightarrow
+    \text{loss}
+    \rightarrow
+    \text{backpropagation}
+    \rightarrow
+    \text{update}
+\]
+
+\begin{ghinho}
+Kernel cũng là tham số của mạng. Nó được học từ dữ liệu giống như trọng số trong mạng nơ-ron thông thường.
+\end{ghinho}
+
+% ==========================================================
+\section{Convolution Forward Pass -- Tính xuôi trong lớp tích chập}
+
+\subsection{Ý tưởng trượt kernel}
+
+Để thực hiện convolution, ta làm như sau:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Đặt kernel lên một vùng nhỏ của ảnh.
+    \item Nhân từng phần tử tương ứng giữa kernel và vùng ảnh.
+    \item Cộng tất cả các tích lại.
+    \item Cộng thêm bias.
+    \item Đưa qua hàm kích hoạt.
+    \item Ghi kết quả vào vị trí tương ứng trong activation map.
+    \item Trượt kernel sang vị trí tiếp theo và lặp lại.
+\end{enumerate}
+
+\subsection{Công thức tại vị trí đầu tiên}
+
+Giả sử input là ma trận $3 \times 3$:
+
+\[
+    X =
+    \begin{bmatrix}
+    x_{11} & x_{12} & x_{13}\\
+    x_{21} & x_{22} & x_{23}\\
+    x_{31} & x_{32} & x_{33}
+    \end{bmatrix}
+\]
+
+Kernel là:
+
+\[
+    K =
+    \begin{bmatrix}
+    k_{11} & k_{12}\\
+    k_{21} & k_{22}
+    \end{bmatrix}
+\]
+
+Khi đặt kernel ở góc trên bên trái, vùng ảnh tương ứng là:
+
+\[
+    \begin{bmatrix}
+    x_{11} & x_{12}\\
+    x_{21} & x_{22}
+    \end{bmatrix}
+\]
+
+Kết quả tại vị trí đầu tiên là:
+
+\[
+    a_{11}
+    =
+    f(
+    k_{11}x_{11}
+    +
+    k_{12}x_{12}
+    +
+    k_{21}x_{21}
+    +
+    k_{22}x_{22}
+    +
+    b
+    )
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $b$ là bias;
+    \item $f$ là hàm kích hoạt;
+    \item $a_{11}$ là phần tử đầu tiên của activation map.
+\end{itemize}
+
+\subsection{Các vị trí còn lại}
+
+Với input $3 \times 3$, kernel $2 \times 2$, stride bằng 1 và không padding, output sẽ có kích thước:
+
+\[
+    2 \times 2
+\]
+
+Activation map là:
+
+\[
+    A =
+    \begin{bmatrix}
+    a_{11} & a_{12}\\
+    a_{21} & a_{22}
+    \end{bmatrix}
+\]
+
+Trong đó:
+
+\[
+    a_{12}
+    =
+    f(
+    k_{11}x_{12}
+    +
+    k_{12}x_{13}
+    +
+    k_{21}x_{22}
+    +
+    k_{22}x_{23}
+    +
+    b
+    )
+\]
+
+\[
+    a_{21}
+    =
+    f(
+    k_{11}x_{21}
+    +
+    k_{12}x_{22}
+    +
+    k_{21}x_{31}
+    +
+    k_{22}x_{32}
+    +
+    b
+    )
+\]
+
+\[
+    a_{22}
+    =
+    f(
+    k_{11}x_{22}
+    +
+    k_{12}x_{23}
+    +
+    k_{21}x_{32}
+    +
+    k_{22}x_{33}
+    +
+    b
+    )
+\]
+
+\begin{ghinho}
+Mỗi phần tử trong activation map tương ứng với một vị trí đặt kernel trên ảnh.
+\end{ghinho}
+
+% ==========================================================
+\section{Activation Map -- Bản đồ kích hoạt}
+
+\subsection{Activation map là gì?}
+
+Activation map là kết quả thu được sau khi một kernel quét qua toàn bộ ảnh.
+
+\[
+    \text{Input image}
+    \xrightarrow{\text{kernel}}
+    \text{activation map}
+\]
+
+Nếu một kernel phát hiện một loại đặc trưng nào đó, activation map cho biết đặc trưng đó xuất hiện mạnh ở vị trí nào.
+
+\subsection{Một kernel tạo ra một activation map}
+
+Nếu ta dùng một kernel, ta thu được một activation map.
+
+Nếu ta dùng hai kernel, ta thu được hai activation map.
+
+Tổng quát:
+
+\[
+    F \text{ kernels}
+    \rightarrow
+    F \text{ activation maps}
+\]
+
+\begin{vidu}
+Một kernel có thể học để phát hiện cạnh ngang. Một kernel khác có thể học để phát hiện cạnh dọc. Mỗi kernel tạo ra một activation map riêng.
+\end{vidu}
+
+\subsection{Kích thước activation map}
+
+Nếu input có kích thước:
+
+\[
+    H \times W
+\]
+
+kernel có kích thước:
+
+\[
+    K_h \times K_w
+\]
+
+stride bằng 1 và không padding, thì output có kích thước:
+
+\[
+    (H-K_h+1) \times (W-K_w+1)
+\]
+
+Với input $3 \times 3$ và kernel $2 \times 2$:
+
+\[
+    (3-2+1)\times(3-2+1)=2\times2
+\]
+
+% ==========================================================
+\section{Simple X/O Classification Example -- Ví dụ phân loại chữ X/O}
+
+\subsection{Mô tả bài toán}
+
+Trong video, ta khảo sát một ví dụ rất nhỏ:
+
+\[
+    \text{input là ảnh } 3\times3
+\]
+
+và chỉ có hai class:
+
+\[
+    \text{chữ X}
+    \quad \text{hoặc} \quad
+    \text{chữ O}
+\]
+
+Nhiệm vụ của mạng là xác định ảnh đầu vào thuộc class nào.
+
+\subsection{Biểu diễn chữ X và chữ O}
+
+Để dễ tính, ta có thể biểu diễn pixel trắng là 1 và pixel đen là 0.
+
+Chữ X có thể biểu diễn như sau:
+
+\[
+    X_{\text{letter X}}
+    =
+    \begin{bmatrix}
+    1 & 0 & 1\\
+    0 & 1 & 0\\
+    1 & 0 & 1
+    \end{bmatrix}
+\]
+
+Chữ O có thể biểu diễn như sau:
+
+\[
+    X_{\text{letter O}}
+    =
+    \begin{bmatrix}
+    1 & 1 & 1\\
+    1 & 0 & 1\\
+    1 & 1 & 1
+    \end{bmatrix}
+\]
+
+\begin{luuy}
+Trong slide, pixel trắng có thể được biểu diễn bằng 255 và pixel đen bằng 0. Ở đây ta dùng 1 và 0 để việc tính tay đơn giản hơn.
+\end{luuy}
+
+\subsection{One-hot output}
+
+Vì có hai class, output có hai phần tử.
+
+Ta quy ước:
+
+\[
+    \text{X}
+    =
+    \begin{bmatrix}
+    1\\
+    0
+    \end{bmatrix}
+\]
+
+\[
+    \text{O}
+    =
+    \begin{bmatrix}
+    0\\
+    1
+    \end{bmatrix}
+\]
+
+Nếu đưa chữ X vào, ta mong muốn output là:
+
+\[
+    \begin{bmatrix}
+    1\\
+    0
+    \end{bmatrix}
+\]
+
+Nếu đưa chữ O vào, ta mong muốn output là:
+
+\[
+    \begin{bmatrix}
+    0\\
+    1
+    \end{bmatrix}
+\]
+
+% ==========================================================
+\section{Convolution Example for Letter X -- Ví dụ tích chập cho chữ X}
+
+\subsection{Hai kernel minh họa}
+
+Giả sử ta dùng hai kernel đơn giản.
+
+Kernel thứ nhất:
+
+\[
+    K_1 =
+    \begin{bmatrix}
+    1 & 0\\
+    0 & 1
+    \end{bmatrix}
+\]
+
+Kernel thứ hai:
+
+\[
+    K_2 =
+    \begin{bmatrix}
+    0 & 1\\
+    1 & 0
+    \end{bmatrix}
+\]
+
+Giả sử:
+
+\[
+    b=0
+\]
+
+và hàm kích hoạt là hàm đồng nhất:
+
+\[
+    f(u)=u
+\]
+
+\subsection{Input chữ X}
+
+\[
+    X =
+    \begin{bmatrix}
+    1 & 0 & 1\\
+    0 & 1 & 0\\
+    1 & 0 & 1
+    \end{bmatrix}
+\]
+
+\subsection{Activation map với kernel thứ nhất}
+
+Tại vị trí trên trái:
+
+\[
+    a_{11}^{(1)}
+    =
+    1\cdot1
+    +
+    0\cdot0
+    +
+    0\cdot0
+    +
+    1\cdot1
+    =
+    2
+\]
+
+Tại vị trí trên phải:
+
+\[
+    a_{12}^{(1)}
+    =
+    1\cdot0
+    +
+    0\cdot1
+    +
+    0\cdot1
+    +
+    1\cdot0
+    =
+    0
+\]
+
+Tại vị trí dưới trái:
+
+\[
+    a_{21}^{(1)}
+    =
+    1\cdot0
+    +
+    0\cdot1
+    +
+    0\cdot1
+    +
+    1\cdot0
+    =
+    0
+\]
+
+Tại vị trí dưới phải:
+
+\[
+    a_{22}^{(1)}
+    =
+    1\cdot1
+    +
+    0\cdot0
+    +
+    0\cdot0
+    +
+    1\cdot1
+    =
+    2
+\]
+
+Vậy activation map thứ nhất là:
+
+\[
+    A_1 =
+    \begin{bmatrix}
+    2 & 0\\
+    0 & 2
+    \end{bmatrix}
+\]
+
+\subsection{Activation map với kernel thứ hai}
+
+Tương tự, với kernel:
+
+\[
+    K_2 =
+    \begin{bmatrix}
+    0 & 1\\
+    1 & 0
+    \end{bmatrix}
+\]
+
+ta thu được:
+
+\[
+    A_2 =
+    \begin{bmatrix}
+    0 & 2\\
+    2 & 0
+    \end{bmatrix}
+\]
+
+\begin{ghinho}
+Với chữ X, hai kernel trên lần lượt phản ứng mạnh với hai hướng đường chéo khác nhau.
+\end{ghinho}
+
+% ==========================================================
+\section{Flatten and Fully Connected Layer -- Flatten và lớp kết nối đầy đủ}
+
+\subsection{Flatten là gì?}
+
+Sau khi có các activation map, ta thường biến chúng thành một vector để đưa vào phần fully connected.
+
+Thao tác này gọi là:
+
+\[
+    \text{flatten}
+\]
+
+Ví dụ:
+
+\[
+    A_1 =
+    \begin{bmatrix}
+    2 & 0\\
+    0 & 2
+    \end{bmatrix}
+\]
+
+\[
+    A_2 =
+    \begin{bmatrix}
+    0 & 2\\
+    2 & 0
+    \end{bmatrix}
+\]
+
+Nếu đọc theo từng hàng, ta có vector:
+
+\[
+    v =
+    \begin{bmatrix}
+    2\\
+    0\\
+    0\\
+    2\\
+    0\\
+    2\\
+    2\\
+    0
+    \end{bmatrix}
+\]
+
+\subsection{Fully connected layer}
+
+Vector sau flatten được đưa vào fully connected layer để phân loại.
+
+Nếu có hai output neuron:
+
+\[
+    z_1 =
+    \sum_{i=1}^{m} w_{1i}v_i+b_1
+\]
+
+\[
+    z_2 =
+    \sum_{i=1}^{m} w_{2i}v_i+b_2
+\]
+
+Trong bài toán X/O:
+
+\[
+    z_1
+    \rightarrow
+    \text{điểm cho chữ X}
+\]
+
+\[
+    z_2
+    \rightarrow
+    \text{điểm cho chữ O}
+\]
+
+Sau đó ta có thể dùng hàm phù hợp, ví dụ softmax, để chuyển thành xác suất phân loại.
+
+\begin{ghinho}
+Phần convolution trích xuất đặc trưng. Phần fully connected dùng các đặc trưng đó để quyết định class.
+\end{ghinho}
+
+% ==========================================================
+\section{Where Do CNN Parameters Come From? -- Các tham số trong CNN đến từ đâu?}
+
+\subsection{Kernel, bias và trọng số}
+
+Trong ví dụ, kernel, bias và trọng số fully connected có thể được cho sẵn để ta tính tay.
+
+Tuy nhiên, trong mạng thật, các tham số này được học từ dữ liệu.
+
+Các tham số cần học gồm:
+
+\begin{itemize}
+    \item các giá trị trong kernel;
+    \item bias của convolution layer;
+    \item trọng số fully connected;
+    \item bias fully connected.
+\end{itemize}
+
+\subsection{Huấn luyện CNN}
+
+Về nguyên tắc, CNN vẫn được huấn luyện theo quy trình quen thuộc:
+
+\[
+    \text{forward}
+    \rightarrow
+    \text{loss}
+    \rightarrow
+    \text{backpropagation}
+    \rightarrow
+    \text{update parameters}
+\]
+
+Tuy nhiên, vì CNN có weight sharing và convolution layer, backpropagation trong CNN sẽ hơi khác so với mạng fully connected thông thường.
+
+\begin{luuy}
+Bài CNN1 chủ yếu tập trung vào cách tính forward trong convolution layer. Phần backpropagation của CNN sẽ cần được học kỹ hơn ở các bài sau.
+\end{luuy}
+
+% ==========================================================
+\section{Why CNN Works Well for Images -- Vì sao CNN phù hợp với ảnh?}
+
+\subsection{Ảnh có tính cục bộ}
+
+Trong ảnh, nhiều đặc trưng quan trọng xuất hiện trong những vùng nhỏ.
+
+Ví dụ:
+
+\begin{itemize}
+    \item cạnh ngang;
+    \item cạnh dọc;
+    \item góc;
+    \item đường cong;
+    \item họa tiết;
+    \item mắt, mũi, miệng trong ảnh khuôn mặt.
+\end{itemize}
+
+Vì vậy, một kernel nhỏ vẫn có thể phát hiện được đặc trưng quan trọng.
+
+\subsection{Đặc trưng có thể xuất hiện ở nhiều vị trí}
+
+Một đặc trưng như cạnh, góc hoặc đường cong có thể xuất hiện ở bất kỳ vị trí nào trong ảnh.
+
+Nếu một kernel học được cách phát hiện cạnh dọc, ta có thể dùng kernel đó quét trên toàn ảnh để tìm cạnh dọc ở nhiều vị trí.
+
+Đây là lý do weight sharing phù hợp với ảnh.
+
+\subsection{CNN giảm overfitting}
+
+Vì CNN giảm số lượng tham số so với fully connected network, nên CNN thường giảm nguy cơ overfitting khi xử lý ảnh.
+
+\begin{ghinho}
+CNN hiệu quả vì nó tận dụng hai đặc điểm quan trọng của ảnh: thông tin cục bộ và sự lặp lại của đặc trưng theo vị trí.
+\end{ghinho}
+
+% ==========================================================
+\section{ANN vs CNN -- So sánh ANN thông thường và CNN}
+
+\begin{center}
+\begin{tabular}{p{0.27\textwidth}p{0.31\textwidth}p{0.31\textwidth}}
+\toprule
+Tiêu chí & ANN fully connected & CNN \\
+\midrule
+Cách xử lý ảnh & Flatten ảnh thành vector & Giữ cấu trúc không gian của ảnh \\
+Kết nối & Mỗi neuron nhận toàn bộ input & Mỗi neuron nhìn một vùng cục bộ \\
+Trọng số & Mỗi neuron có bộ trọng số riêng & Kernel được dùng chung nhiều vị trí \\
+Số tham số & Rất lớn với ảnh lớn & Nhỏ hơn nhiều \\
+Phù hợp với ảnh & Kém hơn khi ảnh lớn/phức tạp & Rất phù hợp \\
+Nguy cơ overfitting & Cao nếu dữ liệu không đủ & Thấp hơn do ít tham số hơn \\
+Đặc trưng học được & Ít khai thác cấu trúc không gian & Học cạnh, góc, pattern cục bộ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+CNN & Convolutional Neural Network, mạng nơ-ron tích chập. & Mạng phân loại ảnh. \\
+
+Convolution & Phép tích chập, quét kernel trên ảnh để tạo đặc trưng. & Kernel $3\times3$. \\
+
+Kernel & Ma trận trọng số nhỏ dùng trong convolution. & $2\times2$, $3\times3$. \\
+
+Filter & Bộ lọc; thường được dùng gần nghĩa với kernel. & Bộ lọc cạnh. \\
+
+Activation map & Ma trận kết quả sau khi kernel quét trên ảnh. & Output $2\times2$. \\
+
+Feature map & Cách gọi khác của activation map. & Bản đồ đặc trưng. \\
+
+Local connectivity & Kết nối cục bộ, neuron chỉ nhìn một vùng nhỏ. & Kernel nhìn vùng $3\times3$. \\
+
+Weight sharing & Trọng số dùng chung ở nhiều vị trí. & Một kernel quét toàn ảnh. \\
+
+Fully connected layer & Lớp kết nối đầy đủ như ANN truyền thống. & Lớp phân loại cuối. \\
+
+Flatten & Biến ma trận hoặc tensor thành vector. & $2\times2$ thành vector 4 phần tử. \\
+
+Pixel & Điểm ảnh. & Giá trị từ 0 đến 255. \\
+
+Channel & Kênh của ảnh. & R, G, B. \\
+
+RGB & Ảnh màu có 3 kênh đỏ, xanh lá, xanh dương. & $H\times W\times3$. \\
+
+Pooling & Lớp giảm kích thước đặc trưng. & Max pooling. \\
+
+Stride & Bước trượt của kernel. & Stride bằng 1. \\
+
+Padding & Thêm viền quanh ảnh để điều chỉnh kích thước output. & Zero padding. \\
+
+Overfitting & Mô hình quá khớp dữ liệu huấn luyện. & Quá nhiều tham số. \\
+
+Backpropagation & Lan truyền ngược để cập nhật tham số. & Học kernel. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item CNN là mạng nơ-ron tích chập, rất quan trọng trong xử lý ảnh.
+    \item CNN thường gồm phần convolution/pooling và phần fully connected.
+    \item Mạng fully connected gặp vấn đề lớn khi xử lý ảnh vì số lượng tham số tăng rất nhanh.
+    \item Ảnh $32\times32\times3$ có 3072 giá trị.
+    \item Ảnh $200\times200\times3$ có 120000 giá trị.
+    \item Một neuron fully connected nhận toàn bộ input nên cần rất nhiều trọng số.
+    \item CNN giảm số tham số bằng local connectivity và weight sharing.
+    \item Kernel là một ma trận trọng số nhỏ trượt trên ảnh.
+    \item Mỗi lần đặt kernel lên một vùng ảnh, ta nhân tương ứng, cộng lại, cộng bias và đưa qua hàm kích hoạt.
+    \item Kết quả khi một kernel quét toàn ảnh là một activation map.
+    \item Nhiều kernel tạo ra nhiều activation map.
+    \item Sau convolution, activation map có thể được flatten rồi đưa vào fully connected layer.
+    \item Kernel và trọng số fully connected được học bằng backpropagation.
+    \item CNN hiệu quả vì ảnh có tính cục bộ và đặc trưng có thể xuất hiện ở nhiều vị trí.
+\end{enumerate}
+
+\subsection{Công thức quan trọng}
+
+\subsection*{Số giá trị của ảnh RGB}
+
+\[
+    H \cdot W \cdot 3
+\]
+
+\subsection*{Số trọng số của một neuron fully connected}
+
+\[
+    H \cdot W \cdot C
+\]
+
+\subsection*{Số trọng số của một kernel}
+
+\[
+    K_h \cdot K_w \cdot C
+\]
+
+\subsection*{Convolution với kernel $2\times2$}
+
+\[
+    a_{ij}
+    =
+    f(
+    k_{11}x_{ij}
+    +
+    k_{12}x_{i,j+1}
+    +
+    k_{21}x_{i+1,j}
+    +
+    k_{22}x_{i+1,j+1}
+    +
+    b
+    )
+\]
+
+\subsection*{Kích thước output không padding, stride 1}
+
+\[
+    (H-K_h+1)\times(W-K_w+1)
+\]
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item CNN là viết tắt của cụm từ gì?
+    \item CNN được thiết kế ban đầu chủ yếu cho loại dữ liệu nào?
+    \item Một ảnh màu $32\times32$ có bao nhiêu giá trị input?
+    \item Một ảnh màu $200\times200$ có bao nhiêu giá trị input?
+    \item Vì sao mạng fully connected dễ có quá nhiều tham số khi xử lý ảnh?
+    \item Local connectivity là gì?
+    \item Weight sharing là gì?
+    \item Kernel là gì?
+    \item Activation map là gì?
+    \item Một kernel tạo ra bao nhiêu activation map?
+    \item Nếu có 10 kernel thì có bao nhiêu activation map?
+    \item Với input $3\times3$ và kernel $2\times2$, stride 1, không padding, output có kích thước bao nhiêu?
+    \item Flatten là gì?
+    \item Vì sao CNN thường giảm overfitting tốt hơn fully connected layer khi xử lý ảnh?
+    \item Các kernel trong CNN thật được lấy từ đâu?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Tính số input}
+\addcontentsline{toc}{section}{Bài tập 1: Tính số input}
+
+Một ảnh màu có kích thước:
+
+\[
+    64\times64\times3
+\]
+
+Hỏi ảnh này có bao nhiêu giá trị pixel?
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    64\cdot64\cdot3=12288
+\]
+
+Vậy ảnh có 12288 giá trị.
+
+\subsection*{Bài tập 2: So sánh số trọng số}
+\addcontentsline{toc}{section}{Bài tập 2: So sánh số trọng số}
+
+Một ảnh màu kích thước:
+
+\[
+    100\times100\times3
+\]
+
+\begin{enumerate}
+    \item Một neuron fully connected cần bao nhiêu trọng số?
+    \item Một kernel $3\times3$ cần bao nhiêu trọng số?
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+Neuron fully connected:
+
+\[
+    100\cdot100\cdot3=30000
+\]
+
+Kernel $3\times3$:
+
+\[
+    3\cdot3\cdot3=27
+\]
+
+\subsection*{Bài tập 3: Tính convolution}
+\addcontentsline{toc}{section}{Bài tập 3: Tính convolution}
+
+Cho input:
+
+\[
+    X =
+    \begin{bmatrix}
+    1 & 2 & 0\\
+    0 & 1 & 3\\
+    2 & 1 & 0
+    \end{bmatrix}
+\]
+
+Kernel:
+
+\[
+    K =
+    \begin{bmatrix}
+    1 & 0\\
+    0 & 1
+    \end{bmatrix}
+\]
+
+Giả sử $b=0$ và $f(u)=u$. Tính activation map.
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    a_{11}=1\cdot1+0\cdot2+0\cdot0+1\cdot1=2
+\]
+
+\[
+    a_{12}=1\cdot2+0\cdot0+0\cdot1+1\cdot3=5
+\]
+
+\[
+    a_{21}=1\cdot0+0\cdot1+0\cdot2+1\cdot1=1
+\]
+
+\[
+    a_{22}=1\cdot1+0\cdot3+0\cdot1+1\cdot0=1
+\]
+
+Vậy:
+
+\[
+    A =
+    \begin{bmatrix}
+    2 & 5\\
+    1 & 1
+    \end{bmatrix}
+\]
+
+\subsection*{Bài tập 4: Kích thước output}
+\addcontentsline{toc}{section}{Bài tập 4: Kích thước output}
+
+Input có kích thước:
+
+\[
+    10\times10
+\]
+
+Kernel có kích thước:
+
+\[
+    3\times3
+\]
+
+Stride bằng 1, không padding. Hỏi activation map có kích thước bao nhiêu?
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    (10-3+1)\times(10-3+1)=8\times8
+\]
+
+\subsection*{Bài tập 5: Giải thích trực giác}
+\addcontentsline{toc}{section}{Bài tập 5: Giải thích trực giác}
+
+Giải thích ngắn gọn vì sao CNN dùng local connectivity và weight sharing lại phù hợp với ảnh.
+
+\subsection*{Lời giải gợi ý}
+
+Ảnh có cấu trúc không gian. Các đặc trưng như cạnh, góc, đường cong thường xuất hiện trong những vùng nhỏ. Vì vậy, local connectivity giúp kernel tập trung vào vùng cục bộ. Ngoài ra, cùng một đặc trưng có thể xuất hiện ở nhiều vị trí khác nhau trong ảnh, nên weight sharing cho phép cùng một kernel phát hiện đặc trưng đó ở mọi nơi. Hai cơ chế này giúp giảm số tham số và giảm nguy cơ overfitting.
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+CNN1 giới thiệu mạng nơ-ron tích chập, một kiến trúc rất quan trọng trong deep learning, đặc biệt với các bài toán hình ảnh. Khác với mạng fully connected truyền thống, CNN không biến ảnh thành một vector rồi kết nối mọi pixel với mọi neuron ngay từ đầu. Thay vào đó, CNN dùng các kernel nhỏ trượt trên ảnh để trích xuất đặc trưng cục bộ.
+
+Hai ý tưởng cốt lõi của CNN là \textit{local connectivity} và \textit{weight sharing}. Local connectivity giúp mỗi kernel chỉ nhìn một vùng nhỏ của ảnh, còn weight sharing giúp cùng một bộ trọng số được dùng lại ở nhiều vị trí. Nhờ đó, CNN giảm mạnh số lượng tham số, khai thác tốt cấu trúc không gian của ảnh và giảm nguy cơ overfitting.
+
+Bài học cũng minh họa cách tính convolution forward bằng kernel $2\times2$ trên ảnh $3\times3$, cách tạo activation map, cách flatten kết quả và đưa vào fully connected layer để phân loại. Các tham số như kernel, bias và trọng số fully connected không phải tự chọn bằng tay trong mạng thật, mà được học thông qua quá trình huấn luyện và backpropagation.

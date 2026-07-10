@@ -1,0 +1,141 @@
+% !TEX program = pdflatex
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% CẤU HÌNH CƠ BẢN CHO PDFLATEX
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+
+% =========================
+% VIỆT HÓA MỘT SỐ TÊN MỤC
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\bibname}{Tài liệu tham khảo}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% FIX TOC: increase space for 3-digit page numbers
+% =========================
+\makeatletter
+\renewcommand{\@pnumwidth}{2em}  % default 1.55em, increase for 3-digit pages
+\renewcommand{\@tocrmarg}{3em}   % right margin
+\makeatother
+
+% =========================
+% ĐỊNH DẠNG HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP GHI CHÚ
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Ví dụ minh họa,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{luuy}{
+    colback=orange!6,
+    colframe=orange!70!black,
+    title=Lưu ý,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{canhbao}{
+    colback=red!4,
+    colframe=red!60!black,
+    title=Cảnh báo,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+% =========================
+% THÔNG TIN TÀI LIỆU
+% =========================
+\title{
+    \textbf{Trí tuệ Nhân tạo - Học Máy - Học sâu}\\
+    \textbf{AI - ML - DL}\\
+    \large Artificial Intelligence \& Machine Learning
+}
+\author{Biên soạn tổng hợp}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================================
+% PHẦN I: MẠNG NƠ-RON NHÂN TẠO CƠ BẢN
+% ==========================================================
+\part{Mạng Nơ-ron Nhân tạo Cơ bản}
+
+\chapter{ANN1: Neural Networks Introduction -- Giới thiệu mạng nơ-ron}
+\input{chapters/ann1.tex}
+
+\chapter{ANN3: Forward Propagation -- Lan truyền tiến}
+\input{chapters/ann3.tex}
+
+\chapter{ANN4: Gradient Descent -- Hạ gradient}
+\input{chapters/ann4.tex}
+
+\chapter{ANN6: Backpropagation Example -- Ví dụ lan truyền ngược}
+\input{chapters/ann6.tex}
+
+\chapter{ANN7: Training Issues -- Vấn đề huấn luyện}
+\input{chapters/ann7.tex}
+
+\chapter{ANN8: Overfitting \& Underfitting -- Quá khớp và dưới khớp}
+\input{chapters/ann8.tex}
+
+\chapter{ANN9: Optimization Algorithms -- Thuật toán tối ưu}
+\input{chapters/ann9.tex}
+
+\chapter{Softmax Function -- Hàm Softmax}
+\input{chapters/softmax.tex}
+
+% ==========================================================
+% PHẦN II: MẠNG NƠ-RON TÍCH CHẬP
+% ==========================================================
+\part{Mạng Nơ-ron Tích chập}
+
+\chapter{CNN1: Convolutional Neural Networks -- Mạng tích chập}
+\input{chapters/cnn1.tex}
+
+\end{document}

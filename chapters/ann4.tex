@@ -1,100 +1,8 @@
-% !TEX program = pdflatex
-\documentclass[12pt,a4paper]{report}
 
-% =========================
-% CẤU HÌNH CHO PDFLATEX
-% =========================
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[most]{tcolorbox}
-\usetikzlibrary{arrows.meta,positioning,calc}
-
-% =========================
-% VIỆT HÓA
-% =========================
-\renewcommand{\contentsname}{Mục lục}
-\renewcommand{\chaptername}{Chương}
-\renewcommand{\bibname}{Tài liệu tham khảo}
-\renewcommand{\figurename}{Hình}
-\renewcommand{\tablename}{Bảng}
-
-% =========================
-% HYPERLINK
-% =========================
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black
-}
-
-% =========================
-% HỘP NỘI DUNG
-% =========================
-\newtcolorbox{ghinho}{
-    colback=blue!4,
-    colframe=blue!60!black,
-    title=Ghi nhớ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{vidu}{
-    colback=green!4,
-    colframe=green!50!black,
-    title=Ví dụ minh họa,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{luuy}{
-    colback=orange!6,
-    colframe=orange!70!black,
-    title=Lưu ý,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{canhbao}{
-    colback=red!4,
-    colframe=red!60!black,
-    title=Cảnh báo,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-% =========================
-% THÔNG TIN TÀI LIỆU
-% =========================
-\title{
-    \textbf{Tài liệu học tập ANN4}\\
-    \large Tối ưu hóa, Gradient Descent và lựa chọn hàm mất mát
-}
-\author{Biên soạn theo vai trò trợ giảng chuyên môn}
-\date{\today}
-
-\begin{document}
-
-\maketitle
-\tableofcontents
-\newpage
 
 % ==========================================================
-\chapter*{Mục tiêu bài học}
-\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
 
 Bài ANN4 tiếp tục phần huấn luyện mạng nơ-ron, tập trung vào bản chất tối ưu hóa của quá trình học. Sau khi học xong, người học cần nắm được:
 
@@ -111,9 +19,9 @@ Bài ANN4 tiếp tục phần huấn luyện mạng nơ-ron, tập trung vào b�
 \end{enumerate}
 
 % ==========================================================
-\chapter{Nhắc lại quá trình huấn luyện mạng nơ-ron}
+\section{Neural Network Training Recap -- Nhắc lại quá trình huấn luyện mạng nơ-ron}
 
-\section{Từ dữ liệu đến sai số}
+\subsection{Từ dữ liệu đến sai số}
 
 Trong học có giám sát, ta cung cấp cho mạng nơ-ron các cặp dữ liệu:
 
@@ -146,7 +54,7 @@ Sai số xuất hiện khi dự đoán $\hat{y}_i$ khác với nhãn đúng $y_i
 Huấn luyện mạng nơ-ron là quá trình dùng sai số giữa output mong muốn và output hiện tại để điều chỉnh các tham số của mạng.
 \end{ghinho}
 
-\section{Hàm mất mát}
+\subsection{Hàm mất mát}
 
 Hàm mất mát, tiếng Anh là \textit{loss function}, là hàm biến sự khác biệt giữa $y$ và $\hat{y}$ thành một số vô hướng.
 
@@ -164,7 +72,7 @@ Một số dạng hàm mất mát phổ biến:
     \item cross entropy.
 \end{itemize}
 
-\section{Mục tiêu lý tưởng}
+\subsection{Mục tiêu lý tưởng}
 
 Trong trường hợp lý tưởng, nếu mô hình dự đoán hoàn hảo, sai số sẽ tiến về 0.
 
@@ -201,9 +109,9 @@ thì sai số lớn hơn. Hàm mất mát giúp lượng hóa mức sai này th�
 \end{vidu}
 
 % ==========================================================
-\chapter{Huấn luyện ANN là một bài toán tối ưu}
+\section{ANN Training as Optimization -- Huấn luyện ANN là một bài toán tối ưu}
 
-\section{Bản chất của quá trình huấn luyện}
+\subsection{Bản chất của quá trình huấn luyện}
 
 Trong mạng nơ-ron, ta cần tìm bộ tham số:
 
@@ -249,7 +157,7 @@ Trong đó:
 Bản chất toán học của huấn luyện mạng nơ-ron là bài toán tối ưu hóa: tìm các trọng số và bias để hàm mất mát đạt giá trị nhỏ nhất có thể.
 \end{ghinho}
 
-\section{Số lượng biến rất lớn}
+\subsection{Số lượng biến rất lớn}
 
 Trong bài toán tối ưu thông thường, ta có thể chỉ cần tìm một biến $x$. Nhưng trong mạng nơ-ron, số biến chính là số tham số của mạng.
 
@@ -264,7 +172,7 @@ Một mạng nơ-ron có thể có:
 
 Vì vậy, bài toán tối ưu trong ANN thường là bài toán đa biến quy mô lớn.
 
-\section{Không phải lúc nào cũng có lời giải giải tích}
+\subsection{Không phải lúc nào cũng có lời giải giải tích}
 
 Với một số hàm đơn giản, ví dụ hàm bậc hai, ta có thể tìm cực trị bằng cách giải phương trình đạo hàm bằng 0.
 
@@ -301,9 +209,9 @@ Trong ANN, ta thường không giải trực tiếp được $\theta^*$ bằng c
 \end{ghinho}
 
 % ==========================================================
-\chapter{Gradient Descent trong trường hợp một biến}
+\section{Gradient Descent: Single Variable -- Gradient Descent trong trường hợp một biến}
 
-\section{Bài toán minh họa}
+\subsection{Bài toán minh họa}
 
 Giả sử ta cần tìm giá trị $x$ sao cho hàm:
 
@@ -352,7 +260,7 @@ Câu hỏi quan trọng là: làm sao biết nên tăng hay giảm $x$?
 
 Câu trả lời là: dùng đạo hàm.
 
-\section{Đạo hàm cho biết hướng đi}
+\subsection{Đạo hàm cho biết hướng đi}
 
 Đạo hàm $f'(x)$ cho biết độ dốc của hàm tại vị trí hiện tại.
 
@@ -384,7 +292,7 @@ Trong đó:
 Dấu trừ trong công thức Gradient Descent thể hiện việc đi ngược hướng tăng của hàm để làm hàm giảm xuống.
 \end{ghinho}
 
-\section{Ví dụ trực quan}
+\subsection{Ví dụ trực quan}
 
 Giả sử:
 
@@ -473,9 +381,9 @@ Giá trị $f(x)$ giảm dần, tức thuật toán đang tiến về cực ti�
 \end{vidu}
 
 % ==========================================================
-\chapter{Learning rate}
+\section{Learning Rate -- Learning rate}
 
-\section{Learning rate là gì?}
+\subsection{Learning rate là gì?}
 
 Learning rate, thường ký hiệu là $\eta$, là hệ số quyết định mỗi lần cập nhật tham số sẽ đi một bước lớn hay nhỏ.
 
@@ -497,7 +405,7 @@ Trong công thức:
 
 quyết định độ lớn của bước cập nhật.
 
-\section{Learning rate quá nhỏ}
+\subsection{Learning rate quá nhỏ}
 
 Nếu $\eta$ quá nhỏ, mỗi lần cập nhật chỉ thay đổi rất ít. Thuật toán vẫn có thể đi đúng hướng nhưng sẽ hội tụ rất chậm.
 
@@ -505,7 +413,7 @@ Nếu $\eta$ quá nhỏ, mỗi lần cập nhật chỉ thay đổi rất ít. T
 Nếu điểm hiện tại còn rất xa cực tiểu nhưng learning rate quá nhỏ, thuật toán giống như đi từng bước rất ngắn. Kết quả là cần rất nhiều vòng lặp mới đến gần nghiệm.
 \end{vidu}
 
-\section{Learning rate quá lớn}
+\subsection{Learning rate quá lớn}
 
 Nếu $\eta$ quá lớn, bước cập nhật quá dài. Thuật toán có thể nhảy qua điểm cực tiểu, dao động qua lại hoặc thậm chí không hội tụ.
 
@@ -538,7 +446,7 @@ Nếu $\eta$ quá lớn, bước cập nhật quá dài. Thuật toán có thể
 Learning rate quá lớn có thể làm quá trình học không ổn định. Loss có thể không giảm mà dao động hoặc tăng lên.
 \end{canhbao}
 
-\section{Learning rate thay đổi theo thời gian}
+\subsection{Learning rate thay đổi theo thời gian}
 
 Trong nhiều thuật toán, learning rate không cố định. Một chiến lược thường gặp là:
 
@@ -566,9 +474,9 @@ Chọn learning rate là một trong những quyết định quan trọng nhất
 \end{ghinho}
 
 % ==========================================================
-\chapter{Gradient Descent trong bài toán nhiều biến}
+\section{Gradient Descent trong bài toán nhiều biến}
 
-\section{Từ đạo hàm sang gradient}
+\subsection{Từ đạo hàm sang gradient}
 
 Trong mạng nơ-ron, ta không chỉ có một biến $x$, mà có rất nhiều tham số:
 
@@ -603,7 +511,7 @@ là hàm nhiều biến. Khi đó, ta không dùng đạo hàm thông thường 
 
 Gradient là vector gồm các đạo hàm riêng của hàm mất mát theo từng tham số.
 
-\section{Công thức cập nhật tổng quát}
+\subsection{Công thức cập nhật tổng quát}
 
 Công thức Gradient Descent trong bài toán nhiều biến:
 
@@ -641,7 +549,7 @@ Nếu xét bias $b$:
 Trong ANN, mỗi trọng số và mỗi bias đều được cập nhật dựa trên đạo hàm riêng của hàm mất mát theo chính tham số đó.
 \end{ghinho}
 
-\section{Liên hệ với backpropagation}
+\subsection{Liên hệ với backpropagation}
 
 Backpropagation giúp tính các đạo hàm riêng:
 
@@ -663,7 +571,7 @@ Tóm lại:
     \text{Gradient Descent} \Rightarrow \text{cập nhật tham số}
 \]
 
-\section{Ví dụ cập nhật một trọng số}
+\subsection{Ví dụ cập nhật một trọng số}
 
 Giả sử tại một bước huấn luyện:
 
@@ -714,9 +622,9 @@ thì:
 Như vậy, dấu của gradient quyết định tham số tăng hay giảm.
 
 % ==========================================================
-\chapter{Cực trị địa phương và cực trị toàn cục}
+\section{Cực trị địa phương và cực trị toàn cục}
 
-\section{Cực trị toàn cục}
+\subsection{Cực trị toàn cục}
 
 Cực trị toàn cục, tiếng Anh là \textit{global minimum}, là điểm có giá trị hàm mất mát nhỏ nhất trên toàn bộ không gian tìm kiếm.
 
@@ -728,7 +636,7 @@ Nếu $\theta^*$ là cực tiểu toàn cục thì:
 
 với mọi $\theta$ trong miền xét.
 
-\section{Cực trị địa phương}
+\subsection{Cực trị địa phương}
 
 Cực trị địa phương, tiếng Anh là \textit{local minimum}, là điểm thấp nhất trong một vùng lân cận, nhưng chưa chắc là điểm thấp nhất toàn cục.
 
@@ -749,7 +657,7 @@ Cực trị địa phương, tiếng Anh là \textit{local minimum}, là điểm
 \end{tikzpicture}
 \end{center}
 
-\section{Vấn đề mắc kẹt ở cực trị địa phương}
+\subsection{Vấn đề mắc kẹt ở cực trị địa phương}
 
 Gradient Descent dựa vào thông tin cục bộ tại điểm hiện tại. Nếu thuật toán đi xuống một ``hố'' địa phương, nó có thể bị mắc kẹt ở đó và không tìm được cực trị toàn cục.
 
@@ -757,7 +665,7 @@ Gradient Descent dựa vào thông tin cục bộ tại điểm hiện tại. N�
 Một biến cũng có thể có nhiều cực trị. Không phải chỉ bài toán nhiều biến mới có nhiều cực trị. Tuy nhiên, trong bài toán nhiều biến, bề mặt mất mát phức tạp hơn rất nhiều.
 \end{luuy}
 
-\section{Ảnh hưởng trong huấn luyện ANN}
+\subsection{Ảnh hưởng trong huấn luyện ANN}
 
 Trong mạng nơ-ron, hàm mất mát theo hàng triệu tham số tạo thành một bề mặt rất phức tạp. Bề mặt này có thể có:
 
@@ -771,9 +679,9 @@ Trong mạng nơ-ron, hàm mất mát theo hàng triệu tham số tạo thành 
 Do đó, việc tối ưu không hề đơn giản. Không phải cứ chạy huấn luyện là chắc chắn tìm được nghiệm tốt nhất.
 
 % ==========================================================
-\chapter{Exploration và Exploitation}
+\section{Exploration và Exploitation}
 
-\section{Exploitation là gì?}
+\subsection{Exploitation là gì?}
 
 Exploitation có thể hiểu là khai thác thông tin hiện có ở khu vực hiện tại để cải thiện lời giải.
 
@@ -783,7 +691,7 @@ Trong Gradient Descent, tại một điểm hiện tại, ta dùng gradient ở 
     \text{Thông tin cục bộ} \Rightarrow \text{đi theo hướng giảm loss}
 \]
 
-\section{Exploration là gì?}
+\subsection{Exploration là gì?}
 
 Exploration là thăm dò các khu vực khác của không gian tìm kiếm. Mục tiêu là tránh việc chỉ tập trung vào một vùng hiện tại và bỏ lỡ các nghiệm tốt hơn ở vùng khác.
 
@@ -798,7 +706,7 @@ Có thể hình dung như việc tìm vàng:
 Nếu chỉ khai thác mỏ hiện tại, ta có thể bỏ lỡ một mỏ vàng lớn hơn ở nơi khác.
 \end{vidu}
 
-\section{Cân bằng exploration và exploitation}
+\subsection{Cân bằng exploration và exploitation}
 
 Một thuật toán tối ưu tốt thường cần cân bằng:
 
@@ -817,9 +725,9 @@ Trong tối ưu hóa, một trong những khó khăn lớn là cân bằng giữ
 \end{ghinho}
 
 % ==========================================================
-\chapter{Thuật toán di truyền và metaheuristic}
+\section{Thuật toán di truyền và metaheuristic}
 
-\section{Metaheuristic là gì?}
+\subsection{Metaheuristic là gì?}
 
 Metaheuristic là nhóm thuật toán tối ưu cấp cao, thường được thiết kế để tìm nghiệm tốt trong những bài toán khó, đặc biệt khi:
 
@@ -832,7 +740,7 @@ Metaheuristic là nhóm thuật toán tối ưu cấp cao, thường được th
 
 Các thuật toán metaheuristic thường không đảm bảo tìm được nghiệm tối ưu toàn cục, nhưng có thể tìm được nghiệm tốt trong thời gian chấp nhận được.
 
-\section{Thuật toán di truyền}
+\subsection{Thuật toán di truyền}
 
 Thuật toán di truyền, tiếng Anh là \textit{genetic algorithm}, là một ví dụ của metaheuristic. Nó lấy cảm hứng từ tiến hóa tự nhiên.
 
@@ -848,7 +756,7 @@ Các bước khái quát:
     \item Lặp lại cho đến khi đạt điều kiện dừng.
 \end{enumerate}
 
-\section{Liên hệ với ANN}
+\subsection{Liên hệ với ANN}
 
 Về nguyên tắc, thuật toán di truyền có thể được dùng để tối ưu trọng số của mạng nơ-ron, nhất là ở quy mô nhỏ.
 
@@ -859,15 +767,15 @@ Trong huấn luyện mạng nơ-ron hiện đại, các phương pháp dựa tr�
 \end{luuy}
 
 % ==========================================================
-\chapter{Momentum và ý tưởng vượt cực trị địa  - local minimum}
+\section{Momentum và ý tưởng vượt cực trị địa  - local minimum}
 
-\section{Hạn chế của Gradient Descent cơ bản}
+\subsection{Hạn chế của Gradient Descent cơ bản}
 
 Gradient Descent cơ bản chỉ dựa vào gradient hiện tại. Vì vậy, khi gặp một cực trị địa phương hoặc vùng trũng nhỏ, thuật toán có thể bị mắc kẹt.
 
 Ta có thể hình dung một hòn bi lăn xuống dốc. Nếu hòn bi không có quán tính, nó có thể dừng lại ở một hố nhỏ. Nhưng nếu có đủ động lượng, nó có thể vượt qua hố nhỏ và tiếp tục lăn xuống vùng thấp hơn.
 
-\section{Ý tưởng momentum}
+\subsection{Ý tưởng momentum}
 
 Momentum bổ sung yếu tố quán tính vào quá trình cập nhật. Thay vì chỉ dùng gradient hiện tại, thuật toán còn xét hướng di chuyển trước đó.
 
@@ -894,7 +802,7 @@ Trong đó:
 Momentum giúp thuật toán có xu hướng duy trì hướng đi, nhờ đó có thể giảm dao động và đôi khi vượt qua các vùng cực trị địa phương nông.
 \end{ghinho}
 
-\section{Không đảm bảo tìm được cực trị toàn cục}
+\subsection{Không đảm bảo tìm được cực trị toàn cục}
 
 Momentum và các kỹ thuật tối ưu hiện đại có thể giúp quá trình huấn luyện tốt hơn, nhưng không đảm bảo luôn tìm được cực trị toàn cục.
 
@@ -914,9 +822,9 @@ Không nên hiểu rằng dùng thuật toán tối ưu hiện đại là chắc
 \end{canhbao}
 
 % ==========================================================
-\chapter{Lựa chọn hàm mất mát}
+\section{Lựa chọn hàm mất mát}
 
-\section{Các hàm mất mát phổ biến}
+\subsection{Các hàm mất mát phổ biến}
 
 Trong các bài ANN trước, ta đã gặp một số cách đo sai số:
 
@@ -928,7 +836,7 @@ Trong các bài ANN trước, ta đã gặp một số cách đo sai số:
 
 Mỗi hàm mất mát có đặc điểm riêng và phù hợp với từng loại bài toán.
 
-\section{Mean Squared Error}
+\subsection{Mean Squared Error}
 
 Mean Squared Error, viết tắt là MSE, là sai số bình phương trung bình:
 
@@ -972,7 +880,7 @@ Sai số bình phương:
 \]
 \end{vidu}
 
-\section{Cross entropy}
+\subsection{Cross entropy}
 
 Cross entropy thường được dùng trong bài toán phân loại.
 
@@ -1026,7 +934,7 @@ Cross entropy:
 Dự đoán càng tự tin đúng thì loss càng nhỏ. Dự đoán class đúng với xác suất thấp thì loss lớn.
 \end{vidu}
 
-\section{Vì sao cross entropy thường tốt cho phân loại?}
+\subsection{Vì sao cross entropy thường tốt cho phân loại?}
 
 Trong bài toán phân loại, ta thường muốn mô hình gán xác suất cao cho class đúng. Cross entropy phạt mạnh khi xác suất của class đúng thấp.
 
@@ -1063,7 +971,7 @@ thì mô hình rất chắc vào class đúng và loss sẽ nhỏ hơn nhiều.
 Cross entropy có xu hướng khuyến khích mô hình tiến gần hơn đến phân phối nhãn đúng, đặc biệt trong bài toán phân loại.
 \end{ghinho}
 
-\section{Không có hàm mất mát tốt nhất cho mọi bài toán}
+\subsection{Không có hàm mất mát tốt nhất cho mọi bài toán}
 
 Dù cross entropy rất phổ biến trong phân loại, điều đó không có nghĩa là mọi nghiên cứu hoặc mọi mô hình đều dùng cross entropy.
 
@@ -1074,9 +982,9 @@ Chọn hàm mất mát phải dựa vào bản chất bài toán. Bài toán ph�
 \end{luuy}
 
 % ==========================================================
-\chapter{So sánh các khái niệm quan trọng}
+\section{So sánh các khái niệm quan trọng}
 
-\section{Backpropagation và Gradient Descent}
+\subsection{Backpropagation và Gradient Descent}
 
 \begin{center}
 \begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
@@ -1089,7 +997,7 @@ Gradient Descent & Dùng gradient để cập nhật tham số & Cần tăng hay
 \end{tabular}
 \end{center}
 
-\section{Local minimum và global minimum}
+\subsection{Local minimum và global minimum}
 
 \begin{center}
 \begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
@@ -1102,7 +1010,7 @@ Cực trị toàn cục & Tốt nhất trên toàn bộ không gian tìm kiếm.
 \end{tabular}
 \end{center}
 
-\section{Exploration và exploitation}
+\subsection{Exploration và exploitation}
 
 \begin{center}
 \begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
@@ -1116,7 +1024,7 @@ Exploration & Tìm kiếm ở các vùng mới để tránh bỏ lỡ nghiệm t
 \end{center}
 
 % ==========================================================
-\chapter{Bảng thuật ngữ chuyên ngành}
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
 
 \small
 \begin{longtable}{p{0.26\textwidth}p{0.48\textwidth}p{0.19\textwidth}}
@@ -1179,9 +1087,9 @@ YOLO & Hệ thống phát hiện vật thể, thường dùng hàm loss gồm nh
 \normalsize
 
 % ==========================================================
-\chapter{Tóm tắt kiến thức trọng tâm}
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
 
-\section{Các ý chính cần nhớ}
+\subsection{Các ý chính cần nhớ}
 
 \begin{enumerate}
     \item Huấn luyện mạng nơ-ron là bài toán tối ưu hóa hàm mất mát.
@@ -1198,7 +1106,7 @@ YOLO & Hệ thống phát hiện vật thể, thường dùng hàm loss gồm nh
     \item Chọn hàm loss phải dựa vào bản chất bài toán cụ thể.
 \end{enumerate}
 
-\section{Công thức quan trọng}
+\subsection{Công thức quan trọng}
 
 \subsection*{Hàm mục tiêu trên tập dữ liệu}
 
@@ -1273,7 +1181,7 @@ YOLO & Hệ thống phát hiện vật thể, thường dùng hàm loss gồm nh
 \]
 
 % ==========================================================
-\chapter{Câu hỏi ôn tập}
+\section{Review Questions -- Câu hỏi ôn tập}
 
 \begin{enumerate}
     \item Vì sao huấn luyện mạng nơ-ron được xem là một bài toán tối ưu?
@@ -1297,9 +1205,9 @@ YOLO & Hệ thống phát hiện vật thể, thường dùng hàm loss gồm nh
 \end{enumerate}
 
 % ==========================================================
-\chapter{Bài tập vận dụng}
+\section{Practice Exercises -- Bài tập vận dụng}
 
-\section*{Bài tập 1: Gradient Descent một biến}
+\subsection*{Bài tập 1: Gradient Descent một biến}
 \addcontentsline{toc}{section}{Bài tập 1: Gradient Descent một biến}
 
 Cho:
@@ -1318,7 +1226,7 @@ Cho:
     \item Tính $x_2$.
 \end{enumerate}
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Đạo hàm:
 
@@ -1346,7 +1254,7 @@ Bước 2:
     x_2=0.8-0.1(-6.4)=1.44
 \]
 
-\section*{Bài tập 2: Cập nhật trọng số}
+\subsection*{Bài tập 2: Cập nhật trọng số}
 \addcontentsline{toc}{section}{Bài tập 2: Cập nhật trọng số}
 
 Cho một trọng số:
@@ -1369,7 +1277,7 @@ Learning rate:
 
 Tính trọng số mới.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \[
     w_{\text{new}}
@@ -1390,7 +1298,7 @@ Tính trọng số mới.
     1.185
 \]
 
-\section*{Bài tập 3: So sánh learning rate}
+\subsection*{Bài tập 3: So sánh learning rate}
 \addcontentsline{toc}{section}{Bài tập 3: So sánh learning rate}
 
 Giải thích ngắn gọn hiện tượng xảy ra trong hai trường hợp:
@@ -1400,14 +1308,14 @@ Giải thích ngắn gọn hiện tượng xảy ra trong hai trường hợp:
     \item Learning rate rất lớn.
 \end{enumerate}
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \begin{enumerate}
     \item Learning rate rất nhỏ làm mỗi bước cập nhật rất ngắn, thuật toán học chậm và cần nhiều vòng lặp.
     \item Learning rate rất lớn làm bước cập nhật quá dài, thuật toán có thể vượt qua cực tiểu, dao động hoặc không hội tụ.
 \end{enumerate}
 
-\section*{Bài tập 4: Tính cross entropy}
+\subsection*{Bài tập 4: Tính cross entropy}
 \addcontentsline{toc}{section}{Bài tập 4: Tính cross entropy}
 
 Một bài toán phân loại có 3 lớp. Label đúng là lớp thứ nhất:
@@ -1430,7 +1338,7 @@ Mạng dự đoán:
 
 Tính cross entropy.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Vì class đúng là class thứ nhất:
 
@@ -1442,7 +1350,7 @@ Vì class đúng là class thứ nhất:
     H(p,q)\approx 0.223
 \]
 
-\section*{Bài tập 5: Nhận diện loại bài toán}
+\subsection*{Bài tập 5: Nhận diện loại bài toán}
 \addcontentsline{toc}{section}{Bài tập 5: Nhận diện loại bài toán}
 
 Với mỗi bài toán sau, hãy đề xuất hàm mất mát phù hợp hơn: MSE hoặc cross entropy.
@@ -1454,7 +1362,7 @@ Với mỗi bài toán sau, hãy đề xuất hàm mất mát phù hợp hơn: M
     \item Phân loại email spam hoặc không spam.
 \end{enumerate}
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \begin{center}
 \begin{tabular}{lll}
@@ -1470,8 +1378,8 @@ Phân loại email & Phân loại nhị phân & Binary cross entropy \\
 \end{center}
 
 % ==========================================================
-\chapter*{Kết luận}
-\addcontentsline{toc}{chapter}{Kết luận}
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
 
 ANN4 làm rõ bản chất tối ưu hóa của quá trình huấn luyện mạng nơ-ron. Khi mạng tạo ra output khác với label đúng, hàm mất mát được dùng để đo sai số. Mục tiêu của huấn luyện là điều chỉnh toàn bộ trọng số và bias sao cho hàm mất mát giảm dần.
 
@@ -1479,4 +1387,3 @@ Gradient Descent là phương pháp cơ bản để cập nhật tham số theo 
 
 Bên cạnh đó, bài học cũng giới thiệu các khó khăn trong tối ưu hóa như cực trị địa phương, sự cần thiết của exploration và exploitation, cũng như ý tưởng của momentum và thuật toán di truyền. Cuối cùng, việc lựa chọn hàm mất mát phải gắn với bản chất bài toán: cross entropy thường dùng cho phân loại, còn MSE thường dùng cho hồi quy hoặc một số bài toán đặc thù.
 
-\end{document}

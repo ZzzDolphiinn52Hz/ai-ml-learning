@@ -1,100 +1,8 @@
-% !TEX program = pdflatex
-\documentclass[12pt,a4paper]{report}
 
-% =========================
-% CẤU HÌNH CHO PDFLATEX
-% =========================
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[most]{tcolorbox}
-\usetikzlibrary{arrows.meta,positioning}
-
-% =========================
-% VIỆT HÓA
-% =========================
-\renewcommand{\contentsname}{Mục lục}
-\renewcommand{\chaptername}{Chương}
-\renewcommand{\bibname}{Tài liệu tham khảo}
-\renewcommand{\figurename}{Hình}
-\renewcommand{\tablename}{Bảng}
-
-% =========================
-% HYPERLINK
-% =========================
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black
-}
-
-% =========================
-% HỘP NỘI DUNG
-% =========================
-\newtcolorbox{ghinho}{
-    colback=blue!4,
-    colframe=blue!60!black,
-    title=Ghi nhớ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{vidu}{
-    colback=green!4,
-    colframe=green!50!black,
-    title=Ví dụ minh họa,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{luuy}{
-    colback=orange!6,
-    colframe=orange!70!black,
-    title=Lưu ý,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{canhbao}{
-    colback=red!4,
-    colframe=red!60!black,
-    title=Cảnh báo,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-% =========================
-% THÔNG TIN TÀI LIỆU
-% =========================
-\title{
-    \textbf{Tài liệu học tập ANN3}\\
-    \large Huấn luyện mạng nơ-ron, lan truyền ngược và hàm mất mát
-}
-\author{Biên soạn theo vai trò trợ giảng chuyên môn}
-\date{\today}
-
-\begin{document}
-
-\maketitle
-\tableofcontents
-\newpage
 
 % ==========================================================
-\chapter*{Mục tiêu bài học}
-\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
 
 Bài ANN3 tập trung vào quá trình huấn luyện mạng nơ-ron nhân tạo. Sau khi học xong, người học cần nắm được:
 
@@ -110,9 +18,9 @@ Bài ANN3 tập trung vào quá trình huấn luyện mạng nơ-ron nhân tạo
 \end{enumerate}
 
 % ==========================================================
-\chapter{Nhắc lại bài toán học có giám sát}
+\section{Supervised Learning Recap -- Nhắc lại bài toán học có giám sát}
 
-\section{Mạng nơ-ron cần học ánh xạ}
+\subsection{Mạng nơ-ron cần học ánh xạ}
 
 Trong các bài trước, ta đã biết mạng nơ-ron nhân tạo được dùng để xấp xỉ một hàm ánh xạ:
 
@@ -144,7 +52,7 @@ hoặc:
 Ban đầu, mạng nơ-ron chưa biết hàm $f$. Quá trình huấn luyện chính là quá trình điều chỉnh các tham số bên trong mạng để mạng học được ánh xạ từ input sang output.
 \end{ghinho}
 
-\section{Dữ liệu trong học có giám sát}
+\subsection{Dữ liệu trong học có giám sát}
 
 Trong học có giám sát, tiếng Anh là \textit{supervised learning}, ta cung cấp cho hệ thống nhiều cặp dữ liệu:
 
@@ -193,9 +101,9 @@ Mạng nơ-ron phải học từ nhiều ảnh đã được gán nhãn. Sau khi
 \end{vidu}
 
 % ==========================================================
-\chapter{Thông số ban đầu của mạng nơ-ron}
+\section{Initial Network Parameters -- Thông số ban đầu của mạng nơ-ron}
 
-\section{Tham số của từng nơ-ron}
+\subsection{Tham số của từng nơ-ron}
 
 Một nơ-ron nhân tạo nhận nhiều đầu vào:
 
@@ -223,7 +131,7 @@ Output của nơ-ron là:
 
 Trong đó $\varphi$ là hàm kích hoạt.
 
-\section{Mạng có rất nhiều tham số}
+\subsection{Mạng có rất nhiều tham số}
 
 Khi nhiều nơ-ron được kết nối thành một mạng, mỗi nơ-ron có bộ trọng số và bias riêng. Tổng số tham số trong mạng có thể rất lớn.
 
@@ -239,7 +147,7 @@ Nếu mạng có hàng triệu kết nối, tổng số tham số có thể lên
 Huấn luyện mạng nơ-ron thực chất là tìm bộ giá trị phù hợp cho tất cả các trọng số và bias trong mạng.
 \end{ghinho}
 
-\section{Khởi tạo ngẫu nhiên}
+\subsection{Khởi tạo ngẫu nhiên}
 
 Khi bắt đầu huấn luyện, mạng chưa biết gì về bài toán. Vì vậy, các trọng số và bias thường được khởi tạo bằng các giá trị ngẫu nhiên.
 
@@ -261,7 +169,7 @@ Trong đó $\theta_0$ là bộ tham số khởi tạo ngẫu nhiên.
 Trong thực tế, việc khởi tạo không phải là ngẫu nhiên hoàn toàn tùy tiện. Có nhiều kỹ thuật khởi tạo đặc biệt để giúp quá trình huấn luyện ổn định hơn. Tuy nhiên, ở mức nhập môn, ta có thể hiểu đơn giản rằng mạng bắt đầu từ một trạng thái ngẫu nhiên.
 \end{luuy}
 
-\section{Vì sao output ban đầu thường sai?}
+\subsection{Vì sao output ban đầu thường sai?}
 
 Do các trọng số ban đầu là ngẫu nhiên, nên khi đưa input vào mạng, output cũng thường là một kết quả không có ý nghĩa.
 
@@ -288,9 +196,9 @@ Kết quả này sai vì mạng chưa được huấn luyện.
 \end{vidu}
 
 % ==========================================================
-\chapter{Lan truyền tiến}
+\section{Forward Propagation -- Lan truyền tiến}
 
-\section{Ý tưởng của lan truyền tiến}
+\subsection{Ý tưởng của lan truyền tiến}
 
 Lan truyền tiến, tiếng Anh là \textit{forward propagation}, là quá trình đưa dữ liệu từ lớp input đi qua các lớp ẩn và cuối cùng sinh ra output.
 
@@ -312,7 +220,7 @@ sau đó đưa qua hàm kích hoạt:
 
 Output của lớp trước trở thành input của lớp sau.
 
-\section{Sơ đồ lan truyền tiến}
+\subsection{Sơ đồ lan truyền tiến}
 
 \begin{center}
 \begin{tikzpicture}[x=2.2cm,y=1.0cm,>=Stealth,
@@ -362,7 +270,7 @@ Output của lớp trước trở thành input của lớp sau.
 \end{tikzpicture}
 \end{center}
 
-\section{Lan truyền tiến qua nhiều lớp}
+\subsection{Lan truyền tiến qua nhiều lớp}
 
 Giả sử mạng có $L$ lớp. Với lớp thứ $l$, ta có:
 
@@ -458,9 +366,9 @@ Nếu hàm kích hoạt là tuyến tính, output lớp ẩn là:
 \end{vidu}
 
 % ==========================================================
-\chapter{Sai số và ý tưởng huấn luyện}
+\section{Error \& Training Concept -- Sai số và ý tưởng huấn luyện}
 
-\section{So sánh output dự đoán với output mong muốn}
+\subsection{So sánh output dự đoán với output mong muốn}
 
 Sau khi lan truyền tiến, mạng tạo ra output dự đoán:
 
@@ -496,7 +404,7 @@ Nhưng mạng dự đoán:
 Thì mạng đã sai. Ta cần đo mức độ sai đó bằng một hàm mất mát.
 \end{vidu}
 
-\section{Hàm mất mát}
+\subsection{Hàm mất mát}
 
 Hàm mất mát, tiếng Anh là \textit{loss function}, là hàm dùng để đo sai số giữa output dự đoán và output mong muốn.
 
@@ -516,7 +424,7 @@ Số này càng nhỏ thì dự đoán càng gần với nhãn đúng.
 Hàm mất mát biến khái niệm ``mô hình dự đoán sai'' thành một con số cụ thể. Nhờ đó, thuật toán huấn luyện có thể biết cần điều chỉnh tham số theo hướng nào.
 \end{ghinho}
 
-\section{Huấn luyện là giảm sai số}
+\subsection{Huấn luyện là giảm sai số}
 
 Mục tiêu của huấn luyện là tìm bộ tham số $\theta$ sao cho loss nhỏ nhất có thể:
 
@@ -537,9 +445,9 @@ Mục tiêu là:
 \]
 
 % ==========================================================
-\chapter{Lan truyền ngược sai số}
+\section{Lan truyền ngược sai số}
 
-\section{Backpropagation là gì?}
+\subsection{Backpropagation là gì?}
 
 Lan truyền ngược sai số, tiếng Anh là \textit{backpropagation}, là kỹ thuật dùng sai số ở output để điều chỉnh các tham số bên trong mạng.
 
@@ -561,7 +469,7 @@ Quá trình tổng quát:
 Backpropagation là một trong những kỹ thuật phổ biến nhất để huấn luyện mạng nơ-ron hiện nay, nhưng không phải là kỹ thuật duy nhất.
 \end{ghinho}
 
-\section{Ý tưởng trực quan}
+\subsection{Ý tưởng trực quan}
 
 Ban đầu, mạng giống như một đứa trẻ chưa biết làm gì. Các trọng số được khởi tạo ngẫu nhiên nên mạng trả lời sai. Mỗi khi mạng sai, ta dùng mức độ sai đó để chỉnh lại các trọng số một chút.
 
@@ -579,7 +487,7 @@ Quá trình học qua ba mẫu dữ liệu:
 Lặp lại quá trình này với rất nhiều mẫu dữ liệu, mạng có cơ hội học dần quan hệ giữa ảnh và nhãn.
 \end{vidu}
 
-\section{Cập nhật từng bước}
+\subsection{Cập nhật từng bước}
 
 Giả sử tại bước huấn luyện thứ $t$, bộ tham số của mạng là:
 
@@ -611,7 +519,7 @@ Trong đó:
 Trong transcript, giảng viên chủ yếu trình bày ý tưởng tổng quát: dùng sai số giữa output hiện tại và output mong muốn để quay lại điều chỉnh các trọng số. Để lập trình được backpropagation, cần học thêm các chi tiết toán học như đạo hàm riêng, gradient, chain rule và thuật toán tối ưu.
 \end{luuy}
 
-\section{Liên hệ với điều khiển tự động}
+\subsection{Liên hệ với điều khiển tự động}
 
 Ý tưởng dùng sai lệch giữa kết quả mong muốn và kết quả hiện tại để điều chỉnh hệ thống có liên hệ với tư duy trong điều khiển tự động.
 
@@ -640,9 +548,9 @@ Trong huấn luyện mạng nơ-ron:
 Mạng dùng sai số này để điều chỉnh trọng số và bias.
 
 % ==========================================================
-\chapter{Quá trình huấn luyện lặp}
+\section{Quá trình huấn luyện lặp}
 
-\section{Huấn luyện qua từng mẫu}
+\subsection{Huấn luyện qua từng mẫu}
 
 Với mỗi cặp dữ liệu $(x_i,y_i)$, ta làm các bước:
 
@@ -657,7 +565,7 @@ Với mỗi cặp dữ liệu $(x_i,y_i)$, ta làm các bước:
 
 Sau đó chuyển sang mẫu tiếp theo.
 
-\section{Epoch}
+\subsection{Epoch}
 
 Một epoch là một lượt mô hình đi qua toàn bộ tập dữ liệu huấn luyện.
 
@@ -669,7 +577,7 @@ Thông thường, ta cần nhiều epoch:
     \text{Training} = \text{nhiều epoch}
 \]
 
-\section{Vì sao cần lặp nhiều lần?}
+\subsection{Vì sao cần lặp nhiều lần?}
 
 Một lần cập nhật thường chỉ làm thay đổi tham số một chút. Vì vậy, mạng cần rất nhiều lần cập nhật để học được một quan hệ phức tạp.
 
@@ -677,7 +585,7 @@ Một lần cập nhật thường chỉ làm thay đổi tham số một chút.
 Nếu mạng có hàng triệu tham số và dữ liệu gồm hàng trăm nghìn ảnh, việc chỉ học một vài ảnh là không đủ. Mạng cần nhìn thấy nhiều ảnh chó, nhiều ảnh mèo, nhiều ảnh xe hơi trong nhiều điều kiện khác nhau để học được đặc trưng tổng quát.
 \end{vidu}
 
-\section{Thời gian huấn luyện}
+\subsection{Thời gian huấn luyện}
 
 Thời gian huấn luyện phụ thuộc vào:
 
@@ -696,9 +604,9 @@ Huấn luyện mạng nơ-ron có thể mất vài giờ, vài ngày hoặc th�
 \end{luuy}
 
 % ==========================================================
-\chapter{Bài toán phân loại nhiều lớp}
+\section{Bài toán phân loại nhiều lớp}
 
-\section{Khái niệm class}
+\subsection{Khái niệm class}
 
 Trong bài toán phân loại, \textit{class} là lớp dữ liệu hoặc nhóm nhãn mà mô hình cần dự đoán.
 
@@ -714,7 +622,7 @@ Mỗi ảnh đầu vào được giả sử thuộc đúng một class.
 Nếu bài toán yêu cầu mỗi mẫu chỉ thuộc một lớp duy nhất, ta gọi đó là bài toán phân loại một nhãn, tiếng Anh là \textit{single-label classification}.
 \end{ghinho}
 
-\section{Thiết kế output cho bài toán nhiều lớp}
+\subsection{Thiết kế output cho bài toán nhiều lớp}
 
 Với 4 class, có nhiều cách thiết kế output.
 
@@ -785,9 +693,9 @@ One-hot vector là cách biểu diễn nhãn rất phổ biến trong bài toán
 \end{ghinho}
 
 % ==========================================================
-\chapter{One-hot encoding}
+\section{One-hot encoding}
 
-\section{One-hot vector là gì?}
+\subsection{One-hot vector là gì?}
 
 One-hot vector là vector trong đó chỉ có một phần tử mang giá trị 1, các phần tử còn lại mang giá trị 0.
 
@@ -807,7 +715,7 @@ Ví dụ với $K=4$:
 
 Vector này biểu diễn class thứ 2.
 
-\section{Bảng mã hóa one-hot}
+\subsection{Bảng mã hóa one-hot}
 
 \begin{center}
 \begin{tabular}{lll}
@@ -822,7 +730,7 @@ Xe hơi & $[0,0,0,1]^T$ & Phần tử thứ tư bằng 1 \\
 \end{tabular}
 \end{center}
 
-\section{Output dự đoán của mạng}
+\subsection{Output dự đoán của mạng}
 
 Trong thực tế, output của mạng thường không ra đúng tuyệt đối các giá trị 0 và 1. Nó có thể ra một vector điểm số hoặc xác suất.
 
@@ -879,9 +787,9 @@ thì phần tử lớn nhất là $0.6$, nằm ở vị trí thứ 2. Mạng d�
 \end{vidu}
 
 % ==========================================================
-\chapter{Đo sai số giữa hai vector}
+\section{Đo sai số giữa hai vector}
 
-\section{Vì sao cần đo sai số giữa hai vector?}
+\subsection{Vì sao cần đo sai số giữa hai vector?}
 
 Trong bài toán phân loại nhiều lớp, label đúng thường là một vector one-hot, còn output dự đoán cũng là một vector.
 
@@ -909,9 +817,9 @@ Khi output và label đều là vector, sai số không còn đơn giản là ph
 \end{ghinho}
 
 % ==========================================================
-\chapter{Hàm mất mát dựa trên chuẩn L2 - NORM 2}
+\section{Hàm mất mát dựa trên chuẩn L2 - NORM 2}
 
-\section{Chuẩn L2 của vector}
+\subsection{Chuẩn L2 của vector}
 
 Với vector:
 
@@ -933,7 +841,7 @@ Chuẩn $L_2$ của $v$ là:
 
 Đây chính là độ dài Euclid của vector.
 
-\section{Sai số L2 giữa hai vector}
+\subsection{Sai số L2 giữa hai vector}
 
 Với label đúng $y$ và output dự đoán $\hat{y}$, vector sai số là:
 
@@ -953,7 +861,7 @@ Hoặc thường dùng bình phương chuẩn $L_2$:
     \|y-\hat{y}\|_2^2
 \]
 
-\section{Ví dụ tính sai số L2}
+\subsection{Ví dụ tính sai số L2}
 
 Giả sử:
 
@@ -1017,9 +925,9 @@ Sai số $L_2$ càng nhỏ thì hai vector càng gần nhau.
 \end{ghinho}
 
 % ==========================================================
-\chapter{Đo khác biệt bằng góc giữa hai vector}
+\section{Đo khác biệt bằng góc giữa hai vector}
 
-\section{Tích vô hướng}
+\subsection{Tích vô hướng}
 
 Với hai vector:
 
@@ -1047,7 +955,7 @@ Tích vô hướng cho ra một số vô hướng, không phải một vector.
 Không nhầm tích vô hướng với tích có hướng. Tích vô hướng giữa hai vector cho ra một số thực. Tích có hướng mới cho ra một vector trong không gian ba chiều.
 \end{luuy}
 
-\section{Góc giữa hai vector}
+\subsection{Góc giữa hai vector}
 
 Góc $\theta$ giữa hai vector $p$ và $q$ được tính bởi:
 
@@ -1062,7 +970,7 @@ Suy ra:
     \theta = \arccos\left(\frac{p \cdot q}{\|p\|_2 \|q\|_2}\right)
 \]
 
-\section{Ý nghĩa}
+\subsection{Ý nghĩa}
 
 \begin{itemize}
     \item Nếu $\theta$ gần $0^\circ$, hai vector gần cùng hướng, tức là tương đồng cao.
@@ -1108,7 +1016,7 @@ Do đó:
 Hai vector vuông góc với nhau.
 \end{vidu}
 
-\section{Cosine similarity}
+\subsection{Cosine similarity}
 
 Trong nhiều ứng dụng, thay vì dùng trực tiếp góc, ta dùng cosine similarity:
 
@@ -1128,9 +1036,9 @@ Một dạng loss có thể xây dựng từ cosine similarity là:
 \]
 
 % ==========================================================
-\chapter{Cross entropy}
+\section{Cross entropy}
 
-\section{Ý tưởng của cross entropy}
+\subsection{Ý tưởng của cross entropy}
 
 Cross entropy là một hàm mất mát rất phổ biến trong bài toán phân loại.
 
@@ -1158,7 +1066,7 @@ Trong đó:
     \item $q_i$ là xác suất mô hình dự đoán cho class $i$.
 \end{itemize}
 
-\section{Cross entropy với one-hot label}
+\subsection{Cross entropy với one-hot label}
 
 Nếu label đúng là one-hot vector, chỉ có một phần tử $p_c=1$, các phần tử còn lại bằng 0.
 
@@ -1174,7 +1082,7 @@ Trong đó $q_c$ là xác suất mô hình gán cho class đúng.
 Với one-hot label, cross entropy chỉ quan tâm trực tiếp đến xác suất mà mô hình gán cho class đúng. Nếu mô hình gán xác suất cao cho class đúng, loss nhỏ. Nếu mô hình gán xác suất thấp cho class đúng, loss lớn.
 \end{ghinho}
 
-\section{Ví dụ tính cross entropy}
+\subsection{Ví dụ tính cross entropy}
 
 Giả sử có 4 class:
 
@@ -1234,7 +1142,7 @@ thì:
 
 Loss lớn hơn nhiều vì mô hình chỉ gán xác suất $10\%$ cho class đúng.
 
-\section{So sánh các cách đo sai số}
+\subsection{So sánh các cách đo sai số}
 
 \begin{center}
 \begin{tabular}{p{0.25\textwidth}p{0.33\textwidth}p{0.32\textwidth}}
@@ -1249,9 +1157,9 @@ Cross entropy & Đo sai khác giữa phân phối đúng và phân phối dự �
 \end{center}
 
 % ==========================================================
-\chapter{Mô hình học được những gì?}
+\section{Mô hình học được những gì?}
 
-\section{Mô hình chỉ học trong phạm vi dữ liệu được dạy}
+\subsection{Mô hình chỉ học trong phạm vi dữ liệu được dạy}
 
 Một điểm quan trọng trong transcript là: mô hình học những gì nó được dạy.
 
@@ -1267,7 +1175,7 @@ Giả sử mô hình được huấn luyện với 4 class:
 Nếu đưa ảnh một con voi vào, nhưng mô hình không có class ``voi'', nó vẫn có thể buộc phải chọn một trong 4 class đã biết. Ví dụ, nó có thể dự đoán nhầm là ``chó'' hoặc ``xe hơi''.
 \end{vidu}
 
-\section{Số lượng class trong các bộ dữ liệu lớn}
+\subsection{Số lượng class trong các bộ dữ liệu lớn}
 
 Trong thực tế, nhiều mô hình phân loại ảnh được huấn luyện trên các tập dữ liệu có rất nhiều class. Ví dụ, một bộ dữ liệu có thể có 1000 class, bao gồm nhiều loại động vật, phương tiện, đồ vật và cảnh vật khác nhau.
 
@@ -1277,7 +1185,7 @@ Khi số class tăng, output layer cũng thường tăng số nơ-ron tương �
     K \text{ class} \Rightarrow K \text{ output}
 \]
 
-\section{Không phải cứ huấn luyện là thành công}
+\subsection{Không phải cứ huấn luyện là thành công}
 
 Huấn luyện mạng nơ-ron không đảm bảo chắc chắn mô hình sẽ tốt. Kết quả phụ thuộc vào nhiều yếu tố:
 
@@ -1297,9 +1205,9 @@ Nếu chỉ hiểu ý tưởng tổng quát của backpropagation mà không hi�
 \end{canhbao}
 
 % ==========================================================
-\chapter{Tổng hợp quy trình huấn luyện ANN}
+\section{Tổng hợp quy trình huấn luyện ANN}
 
-\section{Quy trình tổng quát}
+\subsection{Quy trình tổng quát}
 
 Một quy trình huấn luyện ANN có thể được mô tả như sau:
 
@@ -1317,7 +1225,7 @@ Một quy trình huấn luyện ANN có thể được mô tả như sau:
     \item Lặp lại quá trình trên nhiều lần cho đến khi mô hình đạt chất lượng mong muốn.
 \end{enumerate}
 
-\section{Sơ đồ tổng quát}
+\subsection{Sơ đồ tổng quát}
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.1cm,>=Stealth,
@@ -1345,7 +1253,7 @@ Một quy trình huấn luyện ANN có thể được mô tả như sau:
 \end{center}
 
 % ==========================================================
-\chapter{Bảng thuật ngữ chuyên ngành}
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
 
 \small
 \begin{longtable}{p{0.25\textwidth}p{0.48\textwidth}p{0.20\textwidth}}
@@ -1418,9 +1326,9 @@ GPU & Bộ xử lý đồ họa, thường dùng để tăng tốc huấn luyệ
 \normalsize
 
 % ==========================================================
-\chapter{Tóm tắt kiến thức trọng tâm}
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
 
-\section{Các ý chính cần nhớ}
+\subsection{Các ý chính cần nhớ}
 
 \begin{enumerate}
     \item Ban đầu, mạng nơ-ron chưa biết suy luận vì các tham số được khởi tạo ngẫu nhiên.
@@ -1435,7 +1343,7 @@ GPU & Bộ xử lý đồ họa, thường dùng để tăng tốc huấn luyệ
     \item Mô hình chỉ học tốt những gì được thể hiện đủ rõ và đủ đúng trong dữ liệu huấn luyện.
 \end{enumerate}
 
-\section{Công thức quan trọng}
+\subsection{Công thức quan trọng}
 
 \subsection*{Lan truyền tiến qua một lớp}
 
@@ -1479,7 +1387,7 @@ GPU & Bộ xử lý đồ họa, thường dùng để tăng tốc huấn luyệ
 \]
 
 % ==========================================================
-\chapter{Câu hỏi ôn tập}
+\section{Review Questions -- Câu hỏi ôn tập}
 
 \begin{enumerate}
     \item Vì sao mạng nơ-ron ban đầu thường cho output sai?
@@ -1500,9 +1408,9 @@ GPU & Bộ xử lý đồ họa, thường dùng để tăng tốc huấn luyệ
 \end{enumerate}
 
 % ==========================================================
-\chapter{Bài tập vận dụng}
+\section{Practice Exercises -- Bài tập vận dụng}
 
-\section*{Bài tập 1: One-hot encoding}
+\subsection*{Bài tập 1: One-hot encoding}
 \addcontentsline{toc}{section}{Bài tập 1: One-hot encoding}
 
 Cho 5 class:
@@ -1513,7 +1421,7 @@ Cho 5 class:
 
 Hãy viết one-hot vector cho từng class theo đúng thứ tự trên.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \[
     \text{chó} =
@@ -1544,7 +1452,7 @@ Hãy viết one-hot vector cho từng class theo đúng thứ tự trên.
     \end{bmatrix}
 \]
 
-\section*{Bài tập 2: Tính chuẩn L2}
+\subsection*{Bài tập 2: Tính chuẩn L2}
 \addcontentsline{toc}{section}{Bài tập 2: Tính chuẩn L2}
 
 Cho:
@@ -1567,7 +1475,7 @@ Tính:
     \|y-\hat{y}\|_2
 \]
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 \[
     e=y-\hat{y}
@@ -1592,7 +1500,7 @@ Tính:
     \approx 0.245
 \]
 
-\section*{Bài tập 3: Tính cross entropy}
+\subsection*{Bài tập 3: Tính cross entropy}
 \addcontentsline{toc}{section}{Bài tập 3: Tính cross entropy}
 
 Cho label đúng:
@@ -1619,7 +1527,7 @@ Tính cross entropy:
     H(p,q)=-\sum_{i=1}^{3}p_i\log(q_i)
 \]
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Vì class đúng là class thứ 2:
 
@@ -1627,12 +1535,12 @@ Vì class đúng là class thứ 2:
     H(p,q)=-\log(0.7)\approx 0.357
 \]
 
-\section*{Bài tập 4: Xác định output layer}
+\subsection*{Bài tập 4: Xác định output layer}
 \addcontentsline{toc}{section}{Bài tập 4: Xác định output layer}
 
 Một bài toán phân loại ảnh có 12 class. Nếu dùng one-hot encoding, lớp output nên có bao nhiêu nơ-ron?
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Vì có 12 class, one-hot vector có 12 phần tử. Do đó, lớp output nên có 12 nơ-ron.
 
@@ -1641,8 +1549,8 @@ Vì có 12 class, one-hot vector có 12 phần tử. Do đó, lớp output nên 
 \]
 
 % ==========================================================
-\chapter*{Kết luận}
-\addcontentsline{toc}{chapter}{Kết luận}
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
 
 ANN3 giải thích phần cốt lõi của quá trình huấn luyện mạng nơ-ron. Ban đầu, mạng có các trọng số và bias ngẫu nhiên nên output thường sai. Thông qua lan truyền tiến, mạng tạo dự đoán. Dự đoán này được so sánh với label đúng bằng một hàm mất mát. Sau đó, backpropagation dùng sai số để điều chỉnh các tham số của mạng.
 
@@ -1650,4 +1558,3 @@ Trong bài toán phân loại nhiều lớp, nhãn thường được mã hóa b
 
 Điều quan trọng cần nhớ là huấn luyện mạng nơ-ron không chỉ là chạy một thuật toán có sẵn. Muốn mô hình hoạt động tốt, người học cần hiểu dữ liệu, cách mã hóa nhãn, hàm mất mát, thuật toán tối ưu, kiến trúc mạng và nhiều chi tiết kỹ thuật khác.
 
-\end{document}

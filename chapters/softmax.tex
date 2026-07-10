@@ -1,98 +1,8 @@
-% !TEX program = pdflatex
-\documentclass[12pt,a4paper]{report}
 
-% =========================
-% CẤU HÌNH CHO PDFLATEX
-% =========================
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[most]{tcolorbox}
-\usetikzlibrary{arrows.meta,positioning,calc}
-
-% =========================
-% VIỆT HÓA
-% =========================
-\renewcommand{\contentsname}{Mục lục}
-\renewcommand{\chaptername}{Chương}
-\renewcommand{\figurename}{Hình}
-\renewcommand{\tablename}{Bảng}
-
-% =========================
-% HYPERLINK
-% =========================
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    citecolor=blue!60!black
-}
-
-% =========================
-% HỘP NỘI DUNG
-% =========================
-\newtcolorbox{ghinho}{
-    colback=blue!4,
-    colframe=blue!60!black,
-    title=Ghi nhớ,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{vidu}{
-    colback=green!4,
-    colframe=green!50!black,
-    title=Ví dụ minh họa,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{luuy}{
-    colback=orange!6,
-    colframe=orange!70!black,
-    title=Lưu ý,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-\newtcolorbox{canhbao}{
-    colback=red!4,
-    colframe=red!60!black,
-    title=Cảnh báo,
-    fonttitle=\bfseries,
-    arc=2mm
-}
-
-% =========================
-% THÔNG TIN TÀI LIỆU
-% =========================
-\title{
-    \textbf{Tài liệu học tập}\\
-    \large Hàm Softmax trong bài toán phân loại
-}
-\author{Biên soạn theo vai trò trợ giảng chuyên môn}
-\date{\today}
-
-\begin{document}
-
-\maketitle
-\tableofcontents
-\newpage
 
 % ==========================================================
-\chapter*{Mục tiêu bài học}
-\addcontentsline{toc}{chapter}{Mục tiêu bài học}
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
 
 Bài học này tập trung vào hàm \textit{softmax}, một hàm thường được sử dụng ở lớp output của mạng nơ-ron trong bài toán phân loại nhiều lớp.
 
@@ -110,9 +20,9 @@ Sau khi học xong, người học cần nắm được:
 \end{enumerate}
 
 % ==========================================================
-\chapter{Bối cảnh: Softmax trong bài toán phân loại}
+\section{Softmax in Classification -- Bối cảnh: Softmax trong bài toán phân loại}
 
-\section{Bài toán phân loại ảnh}
+\subsection{Bài toán phân loại ảnh}
 
 Trong bài toán phân loại ảnh, input là một tấm ảnh và output là nhãn của ảnh đó.
 
@@ -130,7 +40,7 @@ Với bài toán có nhiều class, hệ thống phải xác định ảnh thu�
 Trong một bài toán phân loại ảnh có 1000 class, mỗi ảnh đầu vào phải được gán vào một trong 1000 lớp. Nếu ảnh là một con chó, hệ thống cần dự đoán đúng class tương ứng với chó.
 \end{vidu}
 
-\section{Ví dụ hệ thống phân loại ảnh lớn}
+\subsection{Ví dụ hệ thống phân loại ảnh lớn}
 
 Một hệ thống phân loại ảnh có thể nhận input là ảnh màu kích thước:
 
@@ -153,9 +63,9 @@ Với bài toán phân loại 1000 class, lớp output thường có 1000 phần
 \end{ghinho}
 
 % ==========================================================
-\chapter{Hai kiểu bộ phân loại}
+\section{Two Types of Classifiers -- Hai kiểu bộ phân loại}
 
-\section{Bộ phân loại thông thường}
+\subsection{Bộ phân loại thông thường}
 
 Bộ phân loại thông thường là một hàm nhận input $x$ và trả về trực tiếp một nhãn dự đoán:
 
@@ -187,7 +97,7 @@ Nếu input là ảnh con mèo, bộ phân loại có thể trả về:
 Trong đó số 2 được quy ước là class ``mèo''.
 \end{vidu}
 
-\section{Bộ phân loại dựa trên xác suất}
+\subsection{Bộ phân loại dựa trên xác suất}
 
 Bộ phân loại dựa trên xác suất không chỉ trả về một nhãn duy nhất. Thay vào đó, nó trả về xác suất tương ứng với từng class.
 
@@ -233,7 +143,7 @@ và:
 Bộ phân loại xác suất cho ta biết mô hình tin mỗi class với mức độ bao nhiêu, thay vì chỉ trả về một nhãn duy nhất.
 \end{ghinho}
 
-\section{Ví dụ với 4 class}
+\subsection{Ví dụ với 4 class}
 
 Giả sử bài toán có 4 class:
 
@@ -277,9 +187,9 @@ Trong ví dụ này:
 vì $0.40$ là giá trị lớn nhất.
 
 % ==========================================================
-\chapter{One-hot Encoding}
+\section{One-hot Encoding -- One-hot Encoding}
 
-\section{Vì sao cần mã hóa nhãn?}
+\subsection{Vì sao cần mã hóa nhãn?}
 
 Trong học có giám sát, mỗi ảnh đi kèm với một label đúng.
 
@@ -293,7 +203,7 @@ Ví dụ:
 
 Một cách mã hóa phổ biến là one-hot encoding.
 
-\section{One-hot vector}
+\subsection{One-hot vector}
 
 One-hot vector là vector có đúng một phần tử bằng 1, các phần tử còn lại bằng 0.
 
@@ -341,7 +251,7 @@ ta có thể mã hóa:
 Nếu bài toán có $K$ class, one-hot vector sẽ có $K$ phần tử.
 \end{ghinho}
 
-\section{Bảng one-hot encoding}
+\subsection{Bảng one-hot encoding}
 
 \begin{center}
 \begin{tabular}{lll}
@@ -357,9 +267,9 @@ Xe hơi & $[0,0,0,1]^T$ & Class thứ tư \\
 \end{center}
 
 % ==========================================================
-\chapter{Vấn đề ở output thô của mạng}
+\section{Raw Network Output Issue -- Vấn đề ở output thô của mạng}
 
-\section{Vector logits}
+\subsection{Vector logits}
 
 Trước khi đi qua softmax, mạng nơ-ron thường tạo ra một vector số thực:
 
@@ -383,7 +293,7 @@ Các giá trị trong logits có thể là bất kỳ số thực nào:
 
 Chúng có thể âm, dương, lớn hơn 1 hoặc nhỏ hơn 0.
 
-\section{Ví dụ output thô}
+\subsection{Ví dụ output thô}
 
 Giả sử mạng cho output thô:
 
@@ -418,9 +328,9 @@ Không thể xem trực tiếp logits là xác suất. Cần một hàm biến �
 \end{canhbao}
 
 % ==========================================================
-\chapter{Hàm Softmax}
+\section{Softmax Function -- Hàm Softmax}
 
-\section{Công thức tổng quát}
+\subsection{Công thức tổng quát}
 
 Với vector logits:
 
@@ -482,7 +392,7 @@ Hay viết đầy đủ:
 Mẫu số của softmax giống nhau cho tất cả các phần tử. Nó là tổng của $e^{z_i}$ trên toàn bộ các class.
 \end{ghinho}
 
-\section{Vì sao softmax tạo ra xác suất?}
+\subsection{Vì sao softmax tạo ra xác suất?}
 
 Softmax có hai tính chất quan trọng.
 
@@ -530,9 +440,9 @@ Softmax biến vector số thực bất kỳ thành vector xác suất: các ph�
 \end{ghinho}
 
 % ==========================================================
-\chapter{Ví dụ tính Softmax}
+\section{Softmax Calculation Example -- Ví dụ tính Softmax}
 
-\section{Dữ liệu ví dụ}
+\subsection{Dữ liệu ví dụ}
 
 Giả sử bài toán có 4 class:
 
@@ -558,7 +468,7 @@ Ta cần tính:
     y = \operatorname{softmax}(z)
 \]
 
-\section{Bước 1: Tính các giá trị mũ}
+\subsection{Bước 1: Tính các giá trị mũ}
 
 \[
     e^{z_1}=e^{0.8}\approx 2.2255
@@ -576,7 +486,7 @@ Ta cần tính:
     e^{z_4}=e^{0.2}\approx 1.2214
 \]
 
-\section{Bước 2: Tính mẫu số chung}
+\subsection{Bước 2: Tính mẫu số chung}
 
 \[
     S =
@@ -592,7 +502,7 @@ Ta cần tính:
     S \approx 7.9514
 \]
 
-\section{Bước 3: Tính từng xác suất}
+\subsection{Bước 3: Tính từng xác suất}
 
 \[
     y_1 =
@@ -650,7 +560,7 @@ Làm tròn theo transcript:
     \end{bmatrix}
 \]
 
-\section{Diễn giải kết quả}
+\subsection{Diễn giải kết quả}
 
 Output có thể hiểu là:
 
@@ -674,9 +584,9 @@ Nếu class thứ 2 là ``mèo'', thì mô hình dự đoán ảnh thuộc class
 \end{vidu}
 
 % ==========================================================
-\chapter{Softmax và Argmax}
+\section{Softmax \& Argmax -- Softmax và Argmax}
 
-\section{Hàm max}
+\subsection{Hàm max}
 
 Với vector:
 
@@ -698,7 +608,7 @@ Hàm max trả về giá trị lớn nhất:
 
 Giá trị lớn nhất nằm ở vị trí thứ 2.
 
-\section{Hàm argmax}
+\subsection{Hàm argmax}
 
 Hàm argmax không trả về giá trị lớn nhất, mà trả về vị trí của giá trị lớn nhất.
 
@@ -716,7 +626,7 @@ Vì phần tử lớn nhất của $z$ là:
 Max trả về giá trị lớn nhất. Argmax trả về vị trí hoặc chỉ số của giá trị lớn nhất.
 \end{ghinho}
 
-\section{Argmax dưới dạng one-hot}
+\subsection{Argmax dưới dạng one-hot}
 
 Nếu argmax là 2, ta có thể biểu diễn kết quả bằng one-hot vector:
 
@@ -733,7 +643,7 @@ Nếu argmax là 2, ta có thể biểu diễn kết quả bằng one-hot vector
 
 Đây là vector class thứ 2.
 
-\section{Softmax xấp xỉ argmax theo nghĩa mềm}
+\subsection{Softmax xấp xỉ argmax theo nghĩa mềm}
 
 Với cùng vector:
 
@@ -776,9 +686,9 @@ Softmax có thể được hiểu như một phiên bản ``mềm'' của argmax
 \end{ghinho}
 
 % ==========================================================
-\chapter{Vì sao gọi là Softmax?}
+\section{Why \"Softmax\"? -- Vì sao gọi là Softmax?}
 
-\section{Ý nghĩa tên gọi}
+\subsection{Ý nghĩa tên gọi}
 
 Tên \textit{softmax} gồm hai phần:
 
@@ -789,7 +699,7 @@ Tên \textit{softmax} gồm hai phần:
 
 Ý tưởng trực quan là softmax tạo ra một phiên bản mềm của phép chọn max hoặc argmax.
 
-\section{Max cứng và softmax mềm}
+\subsection{Max cứng và softmax mềm}
 
 Hàm max hoặc argmax là lựa chọn cứng:
 
@@ -825,7 +735,7 @@ Nếu softmax cho:
 thì mô hình rất tự tin vào class 1.
 \end{vidu}
 
-\section{Lưu ý về tên gọi}
+\subsection{Lưu ý về tên gọi}
 
 Trong video, giảng viên nhấn mạnh rằng tên \textit{softmax} có thể gây hiểu nhầm nếu ta nghĩ nó là xấp xỉ trơn của hàm max theo nghĩa trả về giá trị lớn nhất.
 
@@ -836,9 +746,9 @@ Softmax không trả về một số giống như hàm max. Softmax trả về m
 \end{luuy}
 
 % ==========================================================
-\chapter{Tính chất quan trọng của Softmax}
+\section{Key Softmax Properties -- Tính chất quan trọng của Softmax}
 
-\section{Tính chất 1: Output luôn dương}
+\subsection{Tính chất 1: Output luôn dương}
 
 Vì:
 
@@ -854,7 +764,7 @@ nên:
 
 Điều này phù hợp với xác suất.
 
-\section{Tính chất 2: Tổng output bằng 1}
+\subsection{Tính chất 2: Tổng output bằng 1}
 
 Như đã chứng minh:
 
@@ -864,7 +774,7 @@ Như đã chứng minh:
 
 Vì vậy softmax tạo ra một phân bố xác suất hợp lệ.
 
-\section{Tính chất 3: Giữ thứ tự tương đối}
+\subsection{Tính chất 3: Giữ thứ tự tương đối}
 
 Nếu:
 
@@ -902,7 +812,7 @@ là lớn nhất, nên:
 cũng là xác suất lớn nhất.
 \end{vidu}
 
-\section{Tính chất 4: Khuếch đại sự khác biệt}
+\subsection{Tính chất 4: Khuếch đại sự khác biệt}
 
 Do dùng hàm mũ, softmax có xu hướng khuếch đại sự khác biệt giữa các logits.
 
@@ -924,9 +834,9 @@ thì $e^{10}$ lớn hơn rất nhiều so với $e^1$ và $e^2$. Do đó xác su
 \end{vidu}
 
 % ==========================================================
-\chapter{Softmax ở lớp output của mạng nơ-ron}
+\section{Softmax at Output Layer -- Softmax ở lớp output của mạng nơ-ron}
 
-\section{Quy trình trong bài toán phân loại}
+\subsection{Quy trình trong bài toán phân loại}
 
 Trong bài toán phân loại nhiều lớp, quy trình thường là:
 
@@ -950,7 +860,7 @@ Trong đó:
     \item class dự đoán là phần tử có xác suất lớn nhất.
 \end{itemize}
 
-\section{Sơ đồ minh họa}
+\subsection{Sơ đồ minh họa}
 
 \begin{center}
 \begin{tikzpicture}[node distance=1cm,>=Stealth,
@@ -972,7 +882,7 @@ Trong đó:
 \end{tikzpicture}
 \end{center}
 
-\section{Dự đoán class cuối cùng}
+\subsection{Dự đoán class cuối cùng}
 
 Sau khi có:
 
@@ -999,9 +909,9 @@ Softmax cho ta xác suất từng class. Argmax trên output softmax cho ta clas
 \end{ghinho}
 
 % ==========================================================
-\chapter{Softmax và Cross Entropy}
+\section{Softmax \& Cross Entropy -- Softmax và Cross Entropy}
 
-\section{Vì sao softmax thường đi cùng cross entropy?}
+\subsection{Vì sao softmax thường đi cùng cross entropy?}
 
 Trong bài toán phân loại nhiều lớp, softmax thường được dùng ở output để tạo xác suất. Sau đó, ta dùng cross entropy để đo sai số giữa phân phối dự đoán và nhãn one-hot.
 
@@ -1055,7 +965,7 @@ Vì chỉ có $t_2=1$, nên:
 Với one-hot label, cross entropy chỉ lấy log của xác suất mà mô hình gán cho class đúng.
 \end{ghinho}
 
-\section{Ý nghĩa}
+\subsection{Ý nghĩa}
 
 Nếu mô hình gán xác suất cao cho class đúng, loss nhỏ.
 
@@ -1080,9 +990,9 @@ Trong nhiều thư viện deep learning, người ta thường kết hợp softm
 \end{luuy}
 
 % ==========================================================
-\chapter{Lưu ý khi tính Softmax}
+\section{Softmax Computation Notes -- Lưu ý khi tính Softmax}
 
-\section{Vấn đề số quá lớn}
+\subsection{Vấn đề số quá lớn}
 
 Softmax dùng $e^{z_i}$. Nếu $z_i$ rất lớn, $e^{z_i}$ có thể vượt quá khả năng biểu diễn của máy tính.
 
@@ -1094,7 +1004,7 @@ Ví dụ:
 
 là một số cực lớn.
 
-\section{Cách ổn định số học}
+\subsection{Cách ổn định số học}
 
 Một kỹ thuật phổ biến là trừ tất cả logits cho giá trị lớn nhất trước khi tính softmax.
 
@@ -1114,7 +1024,7 @@ Ta tính:
 
 Kết quả không thay đổi so với softmax ban đầu.
 
-\section{Vì sao không thay đổi?}
+\subsection{Vì sao không thay đổi?}
 
 Ta có:
 
@@ -1139,7 +1049,7 @@ Khi lập trình softmax, nên dùng phiên bản ổn định số học bằng
 \end{ghinho}
 
 % ==========================================================
-\chapter{Bảng thuật ngữ chuyên ngành}
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
 
 \small
 \begin{longtable}{p{0.26\textwidth}p{0.48\textwidth}p{0.19\textwidth}}
@@ -1188,9 +1098,9 @@ Numerical stability & Tính ổn định số học khi lập trình. & Trừ ma
 \normalsize
 
 % ==========================================================
-\chapter{Tóm tắt kiến thức trọng tâm}
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
 
-\section{Các ý chính cần nhớ}
+\subsection{Các ý chính cần nhớ}
 
 \begin{enumerate}
     \item Softmax thường được dùng ở output layer của bài toán phân loại nhiều lớp.
@@ -1207,7 +1117,7 @@ Numerical stability & Tính ổn định số học khi lập trình. & Trừ ma
     \item Khi lập trình softmax, nên dùng phiên bản ổn định số học bằng cách trừ max logit.
 \end{enumerate}
 
-\section{Công thức quan trọng}
+\subsection{Công thức quan trọng}
 
 \subsection*{Softmax}
 
@@ -1246,7 +1156,7 @@ Numerical stability & Tính ổn định số học khi lập trình. & Trừ ma
 \]
 
 % ==========================================================
-\chapter{Câu hỏi ôn tập}
+\section{Review Questions -- Câu hỏi ôn tập}
 
 \begin{enumerate}
     \item Softmax thường được dùng ở đâu trong mạng nơ-ron?
@@ -1266,9 +1176,9 @@ Numerical stability & Tính ổn định số học khi lập trình. & Trừ ma
 \end{enumerate}
 
 % ==========================================================
-\chapter{Bài tập vận dụng}
+\section{Practice Exercises -- Bài tập vận dụng}
 
-\section*{Bài tập 1: Tính softmax}
+\subsection*{Bài tập 1: Tính softmax}
 \addcontentsline{toc}{section}{Bài tập 1: Tính softmax}
 
 Cho logits:
@@ -1284,7 +1194,7 @@ Cho logits:
 
 Hãy tính softmax của $z$.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Tính các giá trị mũ:
 
@@ -1325,7 +1235,7 @@ Vậy:
     \end{bmatrix}
 \]
 
-\section*{Bài tập 2: Xác định class dự đoán}
+\subsection*{Bài tập 2: Xác định class dự đoán}
 \addcontentsline{toc}{section}{Bài tập 2: Xác định class dự đoán}
 
 Cho output softmax:
@@ -1342,7 +1252,7 @@ Cho output softmax:
 
 Hỏi mô hình dự đoán class nào?
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Giá trị lớn nhất là:
 
@@ -1354,7 +1264,7 @@ nằm ở vị trí thứ 3.
 
 Vậy mô hình dự đoán class thứ 3.
 
-\section*{Bài tập 3: One-hot vector}
+\subsection*{Bài tập 3: One-hot vector}
 \addcontentsline{toc}{section}{Bài tập 3: One-hot vector}
 
 Một bài toán có 5 class:
@@ -1365,7 +1275,7 @@ Một bài toán có 5 class:
 
 Hãy viết one-hot vector cho class ``xe hơi''.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Class ``xe hơi'' là class thứ 4, nên:
 
@@ -1381,7 +1291,7 @@ Class ``xe hơi'' là class thứ 4, nên:
     \end{bmatrix}
 \]
 
-\section*{Bài tập 4: Cross entropy với softmax}
+\subsection*{Bài tập 4: Cross entropy với softmax}
 \addcontentsline{toc}{section}{Bài tập 4: Cross entropy với softmax}
 
 Label đúng là class thứ 2:
@@ -1408,7 +1318,7 @@ Output softmax:
 
 Tính cross entropy.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Vì class đúng là class thứ 2:
 
@@ -1420,7 +1330,7 @@ Vì class đúng là class thứ 2:
     L\approx 0.357
 \]
 
-\section*{Bài tập 5: Softmax ổn định số học}
+\subsection*{Bài tập 5: Softmax ổn định số học}
 \addcontentsline{toc}{section}{Bài tập 5: Softmax ổn định số học}
 
 Cho:
@@ -1436,7 +1346,7 @@ Cho:
 
 Vì sao không nên tính trực tiếp $e^{1000},e^{1001},e^{1002}$? Hãy nêu cách xử lý.
 
-\section*{Lời giải gợi ý}
+\subsection*{Lời giải gợi ý}
 
 Các giá trị $e^{1000},e^{1001},e^{1002}$ rất lớn và có thể gây tràn số.
 
@@ -1464,8 +1374,8 @@ Ta trừ tất cả logits cho giá trị lớn nhất:
 Sau đó tính softmax trên $z'$.
 
 % ==========================================================
-\chapter*{Kết luận}
-\addcontentsline{toc}{chapter}{Kết luận}
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
 
 Softmax là hàm rất quan trọng trong bài toán phân loại nhiều lớp. Mạng nơ-ron thường tạo ra một vector logits ở lớp cuối. Vector này chưa phải xác suất, vì nó có thể chứa số âm, số lớn hơn 1 và tổng không bằng 1. Softmax biến logits thành một vector xác suất hợp lệ, trong đó mỗi phần tử dương và tổng các phần tử bằng 1.
 
@@ -1473,4 +1383,3 @@ Trong bài toán phân loại, softmax giúp ta biết mô hình đang gán xác
 
 Softmax thường được dùng cùng cross entropy loss để huấn luyện mô hình phân loại nhiều lớp. Khi lập trình thực tế, cần chú ý đến ổn định số học bằng cách trừ đi logit lớn nhất trước khi tính hàm mũ.
 
-\end{document}
