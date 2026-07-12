@@ -614,28 +614,573 @@ Một kernel có thể học để phát hiện cạnh ngang. Một kernel khác
 
 \subsection{Kích thước activation map}
 
+Khi một kernel trượt qua input, tại mỗi vị trí nó tạo ra một giá trị output. Tập hợp tất cả các giá trị output này tạo thành một \textbf{activation map}.
+
+Nói cách khác:
+
+\[
+    \text{mỗi vị trí đặt kernel}
+    \Rightarrow
+    \text{một giá trị trong activation map}
+\]
+
+Vì vậy, kích thước của activation map phụ thuộc vào:
+
+\begin{itemize}
+    \item kích thước input;
+    \item kích thước kernel;
+    \item stride;
+    \item padding.
+\end{itemize}
+
+\subsubsection{Trường hợp đơn giản: stride bằng 1 và không padding}
+
 Nếu input có kích thước:
 
 \[
     H \times W
 \]
 
-kernel có kích thước:
+trong đó:
+
+\[
+    H = \text{chiều cao input}
+\]
+
+\[
+    W = \text{chiều rộng input}
+\]
+
+Kernel có kích thước:
 
 \[
     K_h \times K_w
 \]
 
-stride bằng 1 và không padding, thì output có kích thước:
+trong đó:
+
+\[
+    K_h = \text{chiều cao kernel}
+\]
+
+\[
+    K_w = \text{chiều rộng kernel}
+\]
+
+Nếu stride bằng 1 và không padding, thì output có kích thước:
 
 \[
     (H-K_h+1) \times (W-K_w+1)
 \]
 
-Với input $3 \times 3$ và kernel $2 \times 2$:
+\subsubsection{Vì sao có công thức này?}
+
+Giả sử input có kích thước $3 \times 3$:
+
+\[
+I=
+\begin{bmatrix}
+1 & 2 & 3\\
+4 & 5 & 6\\
+7 & 8 & 9
+\end{bmatrix}
+\]
+
+và kernel có kích thước $2 \times 2$.
+
+Kernel $2 \times 2$ có thể đặt vào bốn vị trí khác nhau trên input.
+
+Vị trí thứ nhất, góc trên bên trái:
+
+\[
+\begin{bmatrix}
+1 & 2\\
+4 & 5
+\end{bmatrix}
+\]
+
+Vị trí thứ hai, góc trên bên phải:
+
+\[
+\begin{bmatrix}
+2 & 3\\
+5 & 6
+\end{bmatrix}
+\]
+
+Vị trí thứ ba, góc dưới bên trái:
+
+\[
+\begin{bmatrix}
+4 & 5\\
+7 & 8
+\end{bmatrix}
+\]
+
+Vị trí thứ tư, góc dưới bên phải:
+
+\[
+\begin{bmatrix}
+5 & 6\\
+8 & 9
+\end{bmatrix}
+\]
+
+Như vậy, theo chiều cao, kernel đặt được:
+
+\[
+    3-2+1=2
+\]
+
+vị trí.
+
+Theo chiều rộng, kernel cũng đặt được:
+
+\[
+    3-2+1=2
+\]
+
+vị trí.
+
+Do đó activation map có kích thước:
+
+\[
+    2 \times 2
+\]
+
+Áp dụng công thức:
+
+\[
+    (H-K_h+1)\times(W-K_w+1)
+\]
+
+với:
+
+\[
+    H=3,\quad W=3,\quad K_h=2,\quad K_w=2
+\]
+
+ta có:
 
 \[
     (3-2+1)\times(3-2+1)=2\times2
+\]
+
+\subsubsection{Ví dụ tính activation map cụ thể}
+
+Giả sử input là:
+
+\[
+I=
+\begin{bmatrix}
+1 & 2 & 3\\
+4 & 5 & 6\\
+7 & 8 & 9
+\end{bmatrix}
+\]
+
+Kernel là:
+
+\[
+K=
+\begin{bmatrix}
+1 & 0\\
+0 & -1
+\end{bmatrix}
+\]
+
+Bias:
+
+\[
+b=0
+\]
+
+Ta không dùng hàm kích hoạt để tính cho đơn giản.
+
+Tại vị trí thứ nhất:
+
+\[
+\begin{bmatrix}
+1 & 2\\
+4 & 5
+\end{bmatrix}
+\]
+
+ta tính:
+
+\[
+1\cdot1+2\cdot0+4\cdot0+5\cdot(-1)
+\]
+
+\[
+=1-5=-4
+\]
+
+Tại vị trí thứ hai:
+
+\[
+\begin{bmatrix}
+2 & 3\\
+5 & 6
+\end{bmatrix}
+\]
+
+ta tính:
+
+\[
+2\cdot1+3\cdot0+5\cdot0+6\cdot(-1)
+\]
+
+\[
+=2-6=-4
+\]
+
+Tại vị trí thứ ba:
+
+\[
+\begin{bmatrix}
+4 & 5\\
+7 & 8
+\end{bmatrix}
+\]
+
+ta tính:
+
+\[
+4\cdot1+5\cdot0+7\cdot0+8\cdot(-1)
+\]
+
+\[
+=4-8=-4
+\]
+
+Tại vị trí thứ tư:
+
+\[
+\begin{bmatrix}
+5 & 6\\
+8 & 9
+\end{bmatrix}
+\]
+
+ta tính:
+
+\[
+5\cdot1+6\cdot0+8\cdot0+9\cdot(-1)
+\]
+
+\[
+=5-9=-4
+\]
+
+Vậy activation map thu được là:
+
+\[
+\begin{bmatrix}
+-4 & -4\\
+-4 & -4
+\end{bmatrix}
+\]
+
+Nếu sau đó dùng hàm kích hoạt ReLU:
+
+\[
+    \operatorname{ReLU}(x)=\max(0,x)
+\]
+
+thì activation map sau ReLU là:
+
+\[
+\begin{bmatrix}
+0 & 0\\
+0 & 0
+\end{bmatrix}
+\]
+
+\subsubsection{Stride là gì?}
+
+\textbf{Stride} là số bước mà kernel dịch chuyển sau mỗi lần tính.
+
+Nếu:
+
+\[
+    S=1
+\]
+
+thì kernel trượt từng ô một.
+
+Nếu:
+
+\[
+    S=2
+\]
+
+thì kernel nhảy cách hai ô một lần.
+
+Ví dụ, với input $4 \times 4$:
+
+\[
+I=
+\begin{bmatrix}
+1 & 2 & 3 & 4\\
+5 & 6 & 7 & 8\\
+9 & 10 & 11 & 12\\
+13 & 14 & 15 & 16
+\end{bmatrix}
+\]
+
+và kernel $2 \times 2$.
+
+Nếu stride bằng 1, kernel có thể đi qua nhiều vị trí hơn, nên activation map lớn hơn.
+
+Nếu stride bằng 2, kernel nhảy xa hơn, số vị trí đặt kernel ít hơn, nên activation map nhỏ hơn.
+
+\[
+    \text{stride lớn}
+    \Rightarrow
+    \text{kernel nhảy xa}
+    \Rightarrow
+    \text{activation map nhỏ hơn}
+\]
+
+\subsubsection{Padding là gì?}
+
+\textbf{Padding} là việc thêm các giá trị vào viền xung quanh input. Thông thường, giá trị được thêm vào là số 0, nên còn gọi là \textbf{zero padding}.
+
+Ví dụ input $3 \times 3$:
+
+\[
+I=
+\begin{bmatrix}
+1 & 2 & 3\\
+4 & 5 & 6\\
+7 & 8 & 9
+\end{bmatrix}
+\]
+
+Nếu padding bằng 1, ta thêm một lớp số 0 xung quanh input:
+
+\[
+I_{pad}=
+\begin{bmatrix}
+0 & 0 & 0 & 0 & 0\\
+0 & 1 & 2 & 3 & 0\\
+0 & 4 & 5 & 6 & 0\\
+0 & 7 & 8 & 9 & 0\\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+\]
+
+Khi đó input từ kích thước:
+
+\[
+    3 \times 3
+\]
+
+trở thành:
+
+\[
+    5 \times 5
+\]
+
+Padding có hai tác dụng quan trọng.
+
+Thứ nhất, padding giúp activation map không bị nhỏ quá nhanh sau mỗi lớp convolution.
+
+Thứ hai, padding giúp các pixel ở rìa ảnh được kernel xét đến nhiều hơn. Nếu không padding, các pixel ở góc và cạnh ảnh thường được dùng ít hơn các pixel ở giữa ảnh.
+
+\subsubsection{Công thức tổng quát có stride và padding}
+
+Với input kích thước:
+
+\[
+    H \times W
+\]
+
+kernel kích thước:
+
+\[
+    K_h \times K_w
+\]
+
+padding:
+
+\[
+    P
+\]
+
+stride:
+
+\[
+    S
+\]
+
+thì kích thước activation map là:
+
+\[
+    H_{out}
+    =
+    \left\lfloor
+    \frac{H+2P-K_h}{S}
+    \right\rfloor
+    +1
+\]
+
+\[
+    W_{out}
+    =
+    \left\lfloor
+    \frac{W+2P-K_w}{S}
+    \right\rfloor
+    +1
+\]
+
+Do đó:
+
+\[
+    \text{output size}
+    =
+    H_{out}
+    \times
+    W_{out}
+\]
+
+Trong đó ký hiệu:
+
+\[
+    \left\lfloor x \right\rfloor
+\]
+
+nghĩa là lấy phần nguyên xuống.
+
+\subsubsection{Ví dụ có padding}
+
+Giả sử input có kích thước:
+
+\[
+    5 \times 5
+\]
+
+kernel có kích thước:
+
+\[
+    3 \times 3
+\]
+
+stride:
+
+\[
+    S=1
+\]
+
+không padding:
+
+\[
+    P=0
+\]
+
+Khi đó:
+
+\[
+    H_{out}
+    =
+    \frac{5+2\cdot0-3}{1}+1
+    =
+    3
+\]
+
+\[
+    W_{out}
+    =
+    \frac{5+2\cdot0-3}{1}+1
+    =
+    3
+\]
+
+Vậy output có kích thước:
+
+\[
+    3 \times 3
+\]
+
+Nếu vẫn dùng input $5 \times 5$, kernel $3 \times 3$, stride $1$, nhưng thêm padding:
+
+\[
+    P=1
+\]
+
+thì:
+
+\[
+    H_{out}
+    =
+    \frac{5+2\cdot1-3}{1}+1
+    =
+    5
+\]
+
+\[
+    W_{out}
+    =
+    \frac{5+2\cdot1-3}{1}+1
+    =
+    5
+\]
+
+Vậy output có kích thước:
+
+\[
+    5 \times 5
+\]
+
+Như vậy, padding giúp giữ nguyên kích thước không gian của activation map so với input ban đầu.
+
+\subsubsection{Tóm tắt}
+
+Stride là bước nhảy của kernel:
+
+\[
+    \text{stride càng lớn}
+    \Rightarrow
+    \text{activation map càng nhỏ}
+\]
+
+Padding là phần viền được thêm vào input:
+
+\[
+    \text{padding càng lớn}
+    \Rightarrow
+    \text{activation map càng lớn}
+\]
+
+Trong trường hợp đơn giản nhất, stride bằng 1 và không padding:
+
+\[
+    H_{out}=H-K_h+1
+\]
+
+\[
+    W_{out}=W-K_w+1
+\]
+
+Còn trong trường hợp tổng quát:
+
+\[
+    H_{out}
+    =
+    \left\lfloor
+    \frac{H+2P-K_h}{S}
+    \right\rfloor
+    +1
+\]
+
+\[
+    W_{out}
+    =
+    \left\lfloor
+    \frac{W+2P-K_w}{S}
+    \right\rfloor
+    +1
 \]
 
 % ==========================================================
