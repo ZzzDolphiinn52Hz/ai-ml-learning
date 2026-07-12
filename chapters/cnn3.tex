@@ -1,0 +1,943 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này review lại một số khái niệm nền tảng trước khi tiếp tục đi sâu vào \textit{Convolutional Neural Network}, viết tắt là CNN.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Phân biệt được \textit{convolution} -- tích chập và \textit{correlation} -- tương quan.
+    \item Hiểu \textit{cross-correlation} -- tương quan chéo và \textit{auto-correlation} -- tự tương quan.
+    \item Biết điểm khác nhau quan trọng giữa convolution và correlation: trong convolution có thao tác lật hàm hoặc lật kernel.
+    \item Hiểu trực giác của tích chập thông qua ví dụ hai xung chữ nhật.
+    \item Biết vì sao ví dụ với hàm $f(t)$ và $g(t)$ là tích chập một chiều.
+    \item Hiểu ảnh xám được xem như dữ liệu hai chiều theo không gian.
+    \item Hiểu ảnh RGB có ba kênh màu nhưng trong CNN cơ bản không đơn giản xem là một phép tích chập 3D.
+    \item Biết cách CNN xử lý ảnh RGB: tính riêng từng kênh màu rồi cộng kết quả lại.
+\end{enumerate}
+
+% ==========================================================
+\section{Convolution and Correlation -- Tích chập và tương quan}
+
+\subsection{Các thuật ngữ cần phân biệt}
+
+Trong phần CNN, ta thường gặp các thuật ngữ gần giống nhau:
+
+\begin{itemize}
+    \item \textbf{Convolution} -- tích chập;
+    \item \textbf{Correlation} -- tương quan;
+    \item \textbf{Cross-correlation} -- tương quan chéo;
+    \item \textbf{Auto-correlation} -- tự tương quan.
+\end{itemize}
+
+Các khái niệm này có hình thức tính toán khá gần nhau, nên dễ gây nhầm lẫn.
+
+\begin{ghinho}
+Điểm khác quan trọng nhất: trong \textit{convolution}, một hàm hoặc kernel bị lật trước khi trượt. Trong \textit{correlation}, kernel không bị lật.
+\end{ghinho}
+
+\subsection{Cross-correlation -- Tương quan chéo}
+
+Giả sử có hai hàm $f$ và $g$. Tương quan chéo giữa hai hàm này đo mức độ giống nhau giữa chúng khi ta trượt một hàm qua hàm còn lại.
+
+Một cách viết phổ biến của cross-correlation là:
+
+\[
+    (f \star g)(t)
+    =
+    \int_{-\infty}^{+\infty}
+    f(\tau)g(\tau+t)d\tau
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $f$ được giữ nguyên;
+    \item $g$ cũng được giữ nguyên;
+    \item $g$ được trượt theo $t$;
+    \item tại mỗi vị trí, ta nhân hai hàm rồi lấy tích phân.
+\end{itemize}
+
+\begin{ghinho}
+Cross-correlation dùng để đo mức tương đồng giữa hai hàm khác nhau.
+\end{ghinho}
+
+\subsection{Auto-correlation -- Tự tương quan}
+
+Auto-correlation là trường hợp đặc biệt của correlation, khi một hàm được tương quan với chính nó.
+
+Ví dụ:
+
+\[
+    (f \star f)(t)
+\]
+
+hoặc:
+
+\[
+    (g \star g)(t)
+\]
+
+\begin{vidu}
+Nếu $f$ là tín hiệu âm thanh, auto-correlation có thể dùng để xem tín hiệu đó giống với chính nó như thế nào sau khi bị dịch đi một khoảng thời gian.
+\end{vidu}
+
+\subsection{Convolution -- Tích chập}
+
+Tích chập giữa hai hàm $f$ và $g$ được định nghĩa:
+
+\[
+    (f*g)(t)
+    =
+    \int_{-\infty}^{+\infty}
+    f(\tau)g(t-\tau)d\tau
+\]
+
+Điểm đáng chú ý là biểu thức:
+
+\[
+    g(t-\tau)
+\]
+
+tương ứng với việc hàm $g$ bị lật rồi dịch chuyển.
+
+\begin{luuy}
+Trong convolution, ta không chỉ trượt kernel. Ta lật kernel trước, sau đó mới trượt.
+\end{luuy}
+
+% ==========================================================
+\section{Convolution vs Correlation -- So sánh tích chập và tương quan}
+
+\subsection{Correlation không lật hàm}
+
+Trong correlation, hàm hoặc kernel được giữ nguyên.
+
+Ta có thể hiểu đơn giản:
+
+\[
+    \text{Correlation}
+    =
+    \text{giữ nguyên kernel}
+    +
+    \text{trượt}
+\]
+
+\subsection{Convolution lật hàm trước khi trượt}
+
+Trong convolution, hàm hoặc kernel được lật trước.
+
+Ta có thể hiểu:
+
+\[
+    \text{Convolution}
+    =
+    \text{lật kernel}
+    +
+    \text{trượt}
+\]
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % Original g
+    \draw[->] (0,0) -- (4,0) node[right] {$t$};
+    \draw[thick,blue] (0.5,0) -- (1.0,0.7) -- (1.5,1.1) -- (2.0,0.4) -- (2.5,0);
+    \node[blue] at (1.5,1.45) {$g(t)$};
+
+    % Arrow
+    \draw[->,thick] (4.6,0.5) -- (5.8,0.5);
+    \node at (5.2,0.85) {lật};
+
+    % Flipped g
+    \draw[->] (6.3,0) -- (10.3,0) node[right] {$t$};
+    \draw[thick,red] (6.8,0) -- (7.3,0.4) -- (7.8,1.1) -- (8.3,0.7) -- (8.8,0);
+    \node[red] at (7.8,1.45) {$g(-t)$};
+\end{tikzpicture}
+\end{center}
+
+\begin{ghinho}
+Nếu chỉ nhớ một câu: correlation là trượt trực tiếp, còn convolution là lật rồi trượt.
+\end{ghinho}
+
+\subsection{Trong CNN thực tế}
+
+Trong nhiều thư viện deep learning, phép toán được gọi là convolution thường được cài đặt giống cross-correlation, tức là kernel không bị lật.
+
+Điều này thường không gây vấn đề trong CNN vì các giá trị kernel là tham số được học từ dữ liệu.
+
+\begin{luuy}
+Về mặt toán học, convolution và correlation khác nhau. Nhưng trong thực hành CNN, nhiều thư viện vẫn gọi phép cross-correlation là convolution.
+\end{luuy}
+
+% ==========================================================
+\section{How to Compute 1D Convolution -- Cách tính tích chập một chiều}
+
+\subsection{Công thức tích chập liên tục}
+
+Tích chập một chiều giữa hai hàm $f$ và $g$:
+
+\[
+    (f*g)(t)
+    =
+    \int_{-\infty}^{+\infty}
+    f(\tau)g(t-\tau)d\tau
+\]
+
+Có thể hiểu theo các bước:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Giữ nguyên hàm $f$.
+    \item Lật hàm $g$ theo trục thời gian.
+    \item Dịch chuyển hàm $g$ đã lật theo $t$.
+    \item Nhân hai hàm tại từng vị trí.
+    \item Lấy tích phân của tích đó.
+\end{enumerate}
+
+\subsection{Ý nghĩa trực giác}
+
+Tại mỗi vị trí trượt, ta xét phần chồng lắp giữa $f$ và phiên bản đã lật, đã dịch của $g$.
+
+Tuy nhiên, giá trị tích chập không đơn giản chỉ là diện tích phần giao nhau.
+
+Tổng quát hơn:
+
+\[
+    \text{giá trị tích chập}
+    =
+    \text{tổng có trọng số của phần chồng lắp}
+\]
+
+Nghĩa là giá trị của $f$ tại từng điểm phải được nhân với giá trị tương ứng của $g$.
+
+\begin{luuy}
+Chỉ trong trường hợp đặc biệt khi $g$ có biên độ bằng 1 trên vùng đang xét, giá trị tích chập mới bằng diện tích phần giao nhau.
+\end{luuy}
+
+% ==========================================================
+\section{Rectangular Pulse Example -- Ví dụ hai xung chữ nhật}
+
+\subsection{Mô tả ví dụ}
+
+Giả sử ta có hai hàm dạng xung chữ nhật:
+
+\[
+    f(t)
+\]
+
+và:
+
+\[
+    g(t)
+\]
+
+Trong ví dụ minh họa, $f$ là một xung chữ nhật màu xanh, còn $g$ là một xung chữ nhật màu đỏ.
+
+Giả sử biên độ của $g$ bằng 1.
+
+\subsection{Khi hai hàm chưa giao nhau}
+
+Ban đầu, $g$ nằm xa $f$, hai hàm không có phần giao nhau.
+
+Do đó:
+
+\[
+    (f*g)(t)=0
+\]
+
+\subsection{Khi bắt đầu giao nhau}
+
+Khi $g$ bắt đầu trượt vào vùng có $f$, phần giao nhau bắt đầu xuất hiện.
+
+Khi đó giá trị tích chập bắt đầu tăng:
+
+\[
+    0
+    \rightarrow
+    \text{tăng dần}
+\]
+
+\subsection{Khi phần giao nhau lớn nhất}
+
+Khi $g$ chồng lên $f$ nhiều nhất, tích chập đạt giá trị lớn nhất.
+
+Trong trường hợp $g$ có biên độ bằng 1, giá trị này đúng bằng diện tích phần giao nhau dưới $f$.
+
+\subsection{Khi trượt ra khỏi nhau}
+
+Sau khi $g$ tiếp tục trượt đi, phần giao nhau giữa $f$ và $g$ giảm dần.
+
+Do đó tích chập cũng giảm dần:
+
+\[
+    \text{giảm dần}
+    \rightarrow
+    0
+\]
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+    % axis
+    \draw[->] (-1,0) -- (8,0) node[right] {$t$};
+
+    % f rectangle
+    \draw[thick,blue,fill=blue!15] (2,0) rectangle (5,1.2);
+    \node[blue] at (3.5,1.5) {$f(t)$};
+
+    % g rectangle
+    \draw[thick,red,fill=red!15] (3.5,0) rectangle (5.5,0.8);
+    \node[red] at (4.5,1.05) {$g(t)$};
+
+    % overlap
+    \fill[green!30] (3.5,0) rectangle (5,0.8);
+    \node[green!50!black] at (4.25,0.4) {giao};
+\end{tikzpicture}
+\end{center}
+
+\begin{ghinho}
+Trong ví dụ hai xung chữ nhật, tích chập bằng 0 khi không giao nhau, tăng dần khi bắt đầu giao nhau, đạt cực đại khi giao nhau nhiều nhất, rồi giảm dần về 0.
+\end{ghinho}
+
+% ==========================================================
+\section{1D and 2D Convolution -- Tích chập một chiều và hai chiều}
+
+\subsection{Ví dụ với $f(t)$ và $g(t)$ là 1D}
+
+Trong ví dụ trước, ta xét hai hàm:
+
+\[
+    f(t), \quad g(t)
+\]
+
+Hai hàm này chỉ phụ thuộc vào một biến $t$.
+
+Do đó đây là tích chập một chiều:
+
+\[
+    \text{convolution 1D}
+\]
+
+\begin{ghinho}
+Nếu hàm chỉ phụ thuộc vào một biến, ví dụ thời gian $t$, thì ta đang xét tích chập một chiều.
+\end{ghinho}
+
+\subsection{Ảnh xám là dữ liệu 2D}
+
+Một ảnh xám không chỉ phụ thuộc vào một biến. Nó phụ thuộc vào hai tọa độ không gian:
+
+\[
+    I(x,y)
+\]
+
+Trong đó:
+
+\[
+    x = \text{tọa độ ngang}
+\]
+
+\[
+    y = \text{tọa độ dọc}
+\]
+
+Vì vậy, ảnh xám được xem là dữ liệu hai chiều.
+
+\[
+    \text{ảnh xám}
+    \Rightarrow
+    \text{dữ liệu 2D}
+\]
+
+\subsection{Tích chập 2D trong ảnh}
+
+Với ảnh xám, kernel cũng là một ma trận 2D.
+
+Ví dụ:
+
+\[
+I=
+\begin{bmatrix}
+1 & 2 & 1\\
+0 & 1 & 3\\
+2 & 1 & 0
+\end{bmatrix}
+\]
+
+Kernel:
+
+\[
+K=
+\begin{bmatrix}
+1 & 0\\
+-1 & 2
+\end{bmatrix}
+\]
+
+Tại góc trên bên trái, vùng ảnh tương ứng là:
+
+\[
+\begin{bmatrix}
+1 & 2\\
+0 & 1
+\end{bmatrix}
+\]
+
+Ta nhân từng phần tử rồi cộng:
+
+\[
+1\cdot1+2\cdot0+0\cdot(-1)+1\cdot2
+\]
+
+\[
+=1+0+0+2=3
+\]
+
+Nếu bias là:
+
+\[
+b=0.5
+\]
+
+thì:
+
+\[
+z=3+0.5=3.5
+\]
+
+Nếu dùng ReLU:
+
+\[
+a=\operatorname{ReLU}(3.5)=3.5
+\]
+
+\begin{vidu}
+Ở ảnh xám, kernel trượt theo hai chiều không gian: ngang và dọc. Vì vậy ta gọi đây là tích chập 2D.
+\end{vidu}
+
+% ==========================================================
+\section{RGB Images in CNN -- Ảnh RGB trong CNN}
+
+\subsection{Ảnh RGB có ba kênh}
+
+Ảnh màu RGB gồm ba kênh:
+
+\[
+    R,\quad G,\quad B
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $R$ là kênh đỏ;
+    \item $G$ là kênh xanh lá;
+    \item $B$ là kênh xanh dương.
+\end{itemize}
+
+Một ảnh RGB kích thước $H \times W$ có thể được biểu diễn dưới dạng:
+
+\[
+    H \times W \times 3
+\]
+
+\subsection{Có phải tích chập 3D không?}
+
+Trong bài học, cần chú ý rằng ta không đơn giản nói ảnh RGB là đang tính một phép tích chập 3D theo nghĩa không gian ba chiều.
+
+Lý do là CNN không trượt kernel theo chiều kênh màu giống như trượt theo chiều ngang và chiều dọc.
+
+Thay vào đó, với ảnh RGB, một filter sẽ có ba kernel con tương ứng với ba kênh:
+
+\[
+    K_R,\quad K_G,\quad K_B
+\]
+
+\begin{luuy}
+Trong CNN cơ bản, kernel trượt theo hai chiều không gian. Chiều kênh màu được xử lý bằng cách tính riêng từng kênh rồi cộng lại, không phải trượt theo chiều kênh như một chiều không gian thứ ba.
+\end{luuy}
+
+\subsection{Cách tính trên ảnh RGB}
+
+Giả sử input có ba kênh:
+
+\[
+    R,\quad G,\quad B
+\]
+
+Filter cũng có ba phần:
+
+\[
+    K_R,\quad K_G,\quad K_B
+\]
+
+Ta tính riêng từng kênh:
+
+\[
+    R*K_R
+\]
+
+\[
+    G*K_G
+\]
+
+\[
+    B*K_B
+\]
+
+Sau đó cộng lại và cộng bias:
+
+\[
+    z
+    =
+    (R*K_R)
+    +
+    (G*K_G)
+    +
+    (B*K_B)
+    +
+    b
+\]
+
+Cuối cùng đưa qua hàm kích hoạt:
+
+\[
+    a=f(z)
+\]
+
+\begin{ghinho}
+Với ảnh RGB, mỗi filter nhìn đồng thời cả ba kênh màu, nhưng kết quả cuối cùng tại mỗi vị trí vẫn là một giá trị.
+\end{ghinho}
+
+% ==========================================================
+\section{RGB Convolution Example -- Ví dụ tính trên ảnh RGB}
+
+\subsection{Vùng ảnh đang xét}
+
+Giả sử ta xét một vùng ảnh RGB kích thước $2\times2$.
+
+Kênh đỏ:
+
+\[
+R=
+\begin{bmatrix}
+1 & 2\\
+0 & 1
+\end{bmatrix}
+\]
+
+Kênh xanh lá:
+
+\[
+G=
+\begin{bmatrix}
+0 & 1\\
+2 & 1
+\end{bmatrix}
+\]
+
+Kênh xanh dương:
+
+\[
+B=
+\begin{bmatrix}
+2 & 0\\
+1 & 3
+\end{bmatrix}
+\]
+
+\subsection{Filter tương ứng}
+
+Kernel cho kênh đỏ:
+
+\[
+K_R=
+\begin{bmatrix}
+1 & 0\\
+-1 & 2
+\end{bmatrix}
+\]
+
+Kernel cho kênh xanh lá:
+
+\[
+K_G=
+\begin{bmatrix}
+0 & 1\\
+1 & 0
+\end{bmatrix}
+\]
+
+Kernel cho kênh xanh dương:
+
+\[
+K_B=
+\begin{bmatrix}
+1 & -1\\
+0 & 1
+\end{bmatrix}
+\]
+
+Bias:
+
+\[
+b=0.5
+\]
+
+\subsection{Tính trên kênh R}
+
+\[
+R*K_R
+=
+1\cdot1+2\cdot0+0\cdot(-1)+1\cdot2
+\]
+
+\[
+R*K_R=3
+\]
+
+\subsection{Tính trên kênh G}
+
+\[
+G*K_G
+=
+0\cdot0+1\cdot1+2\cdot1+1\cdot0
+\]
+
+\[
+G*K_G=3
+\]
+
+\subsection{Tính trên kênh B}
+
+\[
+B*K_B
+=
+2\cdot1+0\cdot(-1)+1\cdot0+3\cdot1
+\]
+
+\[
+B*K_B=5
+\]
+
+\subsection{Cộng các kênh và bias}
+
+\[
+z
+=
+3+3+5+0.5
+\]
+
+\[
+z=11.5
+\]
+
+Nếu dùng ReLU:
+
+\[
+a=\operatorname{ReLU}(11.5)=11.5
+\]
+
+Vậy tại vị trí đang xét, output của filter là:
+
+\[
+11.5
+\]
+
+\begin{vidu}
+Một filter trên ảnh RGB có thể học cách kết hợp thông tin màu. Ví dụ, nó có thể phản ứng mạnh khi kênh đỏ, xanh lá và xanh dương tạo ra một kiểu cấu trúc cụ thể nào đó.
+\end{vidu}
+
+% ==========================================================
+\section{Activation Map from RGB Filter -- Activation map từ filter RGB}
+
+\subsection{Một filter tạo ra một activation map}
+
+Khi một filter trượt qua toàn bộ ảnh RGB, tại mỗi vị trí nó tạo ra một giá trị.
+
+Các giá trị đó ghép lại thành một activation map.
+
+\[
+    1 \text{ filter}
+    \Rightarrow
+    1 \text{ activation map}
+\]
+
+Nếu có $F$ filter:
+
+\[
+    F \text{ filters}
+    \Rightarrow
+    F \text{ activation maps}
+\]
+
+\begin{ghinho}
+Số activation map bằng số filter, không phải bằng số kênh màu.
+\end{ghinho}
+
+\subsection{Số trọng số của filter RGB}
+
+Nếu input là ảnh RGB và kernel không gian có kích thước:
+
+\[
+3\times3
+\]
+
+thì một filter có kích thước:
+
+\[
+3\times3\times3
+\]
+
+Số trọng số là:
+
+\[
+3\cdot3\cdot3=27
+\]
+
+Cộng thêm một bias:
+
+\[
+27+1=28
+\]
+
+Nếu có 16 filter, tổng số tham số là:
+
+\[
+16\cdot28=448
+\]
+
+\begin{vidu}
+Một convolution layer có 16 filter $3\times3$ nhận input RGB sẽ tạo ra 16 activation map và có 448 tham số.
+\end{vidu}
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Convolution & Tích chập; phép toán lật kernel rồi trượt qua tín hiệu hoặc ảnh. & $f*g$ \\
+
+Correlation & Tương quan; phép đo độ giống nhau khi trượt mà không lật. & $f \star g$ \\
+
+Cross-correlation & Tương quan chéo giữa hai hàm khác nhau. & $f \star g$ \\
+
+Auto-correlation & Tự tương quan của một hàm với chính nó. & $f \star f$ \\
+
+Kernel & Ma trận trọng số nhỏ dùng để quét trên ảnh. & $3\times3$ \\
+
+Filter & Bộ lọc; trong CNN thường gồm kernel theo toàn bộ số kênh input. & $3\times3\times3$ \\
+
+Activation map & Bản đồ kích hoạt sau khi một filter quét qua input. & Một map $H_{out}\times W_{out}$ \\
+
+RGB & Ảnh màu gồm ba kênh đỏ, xanh lá, xanh dương. & $H\times W\times3$ \\
+
+Channel & Kênh dữ liệu trong ảnh hoặc feature map. & R, G, B \\
+
+1D convolution & Tích chập trên tín hiệu một chiều. & Tín hiệu theo thời gian \\
+
+2D convolution & Tích chập trên dữ liệu hai chiều. & Ảnh xám \\
+
+Bias & Hằng số cộng thêm sau phép nhân và cộng. & $z=\sum xw+b$ \\
+
+ReLU & Hàm kích hoạt lấy giá trị lớn hơn giữa 0 và input. & $\max(0,x)$ \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Convolution và correlation là hai khái niệm gần nhau nhưng không giống nhau.
+    \item Trong convolution, kernel bị lật trước khi trượt.
+    \item Trong correlation, kernel không bị lật.
+    \item Cross-correlation là tương quan giữa hai hàm khác nhau.
+    \item Auto-correlation là tương quan của một hàm với chính nó.
+    \item Tích chập liên tục được biểu diễn bằng tích phân.
+    \item Giá trị tích chập tổng quát không chỉ là diện tích giao nhau, mà là tổng có trọng số.
+    \item Ví dụ với $f(t)$ và $g(t)$ là tích chập một chiều.
+    \item Ảnh xám là dữ liệu hai chiều vì phụ thuộc vào hai tọa độ không gian.
+    \item Ảnh RGB có ba kênh màu: R, G, B.
+    \item Với ảnh RGB, CNN tính riêng từng kênh màu rồi cộng kết quả lại.
+    \item Một filter tạo ra một activation map.
+    \item Số activation map bằng số filter.
+\end{enumerate}
+
+\subsection{Công thức quan trọng}
+
+\subsection*{Convolution liên tục}
+
+\[
+    (f*g)(t)
+    =
+    \int_{-\infty}^{+\infty}
+    f(\tau)g(t-\tau)d\tau
+\]
+
+\subsection*{Cross-correlation liên tục}
+
+\[
+    (f \star g)(t)
+    =
+    \int_{-\infty}^{+\infty}
+    f(\tau)g(\tau+t)d\tau
+\]
+
+\subsection*{Tính trên ảnh RGB}
+
+\[
+    z
+    =
+    (R*K_R)
+    +
+    (G*K_G)
+    +
+    (B*K_B)
+    +
+    b
+\]
+
+\[
+    a=f(z)
+\]
+
+\subsection*{Số trọng số của filter RGB}
+
+\[
+    K_h\cdot K_w\cdot3
+\]
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Convolution khác correlation ở điểm nào?
+    \item Cross-correlation là gì?
+    \item Auto-correlation là gì?
+    \item Trong convolution, kernel có bị lật không?
+    \item Trong correlation, kernel có bị lật không?
+    \item Vì sao ví dụ với $f(t)$ và $g(t)$ là tích chập 1D?
+    \item Ảnh xám là dữ liệu mấy chiều?
+    \item Ảnh RGB gồm những kênh nào?
+    \item Với ảnh RGB, CNN xử lý từng kênh màu như thế nào?
+    \item Một filter tạo ra bao nhiêu activation map?
+    \item Nếu có 32 filter thì có bao nhiêu activation map?
+    \item Một filter $3\times3$ trên ảnh RGB có bao nhiêu trọng số?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Phân biệt convolution và correlation}
+\addcontentsline{toc}{section}{Bài tập 1: Phân biệt convolution và correlation}
+
+Điền vào chỗ trống:
+
+\begin{enumerate}
+    \item Trong convolution, kernel được \underline{\hspace{3cm}} trước khi trượt.
+    \item Trong correlation, kernel \underline{\hspace{3cm}} trước khi trượt.
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item lật.
+    \item không bị lật.
+\end{enumerate}
+
+\subsection*{Bài tập 2: Tính số trọng số}
+\addcontentsline{toc}{section}{Bài tập 2: Tính số trọng số}
+
+Một filter có kích thước không gian:
+
+\[
+    5\times5
+\]
+
+và input có 3 kênh màu. Hỏi filter có bao nhiêu trọng số? Nếu cộng thêm bias thì có bao nhiêu tham số?
+
+\subsection*{Lời giải gợi ý}
+
+Số trọng số:
+
+\[
+    5\cdot5\cdot3=75
+\]
+
+Cộng thêm một bias:
+
+\[
+    75+1=76
+\]
+
+Vậy filter có 76 tham số.
+
+\subsection*{Bài tập 3: Số activation map}
+\addcontentsline{toc}{section}{Bài tập 3: Số activation map}
+
+Một convolution layer có 20 filter. Hỏi layer này tạo ra bao nhiêu activation map?
+
+\subsection*{Lời giải gợi ý}
+
+Mỗi filter tạo ra một activation map.
+
+\[
+    20 \text{ filter}
+    \Rightarrow
+    20 \text{ activation map}
+\]
+
+\subsection*{Bài tập 4: Tính trên ảnh RGB}
+\addcontentsline{toc}{section}{Bài tập 4: Tính trên ảnh RGB}
+
+Cho kết quả tính riêng từng kênh là:
+
+\[
+    R*K_R=2
+\]
+
+\[
+    G*K_G=-1
+\]
+
+\[
+    B*K_B=4
+\]
+
+Bias:
+
+\[
+    b=0.5
+\]
+
+Tính $z$ trước hàm kích hoạt.
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    z=2+(-1)+4+0.5
+\]
+
+\[
+    z=5.5
+\]
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+CNN3 review lại nền tảng của tích chập và tương quan để chuẩn bị cho việc hiểu sâu hơn về convolution layer trong CNN. Convolution khác correlation ở thao tác lật kernel trước khi trượt. Trong khi đó, correlation giữ nguyên kernel và chỉ trượt trực tiếp.
+
+Bài học cũng nhấn mạnh rằng ví dụ với hai hàm $f(t)$ và $g(t)$ là tích chập một chiều. Khi chuyển sang ảnh xám, ta làm việc với dữ liệu hai chiều theo không gian. Với ảnh RGB, input có ba kênh màu R, G, B. CNN xử lý từng kênh bằng kernel tương ứng, cộng các kết quả lại, cộng bias rồi đưa qua hàm kích hoạt.
+
+Điểm quan trọng cần nhớ là: một filter tạo ra một activation map. Nếu convolution layer có nhiều filter, output sẽ có nhiều activation map tương ứng.
