@@ -1,0 +1,1295 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này tiếp tục phần CNN, tập trung vào cách xử lý ảnh màu, convolution nhiều kênh, pooling layer, việc lặp lại nhiều lớp tích chập và kỹ thuật zero padding.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Hiểu sự khác nhau giữa convolution trên ảnh xám và ảnh màu.
+    \item Biết vì sao kernel phải có số layer tương ứng với số channel của input.
+    \item Hiểu cách tính convolution khi input có nhiều channel.
+    \item Biết nhiều kernel tạo ra nhiều activation map.
+    \item Hiểu pooling layer là gì.
+    \item Phân biệt max pooling và average pooling.
+    \item Hiểu pooling là một dạng downsampling.
+    \item Biết mục tiêu chính của pooling là giảm kích thước dữ liệu và giảm số tham số.
+    \item Hiểu cách các lớp convolution và pooling được lặp lại trong CNN.
+    \item Hiểu khi input của convolution layer có nhiều activation map thì kernel cũng phải có cùng số layer.
+    \item Hiểu ý nghĩa của flatten trước khi đưa vào fully connected layer.
+    \item Hiểu zero padding là gì và vì sao cần dùng padding.
+\end{enumerate}
+
+% ==========================================================
+\section{Review of Simple Convolution -- Ôn lại phép tích chập đơn giản}
+
+\subsection{Trường hợp ảnh xám một kênh}
+
+Trong bài trước, ta đã khảo sát trường hợp đơn giản nhất: input là một ảnh xám rất nhỏ.
+
+Ví dụ input là ma trận $3\times3$:
+
+\[
+    X =
+    \begin{bmatrix}
+    x_{11} & x_{12} & x_{13}\\
+    x_{21} & x_{22} & x_{23}\\
+    x_{31} & x_{32} & x_{33}
+    \end{bmatrix}
+\]
+
+Vì ảnh xám chỉ có một kênh, nên input chỉ là một ma trận 2D.
+
+Kernel cũng là một ma trận 2D, ví dụ kernel $2\times2$:
+
+\[
+    K =
+    \begin{bmatrix}
+    k_{11} & k_{12}\\
+    k_{21} & k_{22}
+    \end{bmatrix}
+\]
+
+Khi đặt kernel lên một vùng ảnh, ta nhân từng phần tử tương ứng, cộng lại, cộng bias, rồi đưa qua hàm kích hoạt.
+
+\[
+    a_{11}
+    =
+    f(
+    k_{11}x_{11}
+    +
+    k_{12}x_{12}
+    +
+    k_{21}x_{21}
+    +
+    k_{22}x_{22}
+    +
+    b
+    )
+\]
+
+\begin{ghinho}
+Với ảnh một kênh, kernel là một ma trận 2D. Với ảnh nhiều kênh, kernel không còn chỉ là một ma trận 2D nữa.
+\end{ghinho}
+
+\subsection{Kích thước kernel}
+
+Trong ví dụ đơn giản, ta dùng kernel $2\times2$ để dễ tính tay.
+
+Trong thực tế, kernel có thể có nhiều kích thước khác nhau:
+
+\[
+    2\times2,\quad 3\times3,\quad 5\times5,\quad 7\times7,\quad 11\times11
+\]
+
+Kernel $3\times3$ là một lựa chọn rất phổ biến trong nhiều mạng CNN hiện đại.
+
+% ==========================================================
+\section{Color Image Convolution -- Tích chập trên ảnh màu}
+
+\subsection{Ảnh màu có nhiều channel}
+
+Ảnh màu RGB có ba kênh màu:
+
+\[
+    R,\quad G,\quad B
+\]
+
+Có thể hiểu mỗi kênh màu là một ma trận riêng.
+
+Vì vậy, một ảnh màu có kích thước:
+
+\[
+    H \times W \times 3
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $H$ là chiều cao ảnh;
+    \item $W$ là chiều rộng ảnh;
+    \item $3$ là số channel màu RGB.
+\end{itemize}
+
+\begin{vidu}
+Một ảnh màu $224\times224$ không chỉ là một ma trận $224\times224$, mà là một khối dữ liệu:
+
+\[
+    224 \times 224 \times 3
+\]
+
+gồm ba ma trận tương ứng với ba kênh màu.
+\end{vidu}
+
+\subsection{Kernel cũng phải có cùng số layer với input}
+
+Nếu input có 3 channel, kernel cũng phải có 3 layer tương ứng.
+
+Ví dụ, nếu input là ảnh RGB:
+
+\[
+    X \in \mathbb{R}^{H\times W\times 3}
+\]
+
+thì một kernel kích thước không gian $3\times3$ phải có dạng:
+
+\[
+    K \in \mathbb{R}^{3\times3\times3}
+\]
+
+Tức là kernel gồm 3 ma trận $3\times3$:
+
+\[
+    K_R,\quad K_G,\quad K_B
+\]
+
+Mỗi layer của kernel áp lên một channel tương ứng của ảnh.
+
+\[
+    K_R \text{ áp lên kênh } R
+\]
+
+\[
+    K_G \text{ áp lên kênh } G
+\]
+
+\[
+    K_B \text{ áp lên kênh } B
+\]
+
+\begin{ghinho}
+Độ sâu của kernel phải bằng số channel của input. Nếu input có 3 channel thì kernel cũng phải có 3 layer.
+\end{ghinho}
+
+% ==========================================================
+\section{Multi-channel Convolution Formula -- Công thức tích chập nhiều kênh}
+
+\subsection{Ý tưởng tính toán}
+
+Giả sử input có 3 channel:
+
+\[
+    X_R,\quad X_G,\quad X_B
+\]
+
+và kernel có 3 layer:
+
+\[
+    K_R,\quad K_G,\quad K_B
+\]
+
+Khi đặt kernel lên một vùng ảnh, ta làm như sau:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Nhân tương ứng $K_R$ với vùng ảnh trên channel $R$.
+    \item Nhân tương ứng $K_G$ với vùng ảnh trên channel $G$.
+    \item Nhân tương ứng $K_B$ với vùng ảnh trên channel $B$.
+    \item Cộng tất cả các tích của cả ba channel.
+    \item Cộng bias.
+    \item Đưa qua hàm kích hoạt.
+\end{enumerate}
+
+\subsection{Ví dụ kernel $3\times3\times3$}
+
+Nếu kernel có kích thước:
+
+\[
+    3\times3\times3
+\]
+
+thì số phép nhân tại một vị trí là:
+
+\[
+    3 \cdot 3 \cdot 3 = 27
+\]
+
+Sau đó cộng 27 tích lại, cộng thêm bias và đưa qua hàm kích hoạt.
+
+\[
+    a_{ij}
+    =
+    f
+    \left(
+    \sum_{c=1}^{3}
+    \sum_{u=1}^{3}
+    \sum_{v=1}^{3}
+    K_{u,v,c}
+    X_{i+u-1,j+v-1,c}
+    +
+    b
+    \right)
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $c$ là chỉ số channel;
+    \item $u,v$ là chỉ số trong kernel;
+    \item $b$ là bias;
+    \item $f$ là hàm kích hoạt;
+    \item $a_{ij}$ là một giá trị trong activation map.
+\end{itemize}
+
+\begin{ghinho}
+Trong convolution nhiều kênh, tại mỗi vị trí ta cộng tất cả các tích trên toàn bộ chiều rộng, chiều cao và chiều sâu của kernel.
+\end{ghinho}
+
+\subsection{Một kernel vẫn tạo ra một activation map}
+
+Dù kernel có nhiều layer, ví dụ $3\times3\times3$, thì toàn bộ kernel đó vẫn tạo ra một activation map duy nhất.
+
+\[
+    \text{1 kernel } 3\times3\times3
+    \rightarrow
+    \text{1 activation map}
+\]
+
+Lý do là tại mỗi vị trí trượt, sau khi cộng tất cả các tích trên mọi channel, ta chỉ thu được một giá trị output.
+
+% ==========================================================
+\section{Multiple Kernels -- Nhiều kernel trong một lớp convolution}
+
+\subsection{Một lớp convolution thường có nhiều kernel}
+
+Trong thực tế, một convolution layer thường không chỉ có một kernel.
+
+Ta có thể có:
+
+\[
+    K \text{ kernels}
+\]
+
+Mỗi kernel học một kiểu đặc trưng khác nhau.
+
+Ví dụ:
+
+\begin{itemize}
+    \item một kernel học cạnh ngang;
+    \item một kernel học cạnh dọc;
+    \item một kernel học đường chéo;
+    \item một kernel học vùng màu hoặc texture.
+\end{itemize}
+
+\subsection{Số kernel bằng số activation map đầu ra}
+
+Nếu có $K$ kernel, ta thu được $K$ activation map.
+
+\[
+    K \text{ kernels}
+    \rightarrow
+    K \text{ activation maps}
+\]
+
+Nếu một lớp convolution có 64 kernel, output của lớp đó sẽ có 64 activation map.
+
+\begin{ghinho}
+Số activation map đầu ra của một convolution layer bằng số kernel của layer đó.
+\end{ghinho}
+
+\subsection{Output của convolution layer là một khối dữ liệu}
+
+Nếu mỗi activation map có kích thước:
+
+\[
+    H' \times W'
+\]
+
+và có $K$ activation map, thì output của convolution layer có kích thước:
+
+\[
+    H' \times W' \times K
+\]
+
+Tức là output cũng là một tensor 3D.
+
+% ==========================================================
+\section{Pooling Layer -- Lớp pooling}
+
+\subsection{Pooling layer là gì?}
+
+Ngoài convolution layer, CNN thường có thêm một loại layer rất quan trọng là pooling layer.
+
+Pooling layer nhận input là activation map và tạo ra output có kích thước nhỏ hơn.
+
+Ý tưởng là chọn một cửa sổ nhỏ, ví dụ:
+
+\[
+    2\times2
+\]
+
+rồi trượt cửa sổ đó trên activation map.
+
+\begin{ghinho}
+Pooling là kỹ thuật giảm kích thước không gian của activation map.
+\end{ghinho}
+
+\subsection{Pooling window và stride}
+
+Pooling layer cần hai thông số quan trọng:
+
+\begin{itemize}
+    \item \textbf{window size}: kích thước vùng pooling;
+    \item \textbf{stride}: bước nhảy khi trượt cửa sổ.
+\end{itemize}
+
+Một lựa chọn phổ biến là:
+
+\[
+    \text{window size}=2\times2
+\]
+
+\[
+    \text{stride}=2
+\]
+
+Khi đó, các vùng pooling thường không chồng lấn lên nhau.
+
+\subsection{Ví dụ cửa sổ pooling $2\times2$}
+
+Giả sử ta có activation map:
+
+\[
+    A =
+    \begin{bmatrix}
+    1 & 3 & 2 & 4\\
+    5 & 6 & 1 & 2\\
+    7 & 2 & 3 & 1\\
+    0 & 4 & 5 & 8
+    \end{bmatrix}
+\]
+
+Với pooling window $2\times2$ và stride $2$, ta chia thành bốn vùng:
+
+\[
+    \begin{bmatrix}
+    1 & 3\\
+    5 & 6
+    \end{bmatrix},
+    \quad
+    \begin{bmatrix}
+    2 & 4\\
+    1 & 2
+    \end{bmatrix}
+\]
+
+\[
+    \begin{bmatrix}
+    7 & 2\\
+    0 & 4
+    \end{bmatrix},
+    \quad
+    \begin{bmatrix}
+    3 & 1\\
+    5 & 8
+    \end{bmatrix}
+\]
+
+% ==========================================================
+\section{Max Pooling -- Max pooling}
+
+\subsection{Ý tưởng max pooling}
+
+Max pooling lấy giá trị lớn nhất trong mỗi vùng pooling.
+
+Với vùng:
+
+\[
+    \begin{bmatrix}
+    1 & 3\\
+    5 & 6
+    \end{bmatrix}
+\]
+
+giá trị max là:
+
+\[
+    6
+\]
+
+\subsection{Ví dụ max pooling}
+
+Với activation map:
+
+\[
+    A =
+    \begin{bmatrix}
+    1 & 3 & 2 & 4\\
+    5 & 6 & 1 & 2\\
+    7 & 2 & 3 & 1\\
+    0 & 4 & 5 & 8
+    \end{bmatrix}
+\]
+
+Max pooling $2\times2$, stride $2$ cho kết quả:
+
+\[
+    P =
+    \begin{bmatrix}
+    6 & 4\\
+    7 & 8
+    \end{bmatrix}
+\]
+
+Vì:
+
+\[
+    \max
+    \begin{bmatrix}
+    1 & 3\\
+    5 & 6
+    \end{bmatrix}
+    =
+    6
+\]
+
+\[
+    \max
+    \begin{bmatrix}
+    2 & 4\\
+    1 & 2
+    \end{bmatrix}
+    =
+    4
+\]
+
+\[
+    \max
+    \begin{bmatrix}
+    7 & 2\\
+    0 & 4
+    \end{bmatrix}
+    =
+    7
+\]
+
+\[
+    \max
+    \begin{bmatrix}
+    3 & 1\\
+    5 & 8
+    \end{bmatrix}
+    =
+    8
+\]
+
+\begin{ghinho}
+Max pooling giữ lại tín hiệu mạnh nhất trong mỗi vùng. Đây là kỹ thuật pooling rất phổ biến.
+\end{ghinho}
+
+% ==========================================================
+\section{Average Pooling -- Average pooling}
+
+\subsection{Ý tưởng average pooling}
+
+Average pooling lấy giá trị trung bình trong mỗi vùng pooling.
+
+Với vùng:
+
+\[
+    \begin{bmatrix}
+    1 & 3\\
+    5 & 6
+    \end{bmatrix}
+\]
+
+giá trị average pooling là:
+
+\[
+    \frac{1+3+5+6}{4}
+    =
+    3.75
+\]
+
+\subsection{Ví dụ average pooling}
+
+Với activation map:
+
+\[
+    A =
+    \begin{bmatrix}
+    1 & 3 & 2 & 4\\
+    5 & 6 & 1 & 2\\
+    7 & 2 & 3 & 1\\
+    0 & 4 & 5 & 8
+    \end{bmatrix}
+\]
+
+Average pooling $2\times2$, stride $2$ cho kết quả:
+
+\[
+    P =
+    \begin{bmatrix}
+    3.75 & 2.25\\
+    3.25 & 4.25
+    \end{bmatrix}
+\]
+
+Vì:
+
+\[
+    \frac{1+3+5+6}{4}=3.75
+\]
+
+\[
+    \frac{2+4+1+2}{4}=2.25
+\]
+
+\[
+    \frac{7+2+0+4}{4}=3.25
+\]
+
+\[
+    \frac{3+1+5+8}{4}=4.25
+\]
+
+\begin{luuy}
+Max pooling thường được dùng phổ biến hơn trong nhiều CNN cổ điển, nhưng average pooling cũng xuất hiện trong một số kiến trúc.
+\end{luuy}
+
+% ==========================================================
+\section{Pooling as Downsampling -- Pooling như một dạng downsampling}
+
+\subsection{Downsampling là gì?}
+
+Downsampling là quá trình giảm kích thước dữ liệu.
+
+Trong ảnh, downsampling có thể hiểu là làm ảnh nhỏ lại.
+
+Pooling cũng có tác dụng tương tự: nó làm activation map nhỏ lại.
+
+Ví dụ:
+
+\[
+    10\times10
+    \xrightarrow{\text{pooling }2\times2,\ stride\ 2}
+    5\times5
+\]
+
+\subsection{Mục tiêu của pooling}
+
+Pooling có các mục tiêu chính:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Giảm kích thước activation map.
+    \item Giảm số lượng tính toán.
+    \item Giảm số tham số ở các lớp phía sau.
+    \item Giúp mô hình bớt nhạy với thay đổi nhỏ về vị trí.
+    \item Góp phần giảm overfitting.
+\end{enumerate}
+
+\begin{ghinho}
+Mục tiêu lớn nhất của pooling là giảm dung lượng dữ liệu và giảm độ phức tạp của hệ thống.
+\end{ghinho}
+
+\subsection{Pooling có làm mất thông tin không?}
+
+Có. Khi giảm kích thước, pooling có thể làm mất một phần thông tin.
+
+Tuy nhiên, nếu hệ thống được thiết kế hợp lý, những thông tin quan trọng vẫn được giữ lại ở mức đủ dùng.
+
+\begin{luuy}
+Việc giảm kích thước ảnh hoặc activation map có thể làm mất thông tin. Tuy nhiên, trong nhiều bài toán, điều quan trọng là giữ đặc trưng lớn và tổng quát, không phải giữ mọi chi tiết nhỏ.
+\end{luuy}
+
+% ==========================================================
+\section{Repeated Convolution and Pooling -- Lặp lại convolution và pooling}
+
+\subsection{CNN thường có nhiều lớp}
+
+Trong thực tế, CNN hiếm khi chỉ có một convolution layer duy nhất.
+
+Thông thường, ta lặp lại nhiều lần các khối:
+
+\[
+    \text{convolution}
+    \rightarrow
+    \text{pooling}
+\]
+
+hoặc:
+
+\[
+    \text{convolution}
+    \rightarrow
+    \text{convolution}
+    \rightarrow
+    \text{pooling}
+\]
+
+Tùy kiến trúc, số lớp có thể là:
+
+\begin{itemize}
+    \item vài lớp;
+    \item vài chục lớp;
+    \item thậm chí hàng trăm lớp.
+\end{itemize}
+
+\subsection{Output của lớp trước là input của lớp sau}
+
+Sau convolution và pooling, ta thu được một tensor mới.
+
+Tensor này trở thành input cho convolution layer tiếp theo.
+
+Ví dụ:
+
+\[
+    X
+    \rightarrow
+    \text{Conv}_1
+    \rightarrow
+    A^{(1)}
+    \rightarrow
+    \text{Pooling}
+    \rightarrow
+    P^{(1)}
+    \rightarrow
+    \text{Conv}_2
+\]
+
+\begin{ghinho}
+Trong CNN, các activation map của lớp trước trở thành các channel đầu vào cho lớp convolution tiếp theo.
+\end{ghinho}
+
+% ==========================================================
+\section{Convolution on Multiple Activation Maps -- Tích chập trên nhiều activation map}
+
+\subsection{Input của lớp convolution sau có nhiều layer}
+
+Giả sử sau lớp convolution và pooling đầu tiên, ta thu được 4 activation map.
+
+Khi đó input cho lớp convolution tiếp theo có dạng:
+
+\[
+    H \times W \times 4
+\]
+
+Tức là input có 4 channel.
+
+\subsection{Kernel của lớp sau cũng phải có 4 layer}
+
+Vì input có 4 channel, kernel của lớp convolution tiếp theo cũng phải có 4 layer.
+
+Nếu kernel có kích thước không gian $3\times3$, thì kernel đầy đủ có kích thước:
+
+\[
+    3\times3\times4
+\]
+
+Tức là nó gồm 4 ma trận $3\times3$.
+
+\[
+    K^{(1)}, K^{(2)}, K^{(3)}, K^{(4)}
+\]
+
+Mỗi layer của kernel áp lên một activation map tương ứng.
+
+\subsection{Một kernel nhiều layer vẫn tạo ra một activation map}
+
+Tương tự ảnh RGB, nếu input có 4 channel và kernel là $3\times3\times4$, thì một kernel vẫn chỉ tạo ra một activation map.
+
+Nếu lớp đó có $K$ kernel thì sẽ tạo ra $K$ activation map.
+
+\[
+    K \text{ kernels}
+    \rightarrow
+    K \text{ output maps}
+\]
+
+\begin{ghinho}
+Ở bất kỳ convolution layer nào, độ sâu của kernel phải bằng độ sâu của input.
+\end{ghinho}
+
+% ==========================================================
+\section{Flatten and Fully Connected Layers -- Flatten và các lớp fully connected}
+
+\subsection{Khi nào cần flatten?}
+
+Sau nhiều lần convolution và pooling, ta thu được một tensor đặc trưng.
+
+Ví dụ:
+
+\[
+    H' \times W' \times C'
+\]
+
+Để đưa tensor này vào mạng fully connected, ta cần biến nó thành một vector.
+
+Thao tác này gọi là:
+
+\[
+    \text{flatten}
+\]
+
+\subsection{Ví dụ flatten}
+
+Nếu tensor có kích thước:
+
+\[
+    5 \times 5 \times 16
+\]
+
+thì sau flatten, vector có số phần tử:
+
+\[
+    5\cdot5\cdot16=400
+\]
+
+Vector này được đưa vào fully connected layer.
+
+\subsection{Fully connected layer ở cuối CNN}
+
+Phần cuối của CNN thường gồm một hoặc vài fully connected layer.
+
+Ví dụ:
+
+\[
+    \text{Flatten}
+    \rightarrow
+    \text{FC}_1
+    \rightarrow
+    \text{FC}_2
+    \rightarrow
+    \text{Output}
+\]
+
+Trong bài toán phân loại, số output cuối cùng thường bằng số class.
+
+\begin{vidu}
+Nếu bài toán có 1000 class, output cuối cùng thường có 1000 phần tử.
+\end{vidu}
+
+% ==========================================================
+\section{Sliding Order -- Thứ tự trượt kernel}
+
+\subsection{Trượt ngang trước hay dọc trước có khác không?}
+
+Khi thực hiện convolution, ta thường minh họa bằng cách trượt kernel từ trái sang phải, rồi từ trên xuống dưới.
+
+Tuy nhiên, về bản chất, ta có thể duyệt các vị trí theo thứ tự khác.
+
+Ví dụ:
+
+\begin{itemize}
+    \item trượt ngang trước rồi xuống dòng;
+    \item trượt dọc trước rồi sang cột;
+    \item duyệt theo bất kỳ thứ tự nào.
+\end{itemize}
+
+Kết quả cuối cùng vẫn giống nhau nếu ta ghi giá trị output vào đúng vị trí tương ứng.
+
+\begin{ghinho}
+Thứ tự duyệt các vùng không quan trọng. Điều quan trọng là mỗi kết quả phải được ghi đúng vị trí trong activation map.
+\end{ghinho}
+
+\subsection{Sai lầm cần tránh}
+
+Nếu trượt kernel ở vị trí bên phải nhưng lại ghi kết quả xuống dòng dưới, hoặc trượt xuống dưới nhưng lại ghi kết quả sang bên phải, thì activation map sẽ bị sai.
+
+\begin{canhbao}
+Khi tính convolution bằng tay, cần chú ý ánh xạ đúng giữa vị trí kernel trên input và vị trí output trong activation map.
+\end{canhbao}
+
+% ==========================================================
+\section{Output Size Reduction -- Kích thước output giảm dần}
+
+\subsection{Vì sao output có thể nhỏ dần?}
+
+Nếu convolution không dùng padding, kích thước output thường nhỏ hơn input.
+
+Ví dụ input:
+
+\[
+    3\times3
+\]
+
+kernel:
+
+\[
+    2\times2
+\]
+
+stride bằng 1, không padding, output là:
+
+\[
+    2\times2
+\]
+
+Vì kernel $2\times2$ chỉ có thể đặt được ở 4 vị trí hợp lệ trên ảnh $3\times3$.
+
+\subsection{Pooling cũng làm kích thước nhỏ lại}
+
+Pooling thường làm kích thước giảm mạnh hơn.
+
+Ví dụ:
+
+\[
+    10\times10
+    \xrightarrow{\text{pooling }2\times2,\ stride\ 2}
+    5\times5
+\]
+
+Vì vậy, nếu lặp quá nhiều convolution và pooling, kích thước không gian của feature map có thể trở nên rất nhỏ.
+
+\begin{luuy}
+Trong thực tế, kiến trúc CNN phải được thiết kế hợp lý để kích thước feature map không giảm quá nhanh hoặc quá mức cần thiết.
+\end{luuy}
+
+% ==========================================================
+\section{Zero Padding -- Đệm số 0}
+
+\subsection{Zero padding là gì?}
+
+Zero padding là kỹ thuật thêm một hoặc nhiều lớp số 0 xung quanh input.
+
+Ví dụ, input $3\times3$:
+
+\[
+    \begin{bmatrix}
+    x_{11} & x_{12} & x_{13}\\
+    x_{21} & x_{22} & x_{23}\\
+    x_{31} & x_{32} & x_{33}
+    \end{bmatrix}
+\]
+
+Nếu thêm padding một lớp số 0 xung quanh, ta được:
+
+\[
+    \begin{bmatrix}
+    0 & 0 & 0 & 0 & 0\\
+    0 & x_{11} & x_{12} & x_{13} & 0\\
+    0 & x_{21} & x_{22} & x_{23} & 0\\
+    0 & x_{31} & x_{32} & x_{33} & 0\\
+    0 & 0 & 0 & 0 & 0
+    \end{bmatrix}
+\]
+
+\subsection{Mục đích của padding}
+
+Zero padding được dùng để:
+
+\begin{enumerate}[label=\arabic*.]
+    \item kiểm soát kích thước output;
+    \item giúp feature map không bị nhỏ quá nhanh;
+    \item cho phép kernel xử lý tốt hơn các pixel ở biên ảnh;
+    \item giữ lại thông tin ở vùng rìa ảnh.
+\end{enumerate}
+
+\begin{ghinho}
+Zero padding là cách thêm số 0 quanh input để điều chỉnh kích thước output sau convolution.
+\end{ghinho}
+
+\subsection{Công thức kích thước output}
+
+Với input kích thước $H\times W$, kernel $F\times F$, padding $P$, stride $S$, kích thước output là:
+
+\[
+    H_{\text{out}}
+    =
+    \left\lfloor
+    \frac{H+2P-F}{S}
+    \right\rfloor
+    +1
+\]
+
+\[
+    W_{\text{out}}
+    =
+    \left\lfloor
+    \frac{W+2P-F}{S}
+    \right\rfloor
+    +1
+\]
+
+Nếu muốn giữ kích thước output bằng input, ta cần chọn padding phù hợp.
+
+\subsection{Lưu ý với kernel chẵn}
+
+Với kernel có kích thước chẵn, ví dụ $2\times2$, việc giữ nguyên chính xác kích thước input bằng padding đối xứng không phải lúc nào cũng đơn giản.
+
+Ví dụ, input $3\times3$, kernel $2\times2$, stride $1$:
+
+\[
+    H_{\text{out}} = H
+\]
+
+sẽ cần:
+
+\[
+    \frac{H+2P-2}{1}+1=H
+\]
+
+Suy ra:
+
+\[
+    2P=1
+\]
+
+Tức là padding đối xứng nguyên không thực hiện được. Khi đó, một số hệ thống có thể dùng padding bất đối xứng hoặc quy ước riêng.
+
+\begin{luuy}
+Ý chính cần nhớ là padding giúp kiểm soát kích thước output. Với kernel lẻ như $3\times3$, padding đối xứng dễ dùng hơn, ví dụ padding $P=1$ giúp giữ kích thước khi stride bằng 1.
+\end{luuy}
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Channel & Kênh dữ liệu của ảnh hoặc feature map. & RGB có 3 channel. \\
+
+RGB & Hệ màu gồm ba kênh đỏ, xanh lá, xanh dương. & Ảnh $224\times224\times3$. \\
+
+Kernel & Bộ trọng số nhỏ dùng để tích chập trên input. & $3\times3\times3$. \\
+
+Kernel depth & Độ sâu của kernel, phải bằng số channel input. & Input 4 channel thì kernel depth 4. \\
+
+Activation map & Ma trận output do một kernel tạo ra. & Output $10\times10$. \\
+
+Feature map & Cách gọi khác của activation map. & Bản đồ đặc trưng. \\
+
+Convolution layer & Lớp tích chập dùng kernel để trích xuất đặc trưng. & Conv $3\times3$. \\
+
+Pooling layer & Lớp giảm kích thước activation map. & Max pooling. \\
+
+Max pooling & Lấy giá trị lớn nhất trong mỗi vùng pooling. & Max của vùng $2\times2$. \\
+
+Average pooling & Lấy giá trị trung bình trong mỗi vùng pooling. & Average của vùng $2\times2$. \\
+
+Window size & Kích thước cửa sổ pooling. & $2\times2$. \\
+
+Stride & Bước nhảy khi trượt kernel hoặc pooling window. & Stride $2$. \\
+
+Downsampling & Giảm kích thước dữ liệu. & $10\times10$ thành $5\times5$. \\
+
+Flatten & Biến tensor nhiều chiều thành vector. & $5\times5\times16$ thành vector 400. \\
+
+Fully connected layer & Lớp kết nối đầy đủ ở cuối CNN. & Lớp phân loại. \\
+
+Zero padding & Thêm viền số 0 quanh input. & Padding $P=1$. \\
+
+Padding & Đệm thêm quanh input để điều chỉnh output size. & Same padding. \\
+
+Output size & Kích thước đầu ra sau convolution hoặc pooling. & $H_{\text{out}}\times W_{\text{out}}$. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Ảnh màu RGB có 3 channel.
+    \item Khi input có nhiều channel, kernel cũng phải có cùng số layer với input.
+    \item Với input RGB, một kernel $3\times3$ thực chất có kích thước $3\times3\times3$.
+    \item Một kernel nhiều layer vẫn chỉ tạo ra một activation map.
+    \item Nếu một convolution layer có $K$ kernel, nó tạo ra $K$ activation map.
+    \item Pooling layer dùng để giảm kích thước activation map.
+    \item Max pooling lấy giá trị lớn nhất trong mỗi vùng.
+    \item Average pooling lấy giá trị trung bình trong mỗi vùng.
+    \item Pooling là một dạng downsampling.
+    \item Pooling giúp giảm dung lượng dữ liệu, giảm tính toán và giảm số tham số.
+    \item CNN thường lặp lại nhiều lần convolution và pooling.
+    \item Output của layer trước trở thành input nhiều channel cho layer sau.
+    \item Trước khi đưa vào fully connected layer, tensor thường được flatten thành vector.
+    \item Zero padding thêm viền số 0 quanh input để kiểm soát kích thước output.
+    \item Thứ tự trượt kernel không quan trọng nếu ghi output đúng vị trí.
+\end{enumerate}
+
+\subsection{Công thức quan trọng}
+
+\subsection*{Số tham số của một kernel nhiều kênh}
+
+\[
+    K_h \cdot K_w \cdot C
+\]
+
+Trong đó $C$ là số channel của input.
+
+\subsection*{Convolution nhiều kênh}
+
+\[
+    a_{ij}
+    =
+    f
+    \left(
+    \sum_{c=1}^{C}
+    \sum_{u=1}^{K_h}
+    \sum_{v=1}^{K_w}
+    K_{u,v,c}
+    X_{i+u-1,j+v-1,c}
+    +
+    b
+    \right)
+\]
+
+\subsection*{Pooling $2\times2$, stride 2}
+
+\[
+    H\times W
+    \rightarrow
+    \frac{H}{2}\times \frac{W}{2}
+\]
+
+nếu $H,W$ chia hết cho 2.
+
+\subsection*{Kích thước output sau convolution}
+
+\[
+    H_{\text{out}}
+    =
+    \left\lfloor
+    \frac{H+2P-F}{S}
+    \right\rfloor
+    +1
+\]
+
+\[
+    W_{\text{out}}
+    =
+    \left\lfloor
+    \frac{W+2P-F}{S}
+    \right\rfloor
+    +1
+\]
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Ảnh màu RGB có bao nhiêu channel?
+    \item Nếu input có 3 channel, kernel phải có bao nhiêu layer?
+    \item Một kernel $3\times3\times3$ có bao nhiêu trọng số?
+    \item Một kernel tạo ra bao nhiêu activation map?
+    \item Nếu một convolution layer có 32 kernel, output có bao nhiêu activation map?
+    \item Pooling layer dùng để làm gì?
+    \item Max pooling khác average pooling như thế nào?
+    \item Với activation map $10\times10$, pooling $2\times2$, stride 2 tạo ra output kích thước bao nhiêu?
+    \item Downsampling là gì?
+    \item Vì sao pooling có thể làm mất thông tin?
+    \item Vì sao vẫn dùng pooling dù nó có thể làm mất thông tin?
+    \item Khi output của layer trước có 4 activation map, kernel của layer sau phải có depth bằng bao nhiêu?
+    \item Flatten là gì?
+    \item Zero padding là gì?
+    \item Vì sao cần zero padding?
+    \item Thứ tự trượt kernel có làm thay đổi kết quả không nếu ghi output đúng vị trí?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Kích thước kernel nhiều kênh}
+\addcontentsline{toc}{section}{Bài tập 1: Kích thước kernel nhiều kênh}
+
+Input là ảnh RGB. Ta dùng kernel có kích thước không gian $5\times5$.
+
+Hỏi kernel đầy đủ có kích thước bao nhiêu và có bao nhiêu trọng số?
+
+\subsection*{Lời giải gợi ý}
+
+Ảnh RGB có 3 channel, nên kernel phải có depth bằng 3.
+
+Kích thước kernel là:
+
+\[
+    5\times5\times3
+\]
+
+Số trọng số:
+
+\[
+    5\cdot5\cdot3=75
+\]
+
+\subsection*{Bài tập 2: Số activation map}
+\addcontentsline{toc}{section}{Bài tập 2: Số activation map}
+
+Một convolution layer có 64 kernel. Hỏi output của layer này có bao nhiêu activation map?
+
+\subsection*{Lời giải gợi ý}
+
+Mỗi kernel tạo ra một activation map.
+
+Do đó 64 kernel tạo ra:
+
+\[
+    64
+\]
+
+activation map.
+
+\subsection*{Bài tập 3: Max pooling}
+\addcontentsline{toc}{section}{Bài tập 3: Max pooling}
+
+Cho activation map:
+
+\[
+    A =
+    \begin{bmatrix}
+    1 & 4 & 2 & 3\\
+    5 & 6 & 1 & 0\\
+    2 & 8 & 7 & 1\\
+    3 & 4 & 5 & 9
+    \end{bmatrix}
+\]
+
+Dùng max pooling $2\times2$, stride 2. Tính output.
+
+\subsection*{Lời giải gợi ý}
+
+Các vùng pooling là:
+
+\[
+    \begin{bmatrix}
+    1 & 4\\
+    5 & 6
+    \end{bmatrix}
+    \Rightarrow 6
+\]
+
+\[
+    \begin{bmatrix}
+    2 & 3\\
+    1 & 0
+    \end{bmatrix}
+    \Rightarrow 3
+\]
+
+\[
+    \begin{bmatrix}
+    2 & 8\\
+    3 & 4
+    \end{bmatrix}
+    \Rightarrow 8
+\]
+
+\[
+    \begin{bmatrix}
+    7 & 1\\
+    5 & 9
+    \end{bmatrix}
+    \Rightarrow 9
+\]
+
+Vậy output là:
+
+\[
+    P =
+    \begin{bmatrix}
+    6 & 3\\
+    8 & 9
+    \end{bmatrix}
+\]
+
+\subsection*{Bài tập 4: Average pooling}
+\addcontentsline{toc}{section}{Bài tập 4: Average pooling}
+
+Dùng lại activation map ở bài tập 3. Tính average pooling $2\times2$, stride 2.
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    \frac{1+4+5+6}{4}=4
+\]
+
+\[
+    \frac{2+3+1+0}{4}=1.5
+\]
+
+\[
+    \frac{2+8+3+4}{4}=4.25
+\]
+
+\[
+    \frac{7+1+5+9}{4}=5.5
+\]
+
+Vậy output là:
+
+\[
+    P =
+    \begin{bmatrix}
+    4 & 1.5\\
+    4.25 & 5.5
+    \end{bmatrix}
+\]
+
+\subsection*{Bài tập 5: Kích thước output sau convolution}
+\addcontentsline{toc}{section}{Bài tập 5: Kích thước output sau convolution}
+
+Input có kích thước $32\times32$, kernel $3\times3$, stride $1$, padding $1$.
+
+Tính kích thước output.
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    H_{\text{out}}
+    =
+    \left\lfloor
+    \frac{32+2\cdot1-3}{1}
+    \right\rfloor
+    +1
+\]
+
+\[
+    H_{\text{out}}
+    =
+    32
+\]
+
+Tương tự:
+
+\[
+    W_{\text{out}}=32
+\]
+
+Vậy output có kích thước:
+
+\[
+    32\times32
+\]
+
+\subsection*{Bài tập 6: Flatten}
+\addcontentsline{toc}{section}{Bài tập 6: Flatten}
+
+Sau nhiều lớp CNN, ta thu được tensor kích thước:
+
+\[
+    7\times7\times128
+\]
+
+Hỏi sau flatten, vector có bao nhiêu phần tử?
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    7\cdot7\cdot128=6272
+\]
+
+Vector sau flatten có 6272 phần tử.
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+CNN2 mở rộng phép convolution từ trường hợp ảnh xám một kênh sang ảnh màu nhiều kênh. Khi input có nhiều channel, kernel cũng phải có cùng số layer tương ứng. Ví dụ, ảnh RGB có 3 channel thì kernel $3\times3$ thực chất là kernel $3\times3\times3$. Tại mỗi vị trí, ta nhân tương ứng trên tất cả các channel, cộng toàn bộ các tích, cộng bias và đưa qua hàm kích hoạt để tạo ra một giá trị trong activation map.
+
+Bài học cũng giới thiệu pooling layer, một thành phần quan trọng trong CNN. Max pooling lấy giá trị lớn nhất trong mỗi vùng, còn average pooling lấy giá trị trung bình. Pooling là một dạng downsampling, giúp giảm kích thước dữ liệu, giảm số lượng tính toán và giảm số tham số ở các lớp phía sau.
+
+Trong CNN thực tế, convolution và pooling thường được lặp lại nhiều lần. Output của lớp trước trở thành input nhiều channel cho lớp sau, nên kernel ở lớp sau cũng phải có depth bằng số channel của input. Cuối cùng, tensor đặc trưng được flatten thành vector rồi đưa vào fully connected layer để phân loại.
+
+Ngoài ra, bài học cũng nhắc đến zero padding, tức là thêm viền số 0 quanh input để kiểm soát kích thước output và giúp feature map không bị nhỏ quá nhanh sau nhiều lớp convolution.
