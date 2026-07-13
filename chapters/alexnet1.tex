@@ -1,0 +1,1390 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này giới thiệu mạng \textit{AlexNet}, một kiến trúc CNN rất quan trọng trong lịch sử deep learning và thị giác máy tính.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item AlexNet là gì và vì sao mạng này quan trọng.
+    \item AlexNet giải quyết bài toán gì trong cuộc thi ILSVRC 2012.
+    \item Hiểu mối liên hệ giữa AlexNet, ImageNet và bài toán phân loại ảnh 1000 lớp.
+    \item Nắm được cấu trúc tổng quát của AlexNet.
+    \item Biết AlexNet có 5 lớp convolution và 3 lớp fully connected.
+    \item Hiểu vai trò của lớp softmax ở cuối mạng.
+    \item Hiểu ý nghĩa của các kích thước như $224\times224\times3$, $55\times55\times48$, $27\times27\times128$.
+    \item Hiểu vì sao kernel ở mỗi lớp phải có depth bằng depth của input.
+    \item Hiểu ý nghĩa của hai nhánh trên và dưới trong sơ đồ AlexNet.
+    \item Biết cách đọc luồng thông tin qua từng lớp convolution, pooling và fully connected.
+    \item Hiểu ý nghĩa của số kernel, số activation map và số neuron trong từng phần của mạng.
+\end{enumerate}
+
+% ==========================================================
+\section{AlexNet Overview -- Tổng quan về AlexNet}
+
+\subsection{AlexNet là gì?}
+
+AlexNet là một mạng nơ-ron tích chập, hay CNN:
+
+\[
+    \text{AlexNet} = \text{Convolutional Neural Network}
+\]
+
+Tên \textit{AlexNet} được đặt theo tên tác giả Alex Krizhevsky, một trong các tác giả chính của bài báo nổi tiếng về mạng này.
+
+\begin{ghinho}
+AlexNet là một trong những mạng CNN nổi tiếng nhất trong lịch sử deep learning, đặc biệt vì nó đã tạo ra bước ngoặt lớn trong bài toán nhận dạng ảnh.
+\end{ghinho}
+
+\subsection{Bài toán mà AlexNet giải quyết}
+
+AlexNet được thiết kế để giải quyết bài toán:
+
+\[
+    \text{image classification}
+\]
+
+hay:
+
+\[
+    \text{phân loại ảnh}
+\]
+
+Nghĩa là, khi đưa một ảnh vào, mạng phải dự đoán ảnh đó thuộc class nào.
+
+Ví dụ:
+
+\[
+    \text{ảnh đầu vào}
+    \rightarrow
+    \text{AlexNet}
+    \rightarrow
+    \text{chó, mèo, xe hơi, máy bay, ...}
+\]
+
+Trong cuộc thi mà AlexNet tham gia, bài toán có:
+
+\[
+    1000 \text{ classes}
+\]
+
+Do đó, mạng phải phân loại mỗi ảnh vào một trong 1000 lớp.
+
+% ==========================================================
+\section{ILSVRC 2012 and ImageNet -- ILSVRC 2012 và ImageNet}
+
+\subsection{ILSVRC là gì?}
+
+ILSVRC là viết tắt của:
+
+\[
+    \text{ImageNet Large Scale Visual Recognition Challenge}
+\]
+
+Đây là cuộc thi nhận dạng thị giác quy mô lớn dùng tập dữ liệu ImageNet.
+
+Trong bài học, giảng viên nhấn mạnh rằng AlexNet là mạng đã chiến thắng cuộc thi ILSVRC năm 2012.
+
+\begin{ghinho}
+AlexNet nổi tiếng vì chiến thắng ILSVRC 2012 và cho thấy CNN có thể đạt hiệu quả rất cao trong phân loại ảnh quy mô lớn.
+\end{ghinho}
+
+\subsection{Dữ liệu trong bài toán}
+
+Bài toán phân loại ảnh trong ILSVRC có:
+
+\[
+    1000 \text{ classes}
+\]
+
+Tập dữ liệu huấn luyện có khoảng:
+
+\[
+    1.2 \text{ triệu ảnh}
+\]
+
+Ngoài ra còn có dữ liệu validation và test.
+
+Theo transcript, dữ liệu được nhắc đến gồm:
+
+\[
+    1{,}280{,}000 \text{ ảnh huấn luyện}
+\]
+
+\[
+    50{,}000 \text{ ảnh validation}
+\]
+
+\[
+    150{,}000 \text{ ảnh test}
+\]
+
+\begin{luuy}
+ImageNet là một tập ảnh rất lớn. Tuy nhiên, phần dùng trong cuộc thi chỉ là một phần của toàn bộ ImageNet.
+\end{luuy}
+
+% ==========================================================
+\section{AlexNet Architecture -- Kiến trúc AlexNet}
+
+\subsection{Cấu trúc tổng quát}
+
+AlexNet gồm các thành phần chính:
+
+\[
+    \text{Input}
+    \rightarrow
+    \text{Convolution layers}
+    \rightarrow
+    \text{Pooling layers}
+    \rightarrow
+    \text{Fully connected layers}
+    \rightarrow
+    \text{Softmax}
+\]
+
+Cụ thể, AlexNet có:
+
+\[
+    5 \text{ convolution layers}
+\]
+
+và:
+
+\[
+    3 \text{ fully connected layers}
+\]
+
+Ở cuối mạng là lớp softmax để tạo ra vector xác suất trên 1000 class.
+
+\begin{ghinho}
+Cấu trúc quan trọng cần nhớ: AlexNet có 5 lớp tích chập, 3 lớp fully connected và một lớp softmax ở cuối.
+\end{ghinho}
+
+\subsection{Số lượng neuron và tham số}
+
+Theo bài học, AlexNet có khoảng:
+
+\[
+    650{,}000 \text{ neuron}
+\]
+
+và khoảng:
+
+\[
+    60 \text{ triệu tham số}
+\]
+
+Các tham số này bao gồm:
+
+\begin{itemize}
+    \item trọng số trong các kernel convolution;
+    \item bias;
+    \item trọng số trong các fully connected layer.
+\end{itemize}
+
+\begin{canhbao}
+Dù AlexNet là CNN và đã giảm tham số so với fully connected thuần túy trên ảnh, mạng này vẫn có số lượng tham số rất lớn, đặc biệt ở các fully connected layer cuối.
+\end{canhbao}
+
+% ==========================================================
+\section{Input and Output -- Đầu vào và đầu ra}
+
+\subsection{Input image}
+
+Input của AlexNet là ảnh màu.
+
+Trong bài học, kích thước ảnh đầu vào được mô tả là:
+
+\[
+    224 \times 224 \times 3
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $224\times224$ là kích thước không gian của ảnh;
+    \item $3$ là số channel màu RGB.
+\end{itemize}
+
+\[
+    3 \text{ channels} = R,G,B
+\]
+
+\begin{ghinho}
+Vì input là ảnh màu RGB nên kernel ở lớp convolution đầu tiên phải có depth bằng 3.
+\end{ghinho}
+
+\subsection{Output}
+
+Vì bài toán có 1000 class, output cuối cùng trước softmax là một vector có:
+
+\[
+    1000 \text{ phần tử}
+\]
+
+Sau softmax, ta vẫn có vector 1000 phần tử, nhưng lúc này các giá trị có thể được xem như xác suất:
+
+\[
+    y =
+    \begin{bmatrix}
+    y_1\\
+    y_2\\
+    \vdots\\
+    y_{1000}
+    \end{bmatrix}
+\]
+
+với:
+
+\[
+    y_i \geq 0
+\]
+
+và:
+
+\[
+    \sum_{i=1}^{1000} y_i = 1
+\]
+
+Class dự đoán là class có xác suất lớn nhất:
+
+\[
+    \hat{c}=\arg\max_i y_i
+\]
+
+% ==========================================================
+\section{Softmax in AlexNet -- Softmax trong AlexNet}
+
+\subsection{Vai trò của softmax}
+
+Softmax nằm ở cuối AlexNet.
+
+Trước softmax, mạng tạo ra vector 1000 phần tử:
+
+\[
+    z =
+    \begin{bmatrix}
+    z_1\\
+    z_2\\
+    \vdots\\
+    z_{1000}
+    \end{bmatrix}
+\]
+
+Các giá trị này là logits, chưa phải xác suất.
+
+Sau softmax:
+
+\[
+    y_i =
+    \frac{e^{z_i}}
+    {\sum_{j=1}^{1000}e^{z_j}}
+\]
+
+Ta thu được vector xác suất:
+
+\[
+    y =
+    \operatorname{softmax}(z)
+\]
+
+\begin{ghinho}
+Softmax giúp biến 1000 output thô của mạng thành phân bố xác suất trên 1000 class.
+\end{ghinho}
+
+\subsection{Ý nghĩa xác suất}
+
+Nếu:
+
+\[
+    y_{25}=0.72
+\]
+
+thì có thể hiểu là mạng gán xác suất khoảng $72\%$ cho class thứ 25.
+
+Output cuối cùng là class có xác suất cao nhất.
+
+% ==========================================================
+\section{Two-branch Structure -- Cấu trúc hai nhánh}
+
+\subsection{Hai nhánh trên và dưới}
+
+Trong sơ đồ AlexNet, ta thường thấy kiến trúc được vẽ thành hai nhánh:
+
+\[
+    \text{nhánh trên}
+    \quad \text{và} \quad
+    \text{nhánh dưới}
+\]
+
+Hai nhánh này có cấu trúc tương tự nhau.
+
+Trong transcript, giảng viên nhấn mạnh rằng nhánh trên và nhánh dưới giống nhau, nhưng đôi khi hình vẽ không vẽ đầy đủ cả hai nhánh để tránh rối.
+
+\begin{ghinho}
+Hai nhánh trong sơ đồ AlexNet phản ánh cách mạng được chia để tính toán song song trên phần cứng thời điểm đó.
+\end{ghinho}
+
+\subsection{Khi nào hai nhánh được trộn thông tin?}
+
+Ở các lớp đầu, thông tin ở nhánh trên và nhánh dưới đi tương đối độc lập.
+
+Đến một số lớp sau, thông tin từ hai nhánh được gộp lại.
+
+Ví dụ, nếu mỗi nhánh có tensor:
+
+\[
+    27\times27\times128
+\]
+
+thì khi gộp hai nhánh theo chiều depth, ta được:
+
+\[
+    27\times27\times256
+\]
+
+\begin{ghinho}
+Gộp hai khối theo chiều depth nghĩa là giữ nguyên chiều cao và chiều rộng, nhưng cộng số channel lại.
+\end{ghinho}
+
+% ==========================================================
+\section{Convolution Layer 1 -- Lớp tích chập thứ nhất}
+
+\subsection{Input của lớp thứ nhất}
+
+Input là ảnh màu:
+
+\[
+    224\times224\times3
+\]
+
+Vì ảnh có 3 channel, mỗi kernel ở lớp đầu tiên phải có depth bằng 3.
+
+\subsection{Kernel của lớp thứ nhất}
+
+Kernel có kích thước không gian:
+
+\[
+    11\times11
+\]
+
+Vì input có 3 channel, kernel đầy đủ là:
+
+\[
+    11\times11\times3
+\]
+
+\begin{canhbao}
+Khi ghi kích thước kernel ở lớp đầu tiên, cần ghi đầy đủ là $11\times11\times3$, không chỉ ghi $11\times11$.
+\end{canhbao}
+
+\subsection{Output của một kernel}
+
+Một kernel kích thước:
+
+\[
+    11\times11\times3
+\]
+
+khi trượt trên ảnh đầu vào sẽ tạo ra một activation map.
+
+Trong transcript, kích thước activation map được nhắc là:
+
+\[
+    55\times55
+\]
+
+\[
+    1 \text{ kernel}
+    \rightarrow
+    1 \text{ activation map } 55\times55
+\]
+
+\subsection{Số kernel và số activation map}
+
+Ở mỗi nhánh, lớp đầu tiên có:
+
+\[
+    48 \text{ kernels}
+\]
+
+Vì một kernel tạo ra một activation map, nên mỗi nhánh thu được:
+
+\[
+    48 \text{ activation maps}
+\]
+
+Mỗi activation map có kích thước:
+
+\[
+    55\times55
+\]
+
+Do đó output mỗi nhánh là:
+
+\[
+    55\times55\times48
+\]
+
+Vì có hai nhánh, tổng cộng toàn lớp tương ứng với:
+
+\[
+    55\times55\times96
+\]
+
+\begin{ghinho}
+Con số 48 trong sơ đồ là số kernel ở một nhánh, đồng thời là số activation map ở nhánh đó.
+\end{ghinho}
+
+% ==========================================================
+\section{Convolution Layer 2 -- Lớp tích chập thứ hai}
+
+\subsection{Input của lớp thứ hai}
+
+Sau lớp đầu tiên và giai đoạn pooling liên quan, input cho lớp convolution thứ hai ở mỗi nhánh có depth là 48.
+
+Trong transcript, input mỗi nhánh được mô tả là:
+
+\[
+    55\times55\times48
+\]
+
+\subsection{Kernel của lớp thứ hai}
+
+Kernel có kích thước không gian:
+
+\[
+    5\times5
+\]
+
+Vì input mỗi nhánh có 48 channel, kernel đầy đủ là:
+
+\[
+    5\times5\times48
+\]
+
+\begin{ghinho}
+Depth của kernel phải bằng depth của input. Do đó, nếu input là $55\times55\times48$, kernel phải có dạng $5\times5\times48$.
+\end{ghinho}
+
+\subsection{Số kernel}
+
+Ở mỗi nhánh, lớp convolution thứ hai có:
+
+\[
+    128 \text{ kernels}
+\]
+
+Mỗi kernel tạo ra một activation map.
+
+Do đó, mỗi nhánh tạo ra:
+
+\[
+    128 \text{ activation maps}
+\]
+
+Sau giai đoạn xử lý và pooling, transcript nhắc đến kích thước:
+
+\[
+    27\times27\times128
+\]
+
+cho mỗi nhánh.
+
+\begin{luuy}
+Trong sơ đồ AlexNet, một số kích thước đã được vẽ sau khi gộp cả convolution và max pooling, nên cần chú ý xem con số đang chỉ trước hay sau pooling.
+\end{luuy}
+
+% ==========================================================
+\section{Max Pooling in AlexNet -- Max pooling trong AlexNet}
+
+\subsection{Vị trí max pooling}
+
+Trong AlexNet, max pooling xuất hiện ở một số vị trí sau các lớp convolution.
+
+Pooling giúp giảm kích thước không gian của activation map.
+
+Ví dụ:
+
+\[
+    55\times55
+    \rightarrow
+    27\times27
+\]
+
+hoặc:
+
+\[
+    13\times13
+    \rightarrow
+    6\times6
+\]
+
+\begin{ghinho}
+Max pooling làm giảm chiều cao và chiều rộng của activation map, nhưng thường giữ nguyên số channel.
+\end{ghinho}
+
+\subsection{Ý nghĩa}
+
+Max pooling lấy giá trị lớn nhất trong từng vùng nhỏ.
+
+Ví dụ, với vùng $2\times2$:
+
+\[
+    \begin{bmatrix}
+    1 & 5\\
+    3 & 2
+    \end{bmatrix}
+\]
+
+max pooling trả về:
+
+\[
+    5
+\]
+
+Max pooling giúp:
+
+\begin{itemize}
+    \item giảm kích thước dữ liệu;
+    \item giảm chi phí tính toán;
+    \item giữ lại tín hiệu mạnh;
+    \item giảm độ nhạy với dịch chuyển nhỏ trong ảnh.
+\end{itemize}
+
+% ==========================================================
+\section{Convolution Layer 3 -- Lớp tích chập thứ ba}
+
+\subsection{Gộp hai nhánh trước lớp thứ ba}
+
+Trước lớp convolution thứ ba, hai nhánh được gộp lại.
+
+Mỗi nhánh có:
+
+\[
+    27\times27\times128
+\]
+
+Gộp hai nhánh theo chiều depth:
+
+\[
+    27\times27\times128
+    +
+    27\times27\times128
+    =
+    27\times27\times256
+\]
+
+Do đó input cho lớp convolution thứ ba là:
+
+\[
+    27\times27\times256
+\]
+
+\subsection{Kernel của lớp thứ ba}
+
+Kernel có kích thước không gian:
+
+\[
+    3\times3
+\]
+
+Vì input có 256 channel, kernel đầy đủ là:
+
+\[
+    3\times3\times256
+\]
+
+\subsection{Số kernel và output}
+
+Theo transcript, ở mỗi nhánh có:
+
+\[
+    192 \text{ kernels}
+\]
+
+Mỗi kernel tạo ra một activation map.
+
+Do đó mỗi nhánh thu được:
+
+\[
+    192 \text{ activation maps}
+\]
+
+Kích thước activation map sau xử lý được nhắc là:
+
+\[
+    13\times13
+\]
+
+Vậy mỗi nhánh có tensor:
+
+\[
+    13\times13\times192
+\]
+
+\begin{ghinho}
+Lớp thứ ba là nơi cần chú ý vì thông tin từ hai nhánh được gộp lại trước khi tính convolution.
+\end{ghinho}
+
+% ==========================================================
+\section{Convolution Layer 4 -- Lớp tích chập thứ tư}
+
+\subsection{Input của lớp thứ tư}
+
+Sau lớp thứ ba, mỗi nhánh có tensor:
+
+\[
+    13\times13\times192
+\]
+
+Ở lớp thứ tư, luồng thông tin lại đi theo từng nhánh.
+
+\subsection{Kernel của lớp thứ tư}
+
+Kernel có kích thước không gian:
+
+\[
+    3\times3
+\]
+
+Vì input mỗi nhánh có 192 channel, kernel đầy đủ là:
+
+\[
+    3\times3\times192
+\]
+
+\subsection{Số kernel và output}
+
+Ở mỗi nhánh có:
+
+\[
+    192 \text{ kernels}
+\]
+
+Do đó mỗi nhánh tạo ra:
+
+\[
+    192 \text{ activation maps}
+\]
+
+Kích thước mỗi activation map là:
+
+\[
+    13\times13
+\]
+
+Output mỗi nhánh:
+
+\[
+    13\times13\times192
+\]
+
+% ==========================================================
+\section{Convolution Layer 5 -- Lớp tích chập thứ năm}
+
+\subsection{Input của lớp thứ năm}
+
+Input mỗi nhánh cho lớp thứ năm là:
+
+\[
+    13\times13\times192
+\]
+
+\subsection{Kernel của lớp thứ năm}
+
+Kernel có kích thước:
+
+\[
+    3\times3\times192
+\]
+
+\subsection{Số kernel và output}
+
+Ở mỗi nhánh, lớp thứ năm có:
+
+\[
+    128 \text{ kernels}
+\]
+
+Vì một kernel tạo ra một activation map, mỗi nhánh có:
+
+\[
+    128 \text{ activation maps}
+\]
+
+Mỗi activation map có kích thước:
+
+\[
+    13\times13
+\]
+
+Do đó output mỗi nhánh là:
+
+\[
+    13\times13\times128
+\]
+
+\subsection{Max pooling sau lớp thứ năm}
+
+Sau lớp thứ năm, max pooling làm giảm kích thước không gian.
+
+Theo transcript, sau max pooling, mỗi nhánh có kích thước xấp xỉ:
+
+\[
+    6\times6\times128
+\]
+
+\begin{ghinho}
+Sau lớp convolution thứ năm và max pooling, đặc trưng đã được nén lại thành các khối nhỏ hơn để chuẩn bị đưa vào fully connected layer.
+\end{ghinho}
+
+% ==========================================================
+\section{Flatten before Fully Connected -- Flatten trước fully connected}
+
+\subsection{Flatten từng nhánh}
+
+Sau pooling cuối, mỗi nhánh có tensor:
+
+\[
+    6\times6\times128
+\]
+
+Khi flatten một nhánh, ta được vector có số phần tử:
+
+\[
+    6\cdot6\cdot128=4608
+\]
+
+Vì có hai nhánh, nếu gộp cả hai nhánh:
+
+\[
+    2\cdot4608=9216
+\]
+
+\begin{luuy}
+Trong cách đọc sơ đồ có hai nhánh, cần chú ý khi nào đang nói một nhánh và khi nào đang nói tổng cả hai nhánh.
+\end{luuy}
+
+\subsection{Ý nghĩa của flatten}
+
+Flatten biến tensor đặc trưng nhiều chiều thành vector để đưa vào fully connected layer.
+
+\[
+    \text{feature maps}
+    \rightarrow
+    \text{flatten}
+    \rightarrow
+    \text{vector}
+\]
+
+\begin{ghinho}
+Fully connected layer cần input dạng vector, nên ta phải flatten các feature map trước khi đưa vào phần phân loại.
+\end{ghinho}
+
+% ==========================================================
+\section{Fully Connected Layers -- Các lớp fully connected}
+
+\subsection{Ba lớp fully connected}
+
+AlexNet có 3 lớp fully connected.
+
+Theo transcript, hai lớp đầu có:
+
+\[
+    4096 \text{ neurons}
+\]
+
+và lớp cuối có:
+
+\[
+    1000 \text{ outputs}
+\]
+
+Luồng tổng quát:
+
+\[
+    \text{Flatten}
+    \rightarrow
+    4096
+    \rightarrow
+    4096
+    \rightarrow
+    1000
+    \rightarrow
+    \text{Softmax}
+\]
+
+\subsection{Ý nghĩa của lớp 1000 output}
+
+Lớp cuối trước softmax có 1000 phần tử vì bài toán có 1000 class.
+
+\[
+    z =
+    \begin{bmatrix}
+    z_1\\
+    z_2\\
+    \vdots\\
+    z_{1000}
+    \end{bmatrix}
+\]
+
+Sau softmax, ta có:
+
+\[
+    y =
+    \begin{bmatrix}
+    y_1\\
+    y_2\\
+    \vdots\\
+    y_{1000}
+    \end{bmatrix}
+\]
+
+Trong đó mỗi $y_i$ biểu diễn xác suất ảnh thuộc class thứ $i$.
+
+\begin{ghinho}
+Fully connected layers ở cuối AlexNet đóng vai trò phân loại dựa trên các đặc trưng đã được convolution layers trích xuất.
+\end{ghinho}
+
+% ==========================================================
+\section{How to Read AlexNet Numbers -- Cách đọc các con số trong AlexNet}
+
+\subsection{Con số không gian}
+
+Các cặp số như:
+
+\[
+    55\times55,\quad 27\times27,\quad 13\times13,\quad 6\times6
+\]
+
+biểu diễn kích thước không gian của activation map:
+
+\[
+    \text{height}\times\text{width}
+\]
+
+\subsection{Con số depth}
+
+Các số như:
+
+\[
+    48,\quad 128,\quad 192
+\]
+
+thường biểu diễn số activation map hoặc số channel của tensor.
+
+Ví dụ:
+
+\[
+    55\times55\times48
+\]
+
+nghĩa là có 48 activation map, mỗi activation map có kích thước $55\times55$.
+
+\subsection{Con số kernel}
+
+Nếu một lớp có 128 kernel thì nó tạo ra 128 activation map.
+
+\[
+    128 \text{ kernels}
+    \rightarrow
+    128 \text{ activation maps}
+\]
+
+\subsection{Depth của kernel}
+
+Nếu input là:
+
+\[
+    H\times W\times C
+\]
+
+và kernel có kích thước không gian:
+
+\[
+    F\times F
+\]
+
+thì kernel đầy đủ là:
+
+\[
+    F\times F\times C
+\]
+
+\begin{canhbao}
+Không được chỉ nhìn kích thước 2D của kernel. Phải luôn xác định thêm depth của kernel bằng depth của input.
+\end{canhbao}
+
+% ==========================================================
+\section{AlexNet Information Flow -- Luồng thông tin trong AlexNet}
+
+\subsection{Tóm tắt luồng chính}
+
+Một cách đọc ngắn gọn luồng thông tin của AlexNet:
+
+\[
+    224\times224\times3
+\]
+
+\[
+    \rightarrow
+    55\times55\times96
+\]
+
+\[
+    \rightarrow
+    27\times27\times256
+\]
+
+\[
+    \rightarrow
+    13\times13\times384
+\]
+
+\[
+    \rightarrow
+    13\times13\times384
+\]
+
+\[
+    \rightarrow
+    13\times13\times256
+\]
+
+\[
+    \rightarrow
+    6\times6\times256
+\]
+
+\[
+    \rightarrow
+    4096
+    \rightarrow
+    4096
+    \rightarrow
+    1000
+    \rightarrow
+    \text{softmax}
+\]
+
+\begin{luuy}
+Sơ đồ trong transcript được trình bày theo hai nhánh, nên một số con số như 48, 128, 192 là số ở mỗi nhánh. Khi gộp hai nhánh, depth tổng sẽ gấp đôi.
+\end{luuy}
+
+\subsection{Dạng bảng}
+
+\begin{center}
+\begin{tabular}{p{0.22\textwidth}p{0.26\textwidth}p{0.36\textwidth}}
+\toprule
+Phần & Kích thước chính & Ý nghĩa \\
+\midrule
+Input & $224\times224\times3$ & Ảnh màu RGB \\
+Conv1 & $11\times11\times3$ & Kernel lớp đầu tiên \\
+Conv1 output & $55\times55\times48$ mỗi nhánh & 48 activation map mỗi nhánh \\
+Conv2 & $5\times5\times48$ & Kernel lớp thứ hai mỗi nhánh \\
+Conv2 output & $27\times27\times128$ mỗi nhánh & Sau xử lý và pooling \\
+Conv3 & $3\times3\times256$ & Sau khi gộp hai nhánh \\
+Conv3 output & $13\times13\times192$ mỗi nhánh & 192 map mỗi nhánh \\
+Conv4 & $3\times3\times192$ & Kernel lớp thứ tư \\
+Conv5 & $3\times3\times192$ & Kernel lớp thứ năm \\
+Pool cuối & $6\times6\times128$ mỗi nhánh & Trước flatten \\
+FC1 & 4096 & Fully connected layer thứ nhất \\
+FC2 & 4096 & Fully connected layer thứ hai \\
+FC3 & 1000 & Output cho 1000 class \\
+Softmax & 1000 & Vector xác suất \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\section{Parameter Counting Intuition -- Trực giác về số tham số}
+
+\subsection{Tham số trong convolution layer}
+
+Số tham số của một kernel là:
+
+\[
+    F_h\cdot F_w\cdot C
+\]
+
+Nếu có $K$ kernel, số trọng số là:
+
+\[
+    F_h\cdot F_w\cdot C\cdot K
+\]
+
+Nếu mỗi kernel có một bias, số bias là:
+
+\[
+    K
+\]
+
+Tổng tham số:
+
+\[
+    F_h\cdot F_w\cdot C\cdot K + K
+\]
+
+\subsection{Ví dụ conv1}
+
+Một kernel conv1 có kích thước:
+
+\[
+    11\times11\times3
+\]
+
+Số trọng số của một kernel:
+
+\[
+    11\cdot11\cdot3=363
+\]
+
+Nếu toàn bộ lớp có 96 kernel, số trọng số là:
+
+\[
+    363\cdot96=34848
+\]
+
+Nếu tính thêm 96 bias:
+
+\[
+    34848+96=34944
+\]
+
+\subsection{Tham số trong fully connected layer}
+
+Fully connected layer thường có rất nhiều tham số.
+
+Nếu input có $m$ phần tử và output có $n$ neuron, số trọng số là:
+
+\[
+    m\cdot n
+\]
+
+Nếu tính thêm bias:
+
+\[
+    m\cdot n+n
+\]
+
+\begin{ghinho}
+Trong AlexNet, phần fully connected chiếm rất nhiều tham số vì mỗi neuron kết nối với toàn bộ vector đầu vào.
+\end{ghinho}
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+AlexNet & Một kiến trúc CNN nổi tiếng chiến thắng ILSVRC 2012. & 5 conv + 3 FC. \\
+
+ILSVRC & Cuộc thi nhận dạng thị giác quy mô lớn ImageNet. & ILSVRC 2012. \\
+
+ImageNet & Tập dữ liệu ảnh quy mô lớn. & 1000 class. \\
+
+Image classification & Bài toán phân loại ảnh vào các class. & Chó, mèo, xe hơi. \\
+
+Convolution layer & Lớp tích chập dùng kernel để trích xuất đặc trưng. & Conv1, Conv2. \\
+
+Fully connected layer & Lớp kết nối đầy đủ ở cuối mạng. & 4096 neuron. \\
+
+Kernel & Bộ trọng số trượt trên input để tạo activation map. & $11\times11\times3$. \\
+
+Activation map & Bản đồ kích hoạt do một kernel tạo ra. & $55\times55$. \\
+
+Feature map & Cách gọi khác của activation map. & Map đặc trưng. \\
+
+Depth & Chiều sâu hoặc số channel của tensor. & 48, 128, 256. \\
+
+Channel & Một lớp dữ liệu trong tensor. & RGB có 3 channel. \\
+
+Max pooling & Lấy giá trị lớn nhất trong từng vùng để giảm kích thước. & $13\times13$ xuống $6\times6$. \\
+
+Flatten & Biến tensor thành vector. & $6\times6\times128$ thành vector. \\
+
+Softmax & Biến logits thành phân bố xác suất. & 1000 xác suất. \\
+
+Logits & Output thô trước softmax. & Vector 1000 phần tử. \\
+
+Two-branch structure & Cấu trúc hai nhánh trong sơ đồ AlexNet. & Nhánh trên và dưới. \\
+
+Parameter & Tham số học được của mạng. & Weight, bias. \\
+
+Bias & Tham số cộng thêm trong neuron hoặc kernel. & $b$. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item AlexNet là một mạng CNN nổi tiếng trong lịch sử deep learning.
+    \item AlexNet chiến thắng cuộc thi ILSVRC năm 2012.
+    \item Bài toán của AlexNet là phân loại ảnh vào 1000 class.
+    \item Input là ảnh màu, thường được mô tả là $224\times224\times3$.
+    \item AlexNet có 5 convolution layers và 3 fully connected layers.
+    \item Lớp cuối có 1000 output tương ứng với 1000 class.
+    \item Softmax biến 1000 output thành vector xác suất.
+    \item Trong sơ đồ AlexNet có hai nhánh trên và dưới.
+    \item Ở các lớp đầu, hai nhánh xử lý gần như riêng biệt.
+    \item Ở một số vị trí, hai nhánh được gộp lại theo chiều depth.
+    \item Kernel phải có depth bằng depth của input.
+    \item Một kernel tạo ra một activation map.
+    \item Số kernel bằng số activation map đầu ra.
+    \item Max pooling giúp giảm kích thước không gian của feature map.
+    \item Flatten biến tensor đặc trưng thành vector để đưa vào fully connected layer.
+    \item AlexNet có khoảng 60 triệu tham số.
+\end{enumerate}
+
+\subsection{Công thức quan trọng}
+
+\subsection*{Softmax}
+
+\[
+    y_i =
+    \frac{e^{z_i}}
+    {\sum_{j=1}^{1000}e^{z_j}}
+\]
+
+\subsection*{Số trọng số của một kernel}
+
+\[
+    F_h\cdot F_w\cdot C
+\]
+
+\subsection*{Số tham số của một convolution layer}
+
+\[
+    F_h\cdot F_w\cdot C\cdot K + K
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $F_h,F_w$ là chiều cao và chiều rộng kernel;
+    \item $C$ là số channel input;
+    \item $K$ là số kernel;
+    \item $K$ bias nếu mỗi kernel có một bias.
+\end{itemize}
+
+\subsection*{Gộp hai nhánh theo depth}
+
+\[
+    H\times W\times C
+    +
+    H\times W\times C
+    =
+    H\times W\times 2C
+\]
+
+\subsection*{Flatten}
+
+\[
+    H\times W\times C
+    \rightarrow
+    H\cdot W\cdot C
+\]
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item AlexNet là loại mạng gì?
+    \item AlexNet nổi tiếng vì chiến thắng cuộc thi nào?
+    \item Bài toán mà AlexNet giải quyết là gì?
+    \item Bài toán ILSVRC 2012 có bao nhiêu class?
+    \item AlexNet có bao nhiêu convolution layer?
+    \item AlexNet có bao nhiêu fully connected layer?
+    \item Vì sao lớp cuối trước softmax có 1000 phần tử?
+    \item Softmax trong AlexNet dùng để làm gì?
+    \item Input $224\times224\times3$ nghĩa là gì?
+    \item Kernel đầu tiên có kích thước đầy đủ là bao nhiêu?
+    \item Nếu input có depth 48 và kernel có kích thước không gian $5\times5$, kernel đầy đủ có kích thước bao nhiêu?
+    \item Một kernel tạo ra bao nhiêu activation map?
+    \item Nếu một lớp có 128 kernel thì output có bao nhiêu activation map?
+    \item Vì sao có hai nhánh trong sơ đồ AlexNet?
+    \item Gộp hai tensor $27\times27\times128$ theo chiều depth sẽ được tensor kích thước bao nhiêu?
+    \item Sau flatten tensor $6\times6\times128$, vector có bao nhiêu phần tử?
+    \item Hai fully connected layer đầu trong AlexNet có bao nhiêu neuron?
+    \item AlexNet có khoảng bao nhiêu tham số?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Kích thước kernel đầy đủ}
+\addcontentsline{toc}{section}{Bài tập 1: Kích thước kernel đầy đủ}
+
+Input của một convolution layer có kích thước:
+
+\[
+    55\times55\times48
+\]
+
+Kernel có kích thước không gian:
+
+\[
+    5\times5
+\]
+
+Hỏi kích thước đầy đủ của kernel là bao nhiêu?
+
+\subsection*{Lời giải gợi ý}
+
+Depth của kernel phải bằng depth của input, tức là 48.
+
+Do đó kernel đầy đủ là:
+
+\[
+    5\times5\times48
+\]
+
+\subsection*{Bài tập 2: Số trọng số của kernel}
+\addcontentsline{toc}{section}{Bài tập 2: Số trọng số của kernel}
+
+Một kernel có kích thước:
+
+\[
+    11\times11\times3
+\]
+
+Hỏi kernel này có bao nhiêu trọng số?
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    11\cdot11\cdot3=363
+\]
+
+Kernel có 363 trọng số.
+
+\subsection*{Bài tập 3: Số activation map}
+\addcontentsline{toc}{section}{Bài tập 3: Số activation map}
+
+Một convolution layer có 192 kernel.
+
+Hỏi layer này tạo ra bao nhiêu activation map?
+
+\subsection*{Lời giải gợi ý}
+
+Mỗi kernel tạo ra một activation map.
+
+Vậy 192 kernel tạo ra:
+
+\[
+    192
+\]
+
+activation map.
+
+\subsection*{Bài tập 4: Gộp hai nhánh}
+\addcontentsline{toc}{section}{Bài tập 4: Gộp hai nhánh}
+
+Hai nhánh của mạng có kích thước:
+
+\[
+    27\times27\times128
+\]
+
+Nếu gộp hai nhánh theo chiều depth, kích thước tensor mới là bao nhiêu?
+
+\subsection*{Lời giải gợi ý}
+
+Chiều cao và chiều rộng giữ nguyên, depth cộng lại:
+
+\[
+    128+128=256
+\]
+
+Do đó tensor mới là:
+
+\[
+    27\times27\times256
+\]
+
+\subsection*{Bài tập 5: Flatten}
+\addcontentsline{toc}{section}{Bài tập 5: Flatten}
+
+Một tensor có kích thước:
+
+\[
+    6\times6\times128
+\]
+
+Hỏi sau flatten, vector có bao nhiêu phần tử?
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    6\cdot6\cdot128=4608
+\]
+
+Vector sau flatten có 4608 phần tử.
+
+\subsection*{Bài tập 6: Số tham số convolution layer}
+\addcontentsline{toc}{section}{Bài tập 6: Số tham số convolution layer}
+
+Một convolution layer có:
+
+\begin{itemize}
+    \item kernel size $3\times3$;
+    \item input depth $256$;
+    \item số kernel $192$;
+    \item mỗi kernel có một bias.
+\end{itemize}
+
+Tính tổng số tham số của layer này.
+
+\subsection*{Lời giải gợi ý}
+
+Số trọng số của một kernel:
+
+\[
+    3\cdot3\cdot256=2304
+\]
+
+Số trọng số của 192 kernel:
+
+\[
+    2304\cdot192=442368
+\]
+
+Số bias:
+
+\[
+    192
+\]
+
+Tổng tham số:
+
+\[
+    442368+192=442560
+\]
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+AlexNet là một kiến trúc CNN có vai trò rất quan trọng trong lịch sử deep learning. Mạng này chiến thắng cuộc thi ILSVRC 2012, giải quyết bài toán phân loại ảnh quy mô lớn với 1000 class. AlexNet có khoảng 650000 neuron và khoảng 60 triệu tham số.
+
+Về cấu trúc, AlexNet gồm 5 lớp convolution, một số lớp max pooling, 3 lớp fully connected và lớp softmax ở cuối. Lớp softmax biến vector 1000 logits thành vector xác suất trên 1000 class.
+
+Điểm quan trọng nhất khi đọc sơ đồ AlexNet là phải hiểu ý nghĩa của từng kích thước. Ví dụ, kernel đầu tiên phải được hiểu là $11\times11\times3$ vì input là ảnh RGB có 3 channel. Nếu input của một lớp có depth 48 thì kernel của lớp đó phải có depth 48. Một kernel tạo ra một activation map, nên số kernel quyết định số activation map đầu ra.
+
+Sơ đồ AlexNet cũng có hai nhánh trên và dưới. Ở một số lớp, hai nhánh được xử lý riêng; ở một số vị trí, thông tin được gộp lại theo chiều depth. Sau nhiều lớp convolution và pooling, các feature map được flatten thành vector rồi đưa vào các fully connected layer để phân loại.
