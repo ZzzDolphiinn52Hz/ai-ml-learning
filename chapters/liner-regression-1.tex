@@ -1,0 +1,1316 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này giới thiệu bài toán \textit{regression}, đặc biệt là \textit{linear regression} -- hồi quy tuyến tính. Đây là một kỹ thuật cơ bản nhưng rất quan trọng trong thống kê, machine learning và phân tích dự đoán.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Regression là gì và khác gì với classification.
+    \item Hiểu vai trò của regression trong bài toán dự đoán.
+    \item Phân biệt biến phụ thuộc và biến độc lập.
+    \item Hiểu simple linear regression là gì.
+    \item Hiểu multiple linear regression là gì.
+    \item Biết mô hình hồi quy tuyến tính có dạng đường thẳng trong trường hợp một biến đầu vào.
+    \item Hiểu vì sao cần chọn ``đường thẳng tốt nhất'' để xấp xỉ dữ liệu.
+    \item Hiểu ý nghĩa của sai số giữa giá trị thật và giá trị dự đoán.
+    \item Hiểu tiêu chí bình phương nhỏ nhất.
+    \item Biết vì sao dùng bình phương sai số thay vì chỉ dùng trị tuyệt đối.
+    \item Hiểu ví dụ ước lượng khối lượng cá từ diện tích hình chiếu.
+    \item Biết cách liên hệ linear regression với thị giác máy tính trong bài toán công nghiệp.
+\end{enumerate}
+
+% ==========================================================
+\section{Regression Overview -- Tổng quan về hồi quy}
+
+\subsection{Regression là gì?}
+
+\textit{Regression}, hay hồi quy, là một nhóm kỹ thuật dùng để dự đoán một giá trị số dựa trên dữ liệu đã có.
+
+Khác với classification, regression không dự đoán một nhãn rời rạc như chó, mèo, xe hơi hay máy bay. Regression dự đoán một đại lượng liên tục.
+
+Ví dụ:
+
+\[
+    \text{dữ liệu quá khứ}
+    \rightarrow
+    \text{dự đoán giá trị tương lai}
+\]
+
+Một số bài toán regression:
+
+\begin{itemize}
+    \item dự đoán lượng mưa ngày mai;
+    \item dự đoán sản lượng điện tiêu thụ tháng tới;
+    \item dự đoán giá cổ phiếu;
+    \item dự đoán doanh số bán hàng;
+    \item dự đoán tình hình bệnh tật;
+    \item dự đoán khối lượng sản phẩm trong dây chuyền công nghiệp.
+\end{itemize}
+
+\begin{ghinho}
+Regression là bài toán dự đoán giá trị số. Classification là bài toán dự đoán class rời rạc.
+\end{ghinho}
+
+\subsection{Regression trong phân tích dự đoán}
+
+Regression thường được dùng trong \textit{predictive analysis} -- phân tích dự đoán.
+
+Ý tưởng là dùng dữ liệu hiện có hoặc dữ liệu quá khứ để ước lượng điều có thể xảy ra trong tương lai.
+
+Ví dụ:
+
+\[
+    \text{dữ liệu thời tiết quá khứ}
+    \rightarrow
+    \text{dự đoán lượng mưa}
+\]
+
+\[
+    \text{dữ liệu tiêu thụ điện quá khứ}
+    \rightarrow
+    \text{dự đoán điện năng tháng tới}
+\]
+
+\[
+    \text{doanh số các tháng trước}
+    \rightarrow
+    \text{dự đoán doanh số tháng sau}
+\]
+
+\begin{vidu}
+Nếu doanh nghiệp bán áo mưa, ô dù hoặc giày dép chống nước, lượng mưa có thể ảnh hưởng mạnh đến doanh số. Khi đó, dữ liệu thời tiết có thể được dùng như một biến đầu vào cho mô hình dự đoán doanh số.
+\end{vidu}
+
+% ==========================================================
+\section{Regression vs Classification -- Hồi quy và phân loại}
+
+\subsection{Classification}
+
+Classification là bài toán dự đoán một class rời rạc.
+
+Ví dụ:
+
+\[
+    \text{ảnh}
+    \rightarrow
+    \text{chó}
+\]
+
+\[
+    \text{ảnh}
+    \rightarrow
+    \text{mèo}
+\]
+
+\[
+    \text{ảnh}
+    \rightarrow
+    \text{xe hơi}
+\]
+
+Nếu bài toán có 1000 class, output là một trong 1000 nhãn.
+
+\subsection{Regression}
+
+Regression dự đoán một giá trị cụ thể.
+
+Ví dụ:
+
+\[
+    \text{dữ liệu hôm nay}
+    \rightarrow
+    \text{giá cổ phiếu ngày mai}
+\]
+
+\[
+    \text{dữ liệu thời tiết}
+    \rightarrow
+    \text{lượng mưa tuần sau}
+\]
+
+\[
+    \text{diện tích hình chiếu của cá}
+    \rightarrow
+    \text{khối lượng con cá}
+\]
+
+\subsection{Bảng so sánh}
+
+\begin{center}
+\begin{tabular}{p{0.28\textwidth}p{0.31\textwidth}p{0.31\textwidth}}
+\toprule
+Tiêu chí & Classification & Regression \\
+\midrule
+Output & Nhãn rời rạc & Giá trị số liên tục \\
+Ví dụ & Chó, mèo, xe hơi & Giá nhà, lượng mưa, khối lượng \\
+Mục tiêu & Chọn class đúng & Ước lượng giá trị gần đúng \\
+Output điển hình & $1,2,\ldots,K$ hoặc one-hot & Một số thực \\
+Ví dụ trong AI & Phân loại ảnh & Dự đoán doanh số \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{ghinho}
+Nếu output là class, đó thường là classification. Nếu output là một giá trị số cần ước lượng, đó thường là regression.
+\end{ghinho}
+
+% ==========================================================
+\section{Dependent and Independent Variables -- Biến phụ thuộc và biến độc lập}
+
+\subsection{Biến phụ thuộc}
+
+Trong regression, ta thường quan tâm đến một đại lượng cần dự đoán. Đại lượng này gọi là:
+
+\[
+    \text{dependent variable}
+\]
+
+hay:
+
+\[
+    \text{biến phụ thuộc}
+\]
+
+Ký hiệu thường dùng:
+
+\[
+    y
+\]
+
+Ví dụ:
+
+\begin{itemize}
+    \item lượng mưa tháng tới;
+    \item sản lượng điện tiêu thụ;
+    \item giá cổ phiếu;
+    \item doanh số bán hàng;
+    \item giá căn hộ;
+    \item khối lượng con cá.
+\end{itemize}
+
+\subsection{Biến độc lập}
+
+Các yếu tố dùng để dự đoán biến phụ thuộc gọi là:
+
+\[
+    \text{independent variables}
+\]
+
+hay:
+
+\[
+    \text{biến độc lập}
+\]
+
+Ký hiệu thường dùng:
+
+\[
+    x_1,x_2,\ldots,x_n
+\]
+
+Ví dụ, khi dự đoán doanh số áo mưa, các biến độc lập có thể là:
+
+\begin{itemize}
+    \item lượng mưa;
+    \item mùa trong năm;
+    \item mức quảng cáo;
+    \item giá bán;
+    \item chương trình khuyến mãi;
+    \item hoạt động của đối thủ cạnh tranh.
+\end{itemize}
+
+\begin{ghinho}
+Biến phụ thuộc là đại lượng ta muốn dự đoán. Biến độc lập là các yếu tố dùng để dự đoán đại lượng đó.
+\end{ghinho}
+
+% ==========================================================
+\section{Simple Linear Regression -- Hồi quy tuyến tính đơn}
+
+\subsection{Ý tưởng}
+
+\textit{Simple linear regression} là hồi quy tuyến tính đơn.
+
+Nó dùng một biến độc lập duy nhất để dự đoán một biến phụ thuộc.
+
+\[
+    x \rightarrow y
+\]
+
+Mô hình có dạng:
+
+\[
+    \hat{y} = w_0 + w_1x
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x$ là biến đầu vào;
+    \item $\hat{y}$ là giá trị dự đoán;
+    \item $w_0$ là hệ số chặn;
+    \item $w_1$ là hệ số góc;
+    \item $w_0,w_1$ là các tham số cần tìm.
+\end{itemize}
+
+\begin{ghinho}
+Trong simple linear regression, mô hình là một đường thẳng dùng để xấp xỉ quan hệ giữa $x$ và $y$.
+\end{ghinho}
+
+\subsection{Biểu diễn hình học}
+
+Nếu dữ liệu có dạng các điểm trên mặt phẳng:
+
+\[
+    (x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)
+\]
+
+và các điểm này có xu hướng nằm gần một đường thẳng, ta có thể dùng một đường thẳng để xấp xỉ dữ liệu.
+
+\[
+    \hat{y}=w_0+w_1x
+\]
+
+\begin{vidu}
+Nếu lượng mưa tăng thì doanh số bán áo mưa cũng tăng gần tuyến tính, ta có thể dùng linear regression để xấp xỉ quan hệ giữa lượng mưa và doanh số.
+\end{vidu}
+
+% ==========================================================
+\section{Multiple Linear Regression -- Hồi quy tuyến tính nhiều biến}
+
+\subsection{Khi có nhiều biến đầu vào}
+
+Trong thực tế, một đại lượng thường không chỉ phụ thuộc vào một yếu tố.
+
+Ví dụ, giá căn hộ có thể phụ thuộc vào:
+
+\begin{itemize}
+    \item diện tích;
+    \item số tầng;
+    \item số phòng;
+    \item số nhà vệ sinh;
+    \item khoảng cách đến trung tâm;
+    \item vị trí;
+    \item tiện ích xung quanh.
+\end{itemize}
+
+Khi đó, ta dùng nhiều biến độc lập.
+
+\subsection{Mô hình tổng quát}
+
+Mô hình hồi quy tuyến tính nhiều biến có dạng:
+
+\[
+    \hat{y}
+    =
+    w_0
+    +
+    w_1x_1
+    +
+    w_2x_2
+    +
+    \cdots
+    +
+    w_nx_n
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x_1,x_2,\ldots,x_n$ là các biến độc lập;
+    \item $\hat{y}$ là giá trị dự đoán;
+    \item $w_0,w_1,\ldots,w_n$ là các tham số cần học.
+\end{itemize}
+
+\begin{ghinho}
+Dù có nhiều biến đầu vào, mô hình vẫn gọi là tuyến tính vì nó tuyến tính theo các tham số $w_0,w_1,\ldots,w_n$.
+\end{ghinho}
+
+% ==========================================================
+\section{Best Fitting Line -- Đường thẳng xấp xỉ tốt nhất}
+
+\subsection{Có nhiều đường thẳng có thể vẽ}
+
+Khi có dữ liệu dạng các điểm trên mặt phẳng, ta có thể vẽ rất nhiều đường thẳng khác nhau để xấp xỉ dữ liệu.
+
+Ví dụ:
+
+\[
+    \hat{y}=w_0+w_1x
+\]
+
+Với mỗi cặp $w_0,w_1$ khác nhau, ta có một đường thẳng khác nhau.
+
+Câu hỏi quan trọng là:
+
+\[
+    \text{Đường nào là tốt nhất?}
+\]
+
+\subsection{Cần một tiêu chí tối ưu}
+
+Để chọn đường thẳng tốt nhất, ta cần một tiêu chí đo mức độ sai lệch giữa mô hình và dữ liệu.
+
+Với mỗi điểm dữ liệu thật:
+
+\[
+    (x_i,y_i)
+\]
+
+mô hình dự đoán:
+
+\[
+    \hat{y}_i=w_0+w_1x_i
+\]
+
+Sai số tại điểm thứ $i$ là:
+
+\[
+    e_i = y_i-\hat{y}_i
+\]
+
+\begin{ghinho}
+Sai số là khoảng cách giữa giá trị thật và giá trị mô hình dự đoán. Trong đồ thị 2D, đó là khoảng cách theo phương trục tung giữa điểm dữ liệu và đường thẳng dự đoán.
+\end{ghinho}
+
+% ==========================================================
+\section{Least Squares Criterion -- Tiêu chí bình phương nhỏ nhất}
+
+\subsection{Hàm mục tiêu}
+
+Một tiêu chí rất phổ biến là cực tiểu tổng bình phương sai số.
+
+\[
+    J(w_0,w_1)
+    =
+    \sum_{i=1}^{N}
+    \left(
+    y_i-\hat{y}_i
+    \right)^2
+\]
+
+Vì:
+
+\[
+    \hat{y}_i = w_0+w_1x_i
+\]
+
+nên:
+
+\[
+    J(w_0,w_1)
+    =
+    \sum_{i=1}^{N}
+    \left(
+    y_i-w_0-w_1x_i
+    \right)^2
+\]
+
+Mục tiêu là tìm:
+
+\[
+    w_0^*,w_1^*
+    =
+    \operatorname*{arg\,min}_{w_0,w_1}
+    J(w_0,w_1)
+\]
+
+\begin{ghinho}
+Linear regression tìm đường thẳng sao cho tổng bình phương sai số giữa giá trị thật và giá trị dự đoán là nhỏ nhất.
+\end{ghinho}
+
+\subsection{Mean Squared Error}
+
+Nếu lấy trung bình thay vì tổng, ta có \textit{mean squared error}:
+
+\[
+    MSE
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \left(
+    y_i-\hat{y}_i
+    \right)^2
+\]
+
+Tối thiểu hóa tổng bình phương sai số và tối thiểu hóa MSE về bản chất cho cùng nghiệm tối ưu, vì $\frac{1}{N}$ chỉ là hằng số.
+
+% ==========================================================
+\section{Why Squared Error? -- Vì sao dùng bình phương sai số?}
+
+\subsection{Lý do 1: Loại bỏ dấu âm}
+
+Sai số có thể dương hoặc âm:
+
+\[
+    e_i = y_i-\hat{y}_i
+\]
+
+Nếu cộng trực tiếp các sai số, sai số dương và sai số âm có thể triệt tiêu nhau.
+
+Bình phương giúp mọi sai số đều không âm:
+
+\[
+    e_i^2 \geq 0
+\]
+
+\subsection{Lý do 2: Dễ tối ưu}
+
+Hàm bình phương là hàm trơn và khả vi ở mọi điểm.
+
+Điều này thuận lợi cho việc tính đạo hàm và tối ưu.
+
+\[
+    \frac{d}{de}e^2=2e
+\]
+
+Trong khi đó, hàm trị tuyệt đối:
+
+\[
+    |e|
+\]
+
+không khả vi tại:
+
+\[
+    e=0
+\]
+
+\subsection{Lý do 3: Phạt mạnh sai số lớn}
+
+Bình phương làm sai số lớn bị khuếch đại.
+
+Ví dụ, so sánh hai mô hình:
+
+\[
+    \text{Model 1: } 2,2,2,2,2,2,2,2,2,2
+\]
+
+\[
+    \text{Model 2: } 1,1,1,1,1,1,1,1,1,11
+\]
+
+Nếu dùng sai số tuyệt đối trung bình:
+
+\[
+    \frac{2+2+\cdots+2}{10}=2
+\]
+
+\[
+    \frac{1+1+\cdots+1+11}{10}=2
+\]
+
+Hai mô hình có sai số tuyệt đối trung bình bằng nhau.
+
+Nhưng nếu dùng bình phương sai số:
+
+\[
+    \text{Model 1: }
+    \frac{10\cdot 2^2}{10}=4
+\]
+
+\[
+    \text{Model 2: }
+    \frac{9\cdot 1^2+11^2}{10}
+    =
+    \frac{9+121}{10}
+    =
+    13
+\]
+
+Khi đó model 2 bị phạt nặng hơn vì có một sai số rất lớn.
+
+\begin{ghinho}
+Bình phương sai số làm mô hình tránh các lời giải có một vài sai số cực lớn, dù nhiều điểm khác có sai số nhỏ.
+\end{ghinho}
+
+\subsection{Ví dụ trực quan về độ tin cậy}
+
+Giả sử có hai thiết bị đo:
+
+\begin{itemize}
+    \item thiết bị 1 luôn sai khoảng $2\%$;
+    \item thiết bị 2 thường sai $1\%$ nhưng đôi khi sai đến $11\%$.
+\end{itemize}
+
+Trong các ứng dụng an toàn, thiết bị 1 có thể đáng tin hơn vì sai số ổn định hơn.
+
+\begin{vidu}
+Khi đo SpO2, nếu thiết bị thỉnh thoảng cho sai số rất lớn, điều đó có thể nguy hiểm. Một mô hình có sai số nhỏ nhưng không ổn định chưa chắc tốt hơn mô hình có sai số vừa phải nhưng ổn định.
+\end{vidu}
+
+% ==========================================================
+\section{Training Linear Regression -- Huấn luyện hồi quy tuyến tính}
+
+\subsection{Huấn luyện nghĩa là gì?}
+
+Trong linear regression, huấn luyện nghĩa là tìm các tham số:
+
+\[
+    w_0,w_1
+\]
+
+sao cho hàm mất mát nhỏ nhất.
+
+Với simple linear regression:
+
+\[
+    \hat{y}=w_0+w_1x
+\]
+
+ta cần tìm đường thẳng phù hợp nhất với dữ liệu.
+
+\subsection{Sau khi huấn luyện}
+
+Sau khi tìm được $w_0,w_1$, ta có mô hình hoàn chỉnh:
+
+\[
+    \hat{y}=w_0+w_1x
+\]
+
+Khi có một giá trị input mới $x_{\text{new}}$, ta dự đoán:
+
+\[
+    \hat{y}_{\text{new}}
+    =
+    w_0+w_1x_{\text{new}}
+\]
+
+\begin{ghinho}
+Với linear regression, quá trình training là quá trình tìm hệ số của đường thẳng hoặc siêu phẳng xấp xỉ dữ liệu.
+\end{ghinho}
+
+% ==========================================================
+\section{Fish Weight Estimation Example -- Ví dụ ước lượng khối lượng cá}
+
+\subsection{Bối cảnh công nghiệp}
+
+Trong bài học, giảng viên đưa ra ví dụ ước lượng khối lượng cá rô phi trong dây chuyền chế biến thủy sản.
+
+Mục tiêu là ước lượng khối lượng con cá để phục vụ:
+
+\begin{itemize}
+    \item phân loại sản phẩm;
+    \item cắt khối lượng phù hợp;
+    \item đóng gói;
+    \item tính giá;
+    \item tự động hóa dây chuyền.
+\end{itemize}
+
+Cách đơn giản nhất là dùng cân. Tuy nhiên, trong dây chuyền nhanh, cân có thể:
+
+\begin{itemize}
+    \item đắt tiền;
+    \item không đủ nhanh;
+    \item khó tích hợp vào hệ thống tốc độ cao.
+\end{itemize}
+
+\begin{ghinho}
+Thay vì cân trực tiếp, ta có thể dùng camera và mô hình hồi quy để ước lượng khối lượng sản phẩm.
+\end{ghinho}
+
+\subsection{Sử dụng thị giác máy tính}
+
+Ta có thể đặt camera chụp vuông góc từ trên xuống khi cá chạy trên băng tải.
+
+Sau khi xử lý ảnh, ta thu được hình chiếu của con cá.
+
+Từ hình chiếu đó, ta có thể tính các đặc trưng hình học như:
+
+\begin{itemize}
+    \item chiều dài;
+    \item chiều rộng;
+    \item chu vi;
+    \item diện tích hình chiếu.
+\end{itemize}
+
+Trong ví dụ đơn giản, ta dùng một đặc trưng duy nhất:
+
+\[
+    x = \text{diện tích hình chiếu}
+\]
+
+để dự đoán:
+
+\[
+    y = \text{khối lượng con cá}
+\]
+
+Đây là bài toán simple linear regression.
+
+\subsection{Mô hình hồi quy}
+
+Mô hình có dạng:
+
+\[
+    \hat{m}=w_0+w_1A
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $A$ là diện tích hình chiếu của con cá;
+    \item $\hat{m}$ là khối lượng cá dự đoán;
+    \item $w_0,w_1$ là các hệ số cần học.
+\end{itemize}
+
+\begin{ghinho}
+Trong ví dụ này, diện tích hình chiếu là input, khối lượng cá là output cần dự đoán.
+\end{ghinho}
+
+% ==========================================================
+\section{Fish Dataset and Model Fitting -- Dữ liệu cá và xấp xỉ mô hình}
+
+\subsection{Dữ liệu huấn luyện}
+
+Giả sử ta có dữ liệu của 50 con cá.
+
+Với mỗi con cá, ta đo:
+
+\[
+    A_i = \text{diện tích hình chiếu}
+\]
+
+và biết khối lượng thật:
+
+\[
+    m_i = \text{khối lượng thật}
+\]
+
+Dữ liệu có dạng:
+
+\[
+    (A_1,m_1),(A_2,m_2),\ldots,(A_{50},m_{50})
+\]
+
+Mỗi điểm dữ liệu được biểu diễn trên đồ thị:
+
+\[
+    x = \text{diện tích}
+\]
+
+\[
+    y = \text{khối lượng}
+\]
+
+Nếu các điểm dữ liệu có xu hướng tuyến tính, ta có thể dùng đường thẳng để xấp xỉ.
+
+\subsection{Tìm đường thẳng tốt nhất}
+
+Ta cần tìm:
+
+\[
+    \hat{m}=w_0+w_1A
+\]
+
+sao cho sai số giữa khối lượng thật và khối lượng dự đoán là nhỏ nhất.
+
+Hàm mất mát:
+
+\[
+    J(w_0,w_1)
+    =
+    \sum_{i=1}^{50}
+    \left(
+    m_i-(w_0+w_1A_i)
+    \right)^2
+\]
+
+Sau khi tối ưu, ta thu được đường thẳng mô hình.
+
+\[
+    \text{dữ liệu cá}
+    \rightarrow
+    \text{training}
+    \rightarrow
+    \hat{m}=w_0+w_1A
+\]
+
+% ==========================================================
+\section{Testing the Fish Model -- Kiểm tra mô hình cá}
+
+\subsection{Dữ liệu test}
+
+Sau khi huấn luyện, ta cần kiểm tra mô hình trên dữ liệu mới.
+
+Ví dụ, dùng thêm 50 con cá khác làm test set.
+
+Với mỗi con cá test, ta có:
+
+\begin{itemize}
+    \item diện tích hình chiếu;
+    \item khối lượng thật;
+    \item khối lượng mô hình ước lượng;
+    \item sai số tuyệt đối;
+    \item sai số tương đối theo phần trăm.
+\end{itemize}
+
+\subsection{Sai số tuyệt đối}
+
+Sai số tuyệt đối:
+
+\[
+    E_{\text{abs}}
+    =
+    |m-\hat{m}|
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $m$ là khối lượng thật;
+    \item $\hat{m}$ là khối lượng dự đoán.
+\end{itemize}
+
+\subsection{Sai số tương đối}
+
+Sai số tương đối:
+
+\[
+    E_{\text{rel}}
+    =
+    \frac{|m-\hat{m}|}{m}\times100\%
+\]
+
+Theo bài học, ví dụ cho thấy sai số lớn nhất khoảng:
+
+\[
+    9.12 \text{ gram}
+\]
+
+và sai số tương đối lớn nhất khoảng:
+
+\[
+    1.97\%
+\]
+
+Sai số trung bình nhỏ hơn:
+
+\[
+    1\%
+\]
+
+\begin{ghinho}
+Một mô hình rất đơn giản như simple linear regression vẫn có thể cho kết quả tốt nếu quan hệ giữa input và output gần tuyến tính.
+\end{ghinho}
+
+% ==========================================================
+\section{Why the Fish Example Works -- Vì sao ví dụ cá có thể dùng linear regression?}
+
+\subsection{Quan hệ gần tuyến tính}
+
+Khối lượng cá thường liên quan đến kích thước hình học của nó.
+
+Nếu con cá lớn hơn, diện tích hình chiếu thường lớn hơn, và khối lượng cũng thường lớn hơn.
+
+Do đó, dữ liệu có thể có xu hướng gần tuyến tính:
+
+\[
+    A \uparrow
+    \Rightarrow
+    m \uparrow
+\]
+
+\subsection{Khi nào simple linear regression đủ tốt?}
+
+Simple linear regression có thể phù hợp khi:
+
+\begin{itemize}
+    \item chỉ cần một biến đầu vào quan trọng;
+    \item quan hệ giữa input và output gần tuyến tính;
+    \item dữ liệu ít nhiễu;
+    \item yêu cầu tốc độ xử lý nhanh;
+    \item mô hình đơn giản nhưng đủ chính xác.
+\end{itemize}
+
+\subsection{Khi nào cần mô hình phức tạp hơn?}
+
+Nếu khối lượng không chỉ phụ thuộc vào diện tích, ta có thể cần thêm các biến khác:
+
+\begin{itemize}
+    \item chiều dài;
+    \item chiều rộng;
+    \item chu vi;
+    \item độ dày ước lượng;
+    \item hình dạng;
+    \item loại cá;
+    \item góc chụp.
+\end{itemize}
+
+Khi đó có thể dùng multiple linear regression hoặc mô hình phi tuyến.
+
+\begin{luuy}
+Linear regression đơn giản, dễ hiểu và nhanh. Tuy nhiên, nếu quan hệ dữ liệu không tuyến tính, cần mô hình phù hợp hơn.
+\end{luuy}
+
+% ==========================================================
+\section{Connection to Computer Vision -- Liên hệ với thị giác máy tính}
+
+\subsection{Ảnh không trực tiếp là biến hồi quy}
+
+Trong ví dụ cá, input ban đầu là ảnh. Tuy nhiên, mô hình linear regression không nhất thiết dùng trực tiếp toàn bộ pixel ảnh.
+
+Thay vào đó, ta dùng thị giác máy tính để trích xuất đặc trưng:
+
+\[
+    \text{ảnh cá}
+    \rightarrow
+    \text{xử lý ảnh}
+    \rightarrow
+    \text{diện tích hình chiếu}
+\]
+
+Sau đó dùng diện tích để dự đoán khối lượng:
+
+\[
+    \text{diện tích}
+    \rightarrow
+    \text{linear regression}
+    \rightarrow
+    \text{khối lượng}
+\]
+
+\subsection{Tại sao cách này hữu ích?}
+
+Cách này hữu ích vì:
+
+\begin{itemize}
+    \item camera công nghiệp có thể chụp rất nhanh;
+    \item xử lý ảnh có thể tự động hóa;
+    \item không cần cân từng con cá trực tiếp;
+    \item mô hình hồi quy tính toán rất nhanh;
+    \item chi phí hệ thống có thể thấp hơn.
+\end{itemize}
+
+\begin{ghinho}
+Một pipeline công nghiệp có thể kết hợp computer vision để trích xuất đặc trưng và regression để dự đoán đại lượng vật lý.
+\end{ghinho}
+
+% ==========================================================
+\section{Linear Regression and Future Lessons -- Liên hệ với các bài học tiếp theo}
+
+\subsection{Không phải mọi bài toán đều tuyến tính}
+
+Bài học nhấn mạnh linear regression là trường hợp đơn giản.
+
+Trong thực tế, có nhiều bài toán mà quan hệ giữa input và output không phải tuyến tính.
+
+Ví dụ:
+
+\[
+    y \neq w_0+w_1x
+\]
+
+hoặc:
+
+\[
+    y \neq w_0+w_1x_1+\cdots+w_nx_n
+\]
+
+Khi đó ta cần mô hình phi tuyến.
+
+\subsection{Nguyên tắc vẫn giống nhau}
+
+Dù mô hình tuyến tính hay phi tuyến, nguyên tắc cơ bản vẫn là:
+
+\[
+    \text{dữ liệu}
+    \rightarrow
+    \text{mô hình}
+    \rightarrow
+    \text{dự đoán}
+\]
+
+và:
+
+\[
+    \text{chọn tham số để giảm sai số}
+\]
+
+Trong neural network, ta cũng có ý tưởng tương tự:
+
+\[
+    \text{dự đoán}
+    \rightarrow
+    \text{sai số}
+    \rightarrow
+    \text{cập nhật tham số}
+\]
+
+\begin{ghinho}
+Linear regression là mô hình đơn giản, nhưng tư duy tối ưu sai số của nó là nền tảng để hiểu nhiều mô hình học máy phức tạp hơn.
+\end{ghinho}
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Regression & Hồi quy, bài toán dự đoán giá trị số liên tục. & Dự đoán khối lượng cá. \\
+
+Linear regression & Hồi quy tuyến tính, dùng mô hình tuyến tính để dự đoán. & $\hat{y}=w_0+w_1x$. \\
+
+Simple linear regression & Hồi quy tuyến tính đơn, chỉ có một biến đầu vào. & Diện tích dự đoán khối lượng. \\
+
+Multiple linear regression & Hồi quy tuyến tính nhiều biến. & Giá nhà phụ thuộc diện tích, vị trí. \\
+
+Classification & Bài toán phân loại vào class rời rạc. & Chó, mèo, xe hơi. \\
+
+Prediction & Dự đoán một giá trị hoặc kết quả tương lai. & Dự đoán lượng mưa. \\
+
+Dependent variable & Biến phụ thuộc, đại lượng cần dự đoán. & Khối lượng cá. \\
+
+Independent variable & Biến độc lập, đại lượng dùng để dự đoán. & Diện tích hình chiếu. \\
+
+Model & Mô hình mô tả quan hệ input-output. & Đường thẳng hồi quy. \\
+
+Parameter & Tham số của mô hình cần học. & $w_0,w_1$. \\
+
+Error & Sai số giữa giá trị thật và dự đoán. & $y_i-\hat{y}_i$. \\
+
+Squared error & Bình phương sai số. & $(y_i-\hat{y}_i)^2$. \\
+
+Least squares & Tiêu chí bình phương nhỏ nhất. & Cực tiểu tổng bình phương sai số. \\
+
+MSE & Mean Squared Error, sai số bình phương trung bình. & $\frac{1}{N}\sum e_i^2$. \\
+
+Training & Quá trình tìm tham số mô hình từ dữ liệu. & Tìm $w_0,w_1$. \\
+
+Test set & Dữ liệu dùng để kiểm tra mô hình sau huấn luyện. & 50 con cá test. \\
+
+Absolute error & Sai số tuyệt đối. & $|m-\hat{m}|$. \\
+
+Relative error & Sai số tương đối theo phần trăm. & $\frac{|m-\hat{m}|}{m}100\%$. \\
+
+Computer vision & Thị giác máy tính, xử lý thông tin từ ảnh. & Tính diện tích cá từ ảnh. \\
+
+Feature & Đặc trưng được trích xuất từ dữ liệu. & Diện tích, chiều dài, chu vi. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Regression là bài toán dự đoán giá trị số liên tục.
+    \item Classification dự đoán class rời rạc, còn regression dự đoán đại lượng cụ thể.
+    \item Linear regression dùng mô hình tuyến tính để xấp xỉ dữ liệu.
+    \item Simple linear regression chỉ có một biến độc lập.
+    \item Multiple linear regression có nhiều biến độc lập.
+    \item Biến phụ thuộc là đại lượng cần dự đoán.
+    \item Biến độc lập là các yếu tố dùng để dự đoán.
+    \item Với simple linear regression, mô hình có dạng $\hat{y}=w_0+w_1x$.
+    \item Có nhiều đường thẳng có thể xấp xỉ dữ liệu, nên cần tiêu chí chọn đường tốt nhất.
+    \item Tiêu chí phổ biến là bình phương nhỏ nhất.
+    \item Bình phương sai số giúp phạt mạnh các sai số lớn.
+    \item Bình phương sai số cũng thuận lợi cho tối ưu vì hàm trơn và khả vi.
+    \item Ví dụ ước lượng khối lượng cá dùng diện tích hình chiếu làm input.
+    \item Có thể kết hợp computer vision và linear regression trong bài toán công nghiệp.
+    \item Linear regression đơn giản nhưng là nền tảng để hiểu các mô hình học máy phức tạp hơn.
+\end{enumerate}
+
+\subsection{Công thức quan trọng}
+
+\subsection*{Simple linear regression}
+
+\[
+    \hat{y}=w_0+w_1x
+\]
+
+\subsection*{Multiple linear regression}
+
+\[
+    \hat{y}
+    =
+    w_0
+    +
+    w_1x_1
+    +
+    w_2x_2
+    +
+    \cdots
+    +
+    w_nx_n
+\]
+
+\subsection*{Sai số}
+
+\[
+    e_i=y_i-\hat{y}_i
+\]
+
+\subsection*{Tổng bình phương sai số}
+
+\[
+    J(w_0,w_1)
+    =
+    \sum_{i=1}^{N}
+    \left(
+    y_i-w_0-w_1x_i
+    \right)^2
+\]
+
+\subsection*{Mean Squared Error}
+
+\[
+    MSE
+    =
+    \frac{1}{N}
+    \sum_{i=1}^{N}
+    \left(
+    y_i-\hat{y}_i
+    \right)^2
+\]
+
+\subsection*{Sai số tuyệt đối}
+
+\[
+    E_{\text{abs}}
+    =
+    |y-\hat{y}|
+\]
+
+\subsection*{Sai số tương đối}
+
+\[
+    E_{\text{rel}}
+    =
+    \frac{|y-\hat{y}|}{y}\times100\%
+\]
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Regression là gì?
+    \item Regression khác classification như thế nào?
+    \item Cho ví dụ một bài toán classification và một bài toán regression.
+    \item Biến phụ thuộc là gì?
+    \item Biến độc lập là gì?
+    \item Simple linear regression là gì?
+    \item Multiple linear regression là gì?
+    \item Mô hình simple linear regression có dạng công thức như thế nào?
+    \item $w_0$ và $w_1$ có ý nghĩa gì?
+    \item Vì sao có nhiều đường thẳng có thể xấp xỉ cùng một tập dữ liệu?
+    \item Sai số giữa giá trị thật và giá trị dự đoán được tính như thế nào?
+    \item Tiêu chí bình phương nhỏ nhất là gì?
+    \item Vì sao không nên chỉ cộng trực tiếp các sai số?
+    \item Vì sao bình phương sai số phạt mạnh sai số lớn?
+    \item Trong ví dụ cá, input là gì và output là gì?
+    \item Vì sao có thể dùng diện tích hình chiếu để ước lượng khối lượng cá?
+    \item Vì sao cần test mô hình sau khi training?
+    \item Sai số tuyệt đối và sai số tương đối khác nhau như thế nào?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Classification hay Regression?}
+\addcontentsline{toc}{section}{Bài tập 1: Classification hay Regression}
+
+Xác định các bài toán sau là classification hay regression:
+
+\begin{enumerate}
+    \item Dự đoán ảnh là chó hay mèo.
+    \item Dự đoán giá nhà.
+    \item Dự đoán lượng mưa ngày mai.
+    \item Phân loại email spam hoặc không spam.
+    \item Ước lượng khối lượng cá từ ảnh.
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item Classification.
+    \item Regression.
+    \item Regression.
+    \item Classification.
+    \item Regression.
+\end{enumerate}
+
+\subsection*{Bài tập 2: Xác định biến phụ thuộc và độc lập}
+\addcontentsline{toc}{section}{Bài tập 2: Xác định biến phụ thuộc và độc lập}
+
+Trong bài toán dự đoán giá căn hộ dựa trên diện tích, số phòng, số tầng và khoảng cách đến trung tâm:
+
+\begin{enumerate}
+    \item Biến phụ thuộc là gì?
+    \item Các biến độc lập là gì?
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+Biến phụ thuộc:
+
+\[
+    \text{giá căn hộ}
+\]
+
+Các biến độc lập:
+
+\[
+    \text{diện tích, số phòng, số tầng, khoảng cách đến trung tâm}
+\]
+
+\subsection*{Bài tập 3: Tính dự đoán tuyến tính}
+\addcontentsline{toc}{section}{Bài tập 3: Tính dự đoán tuyến tính}
+
+Cho mô hình:
+
+\[
+    \hat{y}=2+3x
+\]
+
+Tính $\hat{y}$ khi:
+
+\[
+    x=5
+\]
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    \hat{y}=2+3\cdot5=17
+\]
+
+\subsection*{Bài tập 4: Tính sai số}
+\addcontentsline{toc}{section}{Bài tập 4: Tính sai số}
+
+Giá trị thật là:
+
+\[
+    y=20
+\]
+
+Giá trị dự đoán là:
+
+\[
+    \hat{y}=17
+\]
+
+Tính sai số, sai số tuyệt đối và sai số bình phương.
+
+\subsection*{Lời giải gợi ý}
+
+Sai số:
+
+\[
+    e=y-\hat{y}=20-17=3
+\]
+
+Sai số tuyệt đối:
+
+\[
+    |e|=3
+\]
+
+Sai số bình phương:
+
+\[
+    e^2=3^2=9
+\]
+
+\subsection*{Bài tập 5: So sánh hai mô hình}
+\addcontentsline{toc}{section}{Bài tập 5: So sánh hai mô hình}
+
+Hai mô hình có các sai số như sau:
+
+\[
+    \text{Model 1: } 2,2,2,2
+\]
+
+\[
+    \text{Model 2: } 1,1,1,5
+\]
+
+Tính sai số tuyệt đối trung bình và sai số bình phương trung bình của hai mô hình.
+
+\subsection*{Lời giải gợi ý}
+
+Sai số tuyệt đối trung bình của Model 1:
+
+\[
+    \frac{2+2+2+2}{4}=2
+\]
+
+Sai số tuyệt đối trung bình của Model 2:
+
+\[
+    \frac{1+1+1+5}{4}=2
+\]
+
+Hai mô hình bằng nhau nếu dùng sai số tuyệt đối trung bình.
+
+Sai số bình phương trung bình của Model 1:
+
+\[
+    \frac{2^2+2^2+2^2+2^2}{4}
+    =
+    \frac{16}{4}=4
+\]
+
+Sai số bình phương trung bình của Model 2:
+
+\[
+    \frac{1^2+1^2+1^2+5^2}{4}
+    =
+    \frac{28}{4}=7
+\]
+
+Nếu dùng bình phương sai số, Model 1 tốt hơn vì không có sai số quá lớn.
+
+\subsection*{Bài tập 6: Mô hình khối lượng cá}
+\addcontentsline{toc}{section}{Bài tập 6: Mô hình khối lượng cá}
+
+Giả sử mô hình ước lượng khối lượng cá là:
+
+\[
+    \hat{m}=20+0.8A
+\]
+
+Trong đó $A$ là diện tích hình chiếu. Nếu:
+
+\[
+    A=500
+\]
+
+hãy tính khối lượng cá dự đoán.
+
+\subsection*{Lời giải gợi ý}
+
+\[
+    \hat{m}=20+0.8\cdot500=20+400=420
+\]
+
+Vậy khối lượng cá dự đoán là:
+
+\[
+    420
+\]
+
+đơn vị khối lượng tương ứng với dữ liệu huấn luyện.
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+Linear regression là một kỹ thuật cơ bản trong regression, dùng để dự đoán một giá trị số dựa trên một hoặc nhiều biến đầu vào. Với simple linear regression, mô hình có dạng một đường thẳng $\hat{y}=w_0+w_1x$. Mục tiêu của quá trình huấn luyện là tìm đường thẳng xấp xỉ dữ liệu tốt nhất.
+
+Để chọn mô hình tốt, ta cần một tiêu chí tối ưu. Tiêu chí phổ biến là bình phương nhỏ nhất, tức là cực tiểu tổng bình phương sai số giữa giá trị thật và giá trị dự đoán. Bình phương sai số có lợi vì dễ tối ưu và phạt mạnh các sai số lớn.
+
+Bài học cũng minh họa một ứng dụng thực tế: ước lượng khối lượng cá từ ảnh. Bằng cách dùng camera chụp cá trên băng tải, xử lý ảnh để lấy diện tích hình chiếu, rồi dùng simple linear regression để dự đoán khối lượng, ta có thể tạo ra một hệ thống nhanh, rẻ và đủ chính xác cho công nghiệp. Ví dụ này cho thấy một mô hình đơn giản vẫn có thể rất hữu ích nếu chọn đúng đặc trưng và bài toán có quan hệ gần tuyến tính.

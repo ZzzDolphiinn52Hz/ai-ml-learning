@@ -1,0 +1,204 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này tiếp tục chủ đề hồi quy tuyến tính, đi sâu vào các khía cạnh nâng cao và thực hành.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Cách đánh giá chất lượng mô hình hồi quy.
+    \item Các độ đo phổ biến: MSE, RMSE, MAE, $R^2$.
+    \item Hiểu overfitting và underfitting trong hồi quy.
+    \item Regularization: Ridge và Lasso regression.
+    \item Feature engineering trong hồi quy.
+    \item Polynomial regression.
+    \item Cách xử lý outliers.
+    \item Validation và cross-validation.
+\end{enumerate}
+
+% ==========================================================
+\section{Model Evaluation -- Đánh giá mô hình}
+
+\subsection{Metrics for Regression -- Các độ đo cho hồi quy}
+
+Để đánh giá chất lượng mô hình hồi quy, ta cần các độ đo định lượng.
+
+\subsubsection{Mean Squared Error (MSE)}
+
+MSE là độ đo phổ biến nhất, tính trung bình bình phương sai số:
+
+\[
+    \text{MSE} = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $n$ là số mẫu;
+    \item $y_i$ là giá trị thật;
+    \item $\hat{y}_i$ là giá trị dự đoán.
+\end{itemize}
+
+\subsubsection{Root Mean Squared Error (RMSE)}
+
+RMSE là căn bậc hai của MSE:
+
+\[
+    \text{RMSE} = \sqrt{\text{MSE}} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
+\]
+
+Ưu điểm: có cùng đơn vị với biến mục tiêu.
+
+\subsubsection{Mean Absolute Error (MAE)}
+
+MAE tính trung bình giá trị tuyệt đối của sai số:
+
+\[
+    \text{MAE} = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\]
+
+MAE ít nhạy cảm với outliers hơn MSE.
+
+\subsubsection{R-squared ($R^2$)}
+
+$R^2$ đo phần trăm phương sai được giải thích bởi mô hình:
+
+\[
+    R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
+\]
+
+Trong đó $\bar{y}$ là giá trị trung bình của $y$.
+
+Giá trị $R^2$:
+\begin{itemize}
+    \item $R^2 = 1$: mô hình hoàn hảo;
+    \item $R^2 = 0$: mô hình không tốt hơn dự đoán bằng trung bình;
+    \item $R^2 < 0$: mô hình tệ hơn dự đoán bằng trung bình.
+\end{itemize}
+
+% ==========================================================
+\section{Regularization -- Điều chuẩn}
+
+\subsection{Overfitting Problem -- Vấn đề quá khớp}
+
+Khi mô hình có quá nhiều tham số, nó có thể khớp quá mức với dữ liệu huấn luyện, dẫn đến overfitting.
+
+Regularization thêm penalty term vào hàm mất mát để hạn chế độ phức tạp của mô hình.
+
+\subsection{Ridge Regression (L2 Regularization)}
+
+Ridge regression thêm penalty $L_2$ norm của trọng số:
+
+\[
+    L(\mathbf{w}) = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2 + \lambda \sum_{j=1}^{m}w_j^2
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $\lambda$ là hệ số regularization;
+    \item $w_j$ là các trọng số.
+\end{itemize}
+
+Ridge không đưa trọng số về 0, chỉ giảm nhỏ chúng.
+
+\subsection{Lasso Regression (L1 Regularization)}
+
+Lasso regression thêm penalty $L_1$ norm:
+
+\[
+    L(\mathbf{w}) = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2 + \lambda \sum_{j=1}^{m}|w_j|
+\]
+
+Lasso có thể đưa một số trọng số về chính xác 0, thực hiện feature selection.
+
+% ==========================================================
+\section{Advanced Topics -- Chủ đề nâng cao}
+
+\subsection{Polynomial Regression}
+
+Khi quan hệ giữa biến độc lập và phụ thuộc không tuyến tính, ta có thể dùng polynomial regression:
+
+\[
+    y = w_0 + w_1x + w_2x^2 + w_3x^3 + \cdots + w_dx^d
+\]
+
+Đây vẫn là linear regression vì tuyến tính theo tham số $\mathbf{w}$.
+
+\subsection{Feature Engineering}
+
+Feature engineering là quá trình tạo biến mới từ biến gốc:
+\begin{itemize}
+    \item Tương tác giữa các biến: $x_1 \cdot x_2$;
+    \item Biến đổi phi tuyến: $\log(x)$, $\sqrt{x}$, $x^2$;
+    \item Binning: chia biến liên tục thành nhóm;
+    \item One-hot encoding cho biến categorical.
+\end{itemize}
+
+\subsection{Handling Outliers}
+
+Outliers có thể ảnh hưởng mạnh đến mô hình hồi quy. Cách xử lý:
+\begin{itemize}
+    \item Loại bỏ outliers dựa trên z-score hoặc IQR;
+    \item Dùng robust regression (Huber loss);
+    \item Transform dữ liệu (log transform).
+\end{itemize}
+
+% ==========================================================
+\section{Model Validation -- Kiểm chứng mô hình}
+
+\subsection{Train-Test Split}
+
+Chia dữ liệu thành:
+\begin{itemize}
+    \item Training set (70-80\%): huấn luyện mô hình;
+    \item Test set (20-30\%): đánh giá cuối cùng.
+\end{itemize}
+
+\subsection{Cross-Validation}
+
+K-fold cross-validation:
+\begin{enumerate}
+    \item Chia dữ liệu thành $K$ fold;
+    \item Mỗi lần, dùng $K-1$ fold để train, 1 fold để validate;
+    \item Lặp $K$ lần, mỗi fold làm validation một lần;
+    \item Tính trung bình các kết quả.
+\end{enumerate}
+
+Thường dùng $K=5$ hoặc $K=10$.
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ}
+
+\begin{center}
+\begin{tabular}{p{0.3\textwidth}p{0.6\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} \\
+\midrule
+MSE & Mean Squared Error -- trung bình bình phương sai số \\
+RMSE & Root Mean Squared Error -- căn MSE \\
+MAE & Mean Absolute Error -- trung bình giá trị tuyệt đối sai số \\
+$R^2$ & Coefficient of determination -- hệ số xác định \\
+Ridge & L2 regularization \\
+Lasso & L1 regularization \\
+Cross-validation & Kiểm chứng chéo \\
+Outlier & Điểm bất thường, ngoại lai \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================================
+\section{Summary -- Tóm tắt}
+
+\begin{enumerate}
+    \item Đánh giá mô hình hồi quy bằng MSE, RMSE, MAE, $R^2$.
+    \item Regularization (Ridge, Lasso) giúp giảm overfitting.
+    \item Ridge sử dụng L2 penalty, Lasso dùng L1 penalty.
+    \item Lasso có thể thực hiện feature selection.
+    \item Polynomial regression mở rộng cho quan hệ phi tuyến.
+    \item Feature engineering tạo biến mới để cải thiện mô hình.
+    \item Cross-validation đánh giá độ robust của mô hình.
+\end{enumerate}
+
+\begin{ghinho}
+\textbf{Lưu ý:} Nội dung này là placeholder tạm thời. Sẽ được bổ sung chi tiết và ví dụ cụ thể sau.
+\end{ghinho}

@@ -1,0 +1,747 @@
+\documentclass[12pt,a4paper]{article}
+
+% Vietnamese support for pdfLaTeX
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{lmodern}
+
+% Mathematics and layout
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\geometry{top=2.2cm,bottom=2.2cm,left=2.3cm,right=2.3cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\renewcommand{\arraystretch}{1.25}
+
+\title{\textbf{Tổng quan về KNN, K-Means, SVM, Perceptron, RNN/LSTM và Genetic Algorithm trong mối liên hệ với Reinforcement Learning}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Bức tranh tổng quát}
+
+Các thuật toán được đề cập thuộc nhiều nhóm khác nhau:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{4.0cm}
+    >{\raggedright\arraybackslash}X
+}
+\toprule
+\textbf{Thuật toán} & \textbf{Nhóm chính} & \textbf{Mục đích} \\
+\midrule
+KNN & Supervised Learning & Phân loại hoặc dự đoán dựa trên các mẫu gần nhất. \\
+K-Means & Unsupervised Learning & Chia dữ liệu thành các cụm. \\
+SVM & Supervised Learning & Tìm ranh giới phân loại tốt giữa các nhóm. \\
+Perceptron & Supervised Learning & Bộ phân loại tuyến tính đơn giản, tiền thân của neural network. \\
+RNN/LSTM & Deep Learning & Xử lý dữ liệu có thứ tự và bộ nhớ theo thời gian. \\
+Genetic Algorithm & Evolutionary Optimization & Tìm lời giải tốt bằng mô phỏng tiến hóa. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các thuật toán trên không phải nền tảng bắt buộc của Reinforcement Learning vì RL tập trung vào một kiểu bài toán khác:
+
+\begin{equation}
+\text{Agent}
+\rightarrow
+\text{Action}
+\rightarrow
+\text{Environment}
+\rightarrow
+\text{Reward, State}.
+\end{equation}
+
+Các kiến thức cốt lõi của RL là Markov Decision Process, policy, value function, Bellman equation, exploration, Monte Carlo, Temporal Difference, SARSA và Q-Learning.
+
+\section{KNN --- K-Nearest Neighbors}
+
+\subsection{KNN là gì?}
+
+KNN dự đoán một mẫu mới bằng cách tìm \(K\) mẫu gần nó nhất trong dữ liệu đã biết.
+
+Ví dụ, ta có dữ liệu về chiều cao, cân nặng và nhóm cơ thể. Khi có một người mới, KNN tìm những người có đặc điểm gần nhất rồi dựa trên nhãn của họ để dự đoán.
+
+Với bài toán phân loại:
+
+\begin{equation}
+\hat{y}
+=
+\operatorname{mode}
+\left(
+y_i \text{ của } K \text{ hàng xóm gần nhất}
+\right).
+\end{equation}
+
+Với bài toán hồi quy:
+
+\begin{equation}
+\hat{y}
+=
+\frac{1}{K}
+\sum_{i \in N_K(x)} y_i,
+\end{equation}
+
+trong đó \(N_K(x)\) là tập \(K\) điểm gần nhất với \(x\).
+
+\subsection{Mục đích}
+
+KNN dùng để:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại.
+    \item Hồi quy.
+    \item Tìm kiếm mẫu tương tự.
+    \item Gợi ý dựa trên độ giống nhau.
+\end{itemize}
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại hoa Iris dựa trên kích thước cánh hoa.
+    \item Nhận dạng chữ số viết tay.
+    \item Dự đoán giá nhà dựa trên các căn nhà tương tự.
+    \item Tìm sản phẩm hoặc người dùng có đặc điểm gần nhau.
+    \item Phát hiện mẫu bất thường nếu nó cách xa các mẫu còn lại.
+\end{itemize}
+
+\subsection{Vì sao KNN không cần thiết trước khi học RL?}
+
+KNN giải quyết bài toán:
+
+\begin{quote}
+Với một đầu vào \(x\), hãy dự đoán nhãn hoặc giá trị \(y\).
+\end{quote}
+
+Trong khi RL giải quyết bài toán:
+
+\begin{quote}
+Trong trạng thái \(s\), nên chọn hành động \(a\) nào để tối đa hóa tổng phần thưởng tương lai?
+\end{quote}
+
+KNN không cung cấp các khái niệm cốt lõi như reward, policy, return, Bellman equation, exploration hay Temporal Difference. Vì vậy, học KNN không giúp trực tiếp cho việc hiểu Q-Learning.
+
+\subsection{KNN có thể xuất hiện trong RL không?}
+
+Có, nhưng chủ yếu ở mức nâng cao hoặc trong các thiết kế đặc biệt:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Tìm các trạng thái tương tự đã gặp trước đây.
+    \item Ước lượng value dựa trên các trạng thái gần nhau.
+    \item Episodic memory.
+    \item Chọn hành động dựa trên các tình huống đã lưu.
+\end{itemize}
+
+\section{K-Means}
+
+\subsection{K-Means là gì?}
+
+K-Means là thuật toán chia dữ liệu thành \(K\) cụm sao cho các điểm trong cùng cụm gần nhau.
+
+Ví dụ, dữ liệu khách hàng có thể gồm tuổi, thu nhập và mức chi tiêu. K-Means có thể tự động chia khách hàng thành các nhóm có hành vi tương tự mà không cần nhãn trước.
+
+K-Means tìm các tâm cụm \(\mu_1,\mu_2,\ldots,\mu_K\) để tối thiểu hóa:
+
+\begin{equation}
+J
+=
+\sum_{i=1}^{n}
+\left\|
+x_i-\mu_{c_i}
+\right\|^2,
+\end{equation}
+
+trong đó:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \(x_i\) là điểm dữ liệu.
+    \item \(c_i\) là cụm của điểm \(i\).
+    \item \(\mu_{c_i}\) là tâm của cụm đó.
+\end{itemize}
+
+\subsection{Quy trình trực quan}
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Chọn ngẫu nhiên \(K\) tâm cụm.
+    \item Gán mỗi điểm vào tâm gần nhất.
+    \item Tính lại tâm của từng cụm.
+    \item Lặp lại đến khi các tâm gần như không đổi.
+\end{enumerate}
+
+\subsection{Mục đích}
+
+K-Means dùng để khám phá cấu trúc trong dữ liệu chưa có nhãn.
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân khúc khách hàng.
+    \item Gom nhóm tài liệu theo chủ đề.
+    \item Nén màu ảnh.
+    \item Gom nhóm sản phẩm.
+    \item Phân cụm vị trí địa lý.
+    \item Tạo các nhóm người dùng có hành vi tương tự.
+\end{itemize}
+
+Ví dụ, một ảnh có hàng triệu màu có thể được rút xuống còn \(K=16\) màu đại diện để giảm dung lượng.
+
+\subsection{Vì sao K-Means không cần thiết trước khi học RL?}
+
+K-Means không học cách hành động và không sử dụng reward. Nó chỉ nhóm các điểm dữ liệu dựa trên độ giống nhau.
+
+Nó không trả lời các câu hỏi như:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Agent nên làm gì?
+    \item Hành động nào đem lại reward cao?
+    \item Giá trị tương lai của một trạng thái là bao nhiêu?
+    \item Cách cập nhật policy như thế nào?
+    \item Cách cân bằng exploration và exploitation ra sao?
+\end{itemize}
+
+Do đó, K-Means không phải nền tảng của Q-Learning, DQN hay PPO.
+
+\subsection{K-Means có thể dùng trong RL không?}
+
+K-Means có thể được dùng như một công cụ phụ trợ:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Gom nhiều trạng thái liên tục thành một số trạng thái rời rạc.
+    \item Tạo state abstraction.
+    \item Gom nhóm các trải nghiệm trong replay buffer.
+    \item Phân cụm hành vi của agent.
+    \item Khám phá các vùng khác nhau trong không gian trạng thái.
+\end{itemize}
+
+Ví dụ, robot có vị trí liên tục \((x,y)\). Ta có thể dùng K-Means để gom hàng nghìn vị trí thành 50 vùng, rồi học Q-table trên 50 vùng đó.
+
+\section{SVM --- Support Vector Machine}
+
+\subsection{SVM là gì?}
+
+SVM là thuật toán phân loại tìm một đường hoặc siêu phẳng tách các lớp với khoảng cách biên lớn nhất.
+
+Trong không gian hai chiều, ranh giới có thể được viết:
+
+\begin{equation}
+w^\top x+b=0.
+\end{equation}
+
+SVM muốn các điểm của hai lớp nằm cách ranh giới càng xa càng tốt. Các điểm gần ranh giới nhất được gọi là \textit{support vectors}; chúng quyết định vị trí của ranh giới.
+
+\subsection{Trực giác}
+
+Giả sử có hai nhóm điểm đỏ và xanh. Có nhiều đường có thể tách chúng, nhưng SVM chọn đường có khoảng trống giữa hai nhóm lớn nhất. Khoảng trống lớn thường giúp mô hình khái quát tốt hơn trên dữ liệu mới.
+
+\subsection{Kernel trong SVM}
+
+Nếu dữ liệu không thể tách bằng đường thẳng, SVM có thể sử dụng kernel để mô hình hóa ranh giới phi tuyến.
+
+Một số kernel thường gặp:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Linear kernel.
+    \item Polynomial kernel.
+    \item RBF kernel.
+\end{itemize}
+
+\subsection{Mục đích}
+
+SVM chủ yếu dùng cho:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại.
+    \item Hồi quy thông qua Support Vector Regression.
+    \item Phát hiện bất thường với One-Class SVM.
+\end{itemize}
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại email spam.
+    \item Phân loại văn bản.
+    \item Nhận dạng chữ viết tay.
+    \item Phân loại ảnh khi lượng dữ liệu không quá lớn.
+    \item Chẩn đoán bệnh từ các đặc trưng số.
+    \item Phát hiện giao dịch bất thường.
+\end{itemize}
+
+SVM thường có ích khi dữ liệu có nhiều đặc trưng nhưng số lượng mẫu không quá lớn.
+
+\subsection{Vì sao SVM không cần thiết trước khi học RL?}
+
+SVM học một ánh xạ:
+
+\begin{equation}
+x \rightarrow y.
+\end{equation}
+
+Ví dụ:
+
+\begin{equation}
+\text{email}
+\rightarrow
+\text{spam hoặc không spam}.
+\end{equation}
+
+Trong RL, agent phải học một quá trình quyết định theo thời gian:
+
+\begin{equation}
+s_t
+\rightarrow
+a_t
+\rightarrow
+r_{t+1},s_{t+1}.
+\end{equation}
+
+SVM không trực tiếp giải quyết chuỗi hành động, reward trễ, return dài hạn, Bellman equation hay policy optimization. Vì vậy, hiểu SVM không giúp nhiều cho việc bắt đầu Q-Learning.
+
+\subsection{SVM có thể xuất hiện trong hệ thống RL không?}
+
+Có, thường là một module phụ:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại vật thể trước khi agent ra quyết định.
+    \item Phát hiện trạng thái nguy hiểm.
+    \item Phân loại hành vi.
+    \item Xây dựng bộ lọc an toàn.
+    \item Xử lý đặc trưng đầu vào cho robot.
+\end{itemize}
+
+Ví dụ, SVM có thể phân loại ảnh camera thành ``đường trống'' hoặc ``có vật cản'', sau đó agent RL quyết định đi thẳng hay rẽ.
+
+\section{Perceptron}
+
+\subsection{Perceptron là gì?}
+
+Perceptron là một bộ phân loại tuyến tính đơn giản.
+
+Nó tính:
+
+\begin{equation}
+z=w^\top x+b.
+\end{equation}
+
+Sau đó đưa ra dự đoán:
+
+\begin{equation}
+\hat{y}
+=
+\begin{cases}
+1, & z \geq 0,\\
+0, & z < 0.
+\end{cases}
+\end{equation}
+
+Nếu dự đoán sai, trọng số được cập nhật:
+
+\begin{equation}
+w
+\leftarrow
+w+\eta(y-\hat{y})x,
+\end{equation}
+
+trong đó \(\eta\) là learning rate.
+
+\subsection{Mục đích}
+
+Perceptron dùng để phân loại hai lớp có thể tách bằng đường thẳng.
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Phân loại điểm thành hai nhóm tuyến tính.
+    \item Minh họa cách một neuron nhân tạo hoạt động.
+    \item Học các cổng logic đơn giản như AND và OR.
+    \item Làm nền tảng lịch sử để hiểu neural network.
+\end{itemize}
+
+Một perceptron có thể học được cổng AND, nhưng một perceptron đơn không giải được XOR vì XOR không tuyến tính.
+
+\subsection{Vì sao không cần học lại Perceptron?}
+
+Nếu đã học ANN, forward propagation, backpropagation và gradient descent thì kiến thức của bạn đã vượt xa perceptron đơn.
+
+Một neural network nhiều lớp có thể được xem như nhiều đơn vị neuron kết hợp với nhau, sử dụng activation function để xử lý các quan hệ phi tuyến.
+
+Perceptron hữu ích để hiểu lịch sử và trực giác, nhưng không phải điều kiện riêng biệt để học RL.
+
+\subsection{Perceptron liên quan thế nào đến RL?}
+
+Trong Deep RL, policy hoặc value function có thể được xấp xỉ bằng neural network:
+
+\begin{equation}
+Q(s,a;\theta)
+\end{equation}
+
+hoặc:
+
+\begin{equation}
+\pi(a\mid s;\theta).
+\end{equation}
+
+Perceptron có thể xem là dạng đơn giản nhất của function approximator. Tuy nhiên, DQN hoặc PPO trong thực tế sử dụng mạng neural nhiều lớp chứ không dùng perceptron đơn.
+
+\section{RNN và LSTM}
+
+\subsection{RNN là gì?}
+
+RNN, hay Recurrent Neural Network, là mạng neural dành cho dữ liệu có thứ tự.
+
+Điểm khác biệt là RNN có hidden state đóng vai trò như bộ nhớ:
+
+\begin{equation}
+h_t
+=
+f(W_xx_t+W_hh_{t-1}+b).
+\end{equation}
+
+Đầu ra tại thời điểm \(t\) phụ thuộc vào:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Dữ liệu hiện tại \(x_t\).
+    \item Trạng thái bộ nhớ trước đó \(h_{t-1}\).
+\end{itemize}
+
+Do đó, RNN không chỉ nhìn một mẫu riêng lẻ mà còn sử dụng thông tin từ các bước trước.
+
+\subsection{Ví dụ}
+
+Trong câu ``Tôi đã ăn một quả táo vì nó rất ngon'', để hiểu từ ``nó'' chỉ ``quả táo'', mô hình cần nhớ các từ xuất hiện trước đó.
+
+Trong dữ liệu nhiệt độ:
+
+\begin{equation}
+x_1,x_2,x_3,\ldots,x_t,
+\end{equation}
+
+dự đoán nhiệt độ ngày mai có thể phụ thuộc vào nhiều ngày trước.
+
+\subsection{Vấn đề của RNN thông thường}
+
+RNN cơ bản có thể gặp:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Vanishing gradient.
+    \item Exploding gradient.
+    \item Khó nhớ quan hệ dài hạn.
+\end{itemize}
+
+\subsection{LSTM là gì?}
+
+LSTM là một dạng RNN được thiết kế để duy trì thông tin lâu hơn bằng các gate.
+
+Các thành phần chính gồm:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Forget gate: quên thông tin không cần thiết.
+    \item Input gate: thêm thông tin mới.
+    \item Output gate: quyết định thông tin nào được xuất ra.
+    \item Cell state: luồng bộ nhớ dài hạn.
+\end{itemize}
+
+LSTM không loại bỏ hoàn toàn các vấn đề gradient, nhưng xử lý phụ thuộc dài hạn tốt hơn RNN cơ bản.
+
+\subsection{Mục đích}
+
+RNN/LSTM dùng khi dữ liệu có quan hệ theo thời gian hoặc theo thứ tự.
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Dự báo chuỗi thời gian.
+    \item Nhận dạng giọng nói.
+    \item Phân tích cảm xúc.
+    \item Sinh văn bản.
+    \item Dịch máy.
+    \item Phát hiện bất thường trong chuỗi cảm biến.
+    \item Dự đoán nhu cầu hoặc doanh số.
+    \item Phân tích tín hiệu y tế như ECG.
+\end{itemize}
+
+Hiện nay, trong nhiều bài toán ngôn ngữ, Transformer thường được dùng thay RNN/LSTM. Tuy nhiên, RNN và LSTM vẫn hữu ích trong chuỗi thời gian, hệ thống nhỏ và một số bài toán điều khiển.
+
+\subsection{Vì sao RNN/LSTM chưa cần cho RL cơ bản?}
+
+Trong các môi trường RL nhập môn như FrozenLake, Taxi, CartPole hoặc MountainCar, trạng thái hiện tại thường đã chứa đủ thông tin để agent quyết định. Đây gần với giả định Markov:
+
+\begin{equation}
+P(S_{t+1}\mid S_t,A_t).
+\end{equation}
+
+Agent không nhất thiết phải nhớ toàn bộ lịch sử.
+
+Q-Learning dạng bảng chỉ cần:
+
+\begin{equation}
+Q(s,a).
+\end{equation}
+
+DQN cơ bản cũng chỉ cần đưa trạng thái hiện tại vào mạng:
+
+\begin{equation}
+s_t
+\rightarrow
+Q(s_t,a_1),Q(s_t,a_2),\ldots
+\end{equation}
+
+Do đó, chưa cần RNN hoặc LSTM.
+
+\subsection{Khi nào RNN/LSTM cần thiết trong RL?}
+
+RNN/LSTM trở nên hữu ích khi agent không quan sát được toàn bộ trạng thái thật của môi trường. Trường hợp này thường được mô hình hóa bằng POMDP.
+
+Ví dụ:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Robot chỉ nhìn được một phần căn phòng.
+    \item Game có thông tin ẩn.
+    \item Điều khiển dựa trên cảm biến nhiễu.
+\end{itemize}
+
+Khi đó có thể dùng recurrent policy:
+
+\begin{equation}
+h_t
+=
+\operatorname{LSTM}(o_t,h_{t-1}),
+\end{equation}
+
+và:
+
+\begin{equation}
+a_t \sim \pi(a\mid h_t).
+\end{equation}
+
+Các mô hình như DRQN hoặc Recurrent PPO sử dụng ý tưởng này. Vì vậy, RNN/LSTM hữu ích ở giai đoạn sau nhưng không cần trước Q-Learning hoặc DQN cơ bản.
+
+\section{Genetic Algorithm}
+
+\subsection{Genetic Algorithm là gì?}
+
+Genetic Algorithm, hay GA, là phương pháp tối ưu lấy cảm hứng từ tiến hóa tự nhiên.
+
+Thay vì tối ưu một lời giải duy nhất bằng gradient, GA duy trì một quần thể lời giải. Mỗi lời giải được biểu diễn như một chromosome.
+
+Quy trình thường gồm:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Khởi tạo quần thể.
+    \item Đánh giá fitness.
+    \item Chọn các cá thể tốt.
+    \item Crossover để tạo cá thể mới.
+    \item Mutation để tạo biến đổi.
+    \item Lặp lại qua nhiều thế hệ.
+\end{enumerate}
+
+\subsection{Ví dụ đơn giản}
+
+Cần tìm tham số \(x\) làm hàm \(f(x)\) đạt giá trị lớn nhất. GA tạo nhiều giá trị \(x\), giữ lại các giá trị cho \(f(x)\) lớn, sau đó kết hợp và biến đổi chúng để tìm nghiệm tốt hơn.
+
+\subsection{Mục đích}
+
+GA dùng để tìm lời giải trong các không gian:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Rất lớn.
+    \item Rời rạc.
+    \item Không khả vi.
+    \item Có nhiều cực trị cục bộ.
+    \item Khó áp dụng gradient descent.
+\end{itemize}
+
+\subsection{Ứng dụng cụ thể}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Bài toán người bán hàng TSP.
+    \item Lập lịch sản xuất.
+    \item Xếp lịch nhân viên.
+    \item Tối ưu tuyến đường.
+    \item Thiết kế cánh máy bay hoặc cấu trúc kỹ thuật.
+    \item Tối ưu tham số mô hình.
+    \item Tìm kiến trúc neural network.
+    \item Tối ưu chiến lược trong game.
+    \item Phân bổ nguồn lực.
+\end{itemize}
+
+Trong bài toán TSP, mỗi chromosome có thể là một thứ tự đi qua các thành phố.
+
+\subsection{Vì sao Genetic Algorithm không cần thiết cho RL?}
+
+GA là một phương pháp tối ưu, nhưng không cung cấp các khái niệm nền tảng của RL như:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item MDP.
+    \item State value.
+    \item Action value.
+    \item Bellman equation.
+    \item TD error.
+    \item On-policy và off-policy.
+    \item Credit assignment theo thời gian.
+\end{itemize}
+
+RL thường học từ từng transition:
+
+\begin{equation}
+(s_t,a_t,r_{t+1},s_{t+1}),
+\end{equation}
+
+trong khi GA thường chỉ đánh giá một lời giải hoặc một policy bằng một fitness tổng thể:
+
+\begin{equation}
+\operatorname{fitness}(\theta)
+=
+\text{tổng reward của policy có tham số }\theta.
+\end{equation}
+
+\subsection{Genetic Algorithm có liên quan đến RL không?}
+
+Có. GA có thể dùng để tối ưu policy mà không cần backpropagation.
+
+Giả sử policy là mạng neural:
+
+\begin{equation}
+a=\pi(s;\theta).
+\end{equation}
+
+GA có thể coi toàn bộ trọng số \(\theta\) là chromosome. Mỗi cá thể là một mạng neural khác nhau.
+
+Quy trình:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Tạo nhiều mạng neural ngẫu nhiên.
+    \item Cho từng mạng tương tác với môi trường.
+    \item Dùng tổng reward làm fitness.
+    \item Giữ các mạng tốt nhất.
+    \item Lai ghép và đột biến trọng số.
+    \item Tiếp tục qua nhiều thế hệ.
+\end{enumerate}
+
+Cách này thường được gọi là neuroevolution hoặc evolutionary reinforcement learning.
+
+\subsection{Khi nào GA hữu ích hơn?}
+
+GA có thể hữu ích khi:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Reward không khả vi.
+    \item Môi trường mô phỏng được nhưng không có gradient.
+    \item Không gian chiến lược phức tạp.
+    \item Có thể chạy nhiều agent song song.
+    \item Muốn tìm cả kiến trúc mạng lẫn trọng số.
+    \item Gradient-based RL không ổn định.
+\end{itemize}
+
+Tuy nhiên, GA thường cần nhiều lần đánh giá môi trường và có thể tốn dữ liệu hơn các thuật toán như PPO hoặc DQN.
+
+\section{So sánh mức độ cần thiết đối với lộ trình RL}
+
+\begin{longtable}{
+    >{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{4.0cm}
+    >{\raggedright\arraybackslash}p{7.0cm}
+}
+\toprule
+\textbf{Kiến thức} &
+\textbf{Mức độ cần trước RL} &
+\textbf{Có thể dùng trong RL khi nào?} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Kiến thức} &
+\textbf{Mức độ cần trước RL} &
+\textbf{Có thể dùng trong RL khi nào?} \\
+\midrule
+\endhead
+
+KNN &
+Không cần &
+Tìm trạng thái tương tự, non-parametric value approximation. \\
+
+K-Means &
+Không cần &
+Phân cụm trạng thái, state abstraction. \\
+
+SVM &
+Không cần &
+Phân loại đầu vào, safety classifier, perception module. \\
+
+Perceptron &
+Không cần học riêng nếu đã biết ANN &
+Hiểu function approximator đơn giản. \\
+
+RNN/LSTM &
+Chưa cần &
+POMDP, quan sát thiếu, cần nhớ lịch sử. \\
+
+Genetic Algorithm &
+Không cần &
+Neuroevolution, policy search không dùng gradient. \\
+
+\bottomrule
+\end{longtable}
+
+\section{Nên ưu tiên học gì thay cho các nội dung trên?}
+
+Để bắt đầu RL, thứ tự ưu tiên nên là:
+
+\begin{equation}
+\text{Xác suất và kỳ vọng}
+\rightarrow
+\text{MDP}
+\rightarrow
+\text{Return}
+\rightarrow
+V(s),Q(s,a),
+\end{equation}
+
+\begin{equation}
+\rightarrow
+\text{Bellman equation}
+\rightarrow
+\text{Dynamic Programming}
+\rightarrow
+\text{Monte Carlo},
+\end{equation}
+
+\begin{equation}
+\rightarrow
+\text{TD}
+\rightarrow
+\text{SARSA}
+\rightarrow
+\text{Q-Learning}
+\rightarrow
+\text{DQN}.
+\end{equation}
+
+Có thể hiểu ngắn gọn:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{KNN, K-Means, SVM:} các thuật toán ML cổ điển giải quyết phân loại, hồi quy hoặc phân cụm; không dạy agent cách ra quyết định theo thời gian.
+    \item \textbf{Perceptron:} nền móng của ANN; nếu đã học ANN thì không cần quay lại quá sâu.
+    \item \textbf{RNN/LSTM:} cần khi agent phải nhớ lịch sử; chưa cần cho RL cơ bản.
+    \item \textbf{Genetic Algorithm:} một cách tối ưu policy thay thế; không phải nền tảng của Bellman-based RL.
+\end{itemize}
+
+Do đó, có thể học sơ lược các thuật toán này để có cái nhìn tổng quan về AI/ML, nhưng không nên trì hoãn việc học MDP, Bellman equation và Q-Learning chỉ để hoàn thành chúng.
+
+\end{document}
