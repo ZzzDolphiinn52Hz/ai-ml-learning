@@ -1,0 +1,1118 @@
+% ==========================================================
+\section*{Learning Objectives -- Mục tiêu bài học}
+\addcontentsline{toc}{section}{Mục tiêu bài học}
+
+Bài học này giới thiệu các nhóm bài toán chính trong \textit{Machine Learning}, đặc biệt là \textit{Supervised Learning} và \textit{Unsupervised Learning}. Ngoài ra, bài học cũng nhắc sơ lược đến \textit{Reinforcement Learning} để người học thấy được bức tranh tổng quát hơn.
+
+Sau khi học xong, người học cần nắm được:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Machine Learning là gì trong bối cảnh Trí Tuệ Nhân Tạo.
+    \item Vì sao ta nói máy cần ``học'' trước khi thực hiện được một tác vụ.
+    \item Hiểu ý nghĩa của hàm $f$ trong mô hình học máy.
+    \item Phân biệt giai đoạn huấn luyện và giai đoạn sử dụng mô hình.
+    \item Hiểu supervised learning là gì.
+    \item Biết vai trò của data và label trong supervised learning.
+    \item Hiểu các ví dụ supervised learning như phân loại ảnh, dự đoán giá cổ phiếu, nhận diện khuôn mặt và bảo trì dự đoán.
+    \item Hiểu unsupervised learning là gì.
+    \item Biết vì sao unsupervised learning không cần label.
+    \item Hiểu ví dụ clustering trong phân nhóm khách hàng.
+    \item Phân biệt bài toán phân loại có nhãn và bài toán phân nhóm không nhãn.
+    \item Nắm ý tưởng rất tổng quát của reinforcement learning.
+\end{enumerate}
+
+% ==========================================================
+\section{Machine Learning in AI -- Máy học trong Trí Tuệ Nhân Tạo}
+
+\subsection{Machine Learning là gì?}
+
+\textit{Machine Learning} thường được dịch là \textit{máy học} hoặc \textit{học máy}. Trong bài học này, cách hiểu quan trọng là:
+
+\[
+    \text{Machine Learning}
+    =
+    \text{việc máy học từ dữ liệu để thực hiện một tác vụ nào đó}
+\]
+
+Máy không tự nhiên biết nhận dạng ảnh, dự đoán giá cổ phiếu, tự lái xe hay dự đoán hỏng hóc thiết bị. Nó phải được huấn luyện từ dữ liệu.
+
+\begin{ghinho}
+Machine Learning là một nhánh quan trọng trong Artificial Intelligence. Thay vì lập trình cứng mọi quy tắc, ta cho máy học quy luật từ dữ liệu.
+\end{ghinho}
+
+\subsection{Vì sao máy cần học?}
+
+Con người có kiến thức và kỹ năng thông qua quá trình học. Máy cũng tương tự.
+
+Ví dụ, nếu ta chỉ có một chiếc máy tính chưa được huấn luyện, nó không thể tự biết:
+
+\begin{itemize}
+    \item ảnh nào là chó, ảnh nào là mèo;
+    \item giá cổ phiếu ngày mai là bao nhiêu;
+    \item khi nào một động cơ cần bảo trì;
+    \item xe tự lái nên đánh lái, thắng hay tăng ga như thế nào.
+\end{itemize}
+
+Muốn máy làm được các việc đó, ta cần cho máy học từ dữ liệu.
+
+% ==========================================================
+\section{Learning a Function -- Học một hàm ánh xạ}
+
+\subsection{Mô hình học máy như một hàm $f$}
+
+Có thể hình dung mô hình học máy là một hàm:
+
+\[
+    y = f(x)
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x$ là input;
+    \item $y$ là output;
+    \item $f$ là quy luật mà máy cần học.
+\end{itemize}
+
+Ví dụ:
+
+\[
+    \text{ảnh con chó}
+    \xrightarrow{f}
+    \text{label ``chó''}
+\]
+
+hoặc:
+
+\[
+    \text{dữ liệu cảm biến động cơ}
+    \xrightarrow{f}
+    \text{dự đoán cần bảo trì hay chưa}
+\]
+
+\begin{ghinho}
+Trong machine learning, quá trình học có thể hiểu là quá trình tìm ra một hàm $f$ phù hợp từ dữ liệu.
+\end{ghinho}
+
+\subsection{Trước và sau khi huấn luyện}
+
+Trước khi huấn luyện, mô hình chưa biết hàm $f$ tốt là gì.
+
+\[
+    \text{chưa train}
+    \Rightarrow
+    f \text{ chưa tốt}
+\]
+
+Sau khi huấn luyện, nếu quá trình học thành công, mô hình đã học được một hàm $f$ đủ tốt để dùng cho dữ liệu mới.
+
+\[
+    \text{đã train}
+    \Rightarrow
+    f \text{ có thể dự đoán output}
+\]
+
+\begin{vidu}
+Với xe tự lái, input có thể là ảnh camera, dữ liệu radar, lidar, vận tốc, vị trí. Output có thể là góc đánh lái, mức thắng hoặc mức ga. Sau khi huấn luyện tốt, mô hình có thể ánh xạ input sang hành động điều khiển phù hợp.
+\end{vidu}
+
+% ==========================================================
+\section{Main Types of Learning -- Các loại học chính}
+
+\subsection{Ba nhóm học phổ biến}
+
+Trong machine learning, có ba nhóm học phổ biến:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textit{Supervised Learning} -- học có giám sát.
+    \item \textit{Unsupervised Learning} -- học không giám sát.
+    \item \textit{Reinforcement Learning} -- học tăng cường hoặc học củng cố.
+\end{enumerate}
+
+Trong bài này, trọng tâm là hai nhóm đầu tiên:
+
+\[
+    \text{Supervised Learning}
+    \quad \text{và} \quad
+    \text{Unsupervised Learning}
+\]
+
+\begin{luuy}
+Reinforcement Learning được nhắc sơ lược trong bài để thấy bức tranh tổng quát. Nội dung chi tiết nên học riêng ở phần sau.
+\end{luuy}
+
+% ==========================================================
+\section{Supervised Learning -- Học có giám sát}
+
+\subsection{Định nghĩa}
+
+\textit{Supervised Learning} là học có giám sát.
+
+Trong loại học này, dữ liệu huấn luyện gồm cả:
+
+\[
+    \text{data}
+    \quad \text{và} \quad
+    \text{label}
+\]
+
+Mỗi mẫu dữ liệu đi kèm với nhãn đúng của nó.
+
+\[
+    (x_i, y_i)
+\]
+
+Trong đó:
+
+\begin{itemize}
+    \item $x_i$ là dữ liệu đầu vào;
+    \item $y_i$ là label, tức output đúng tương ứng.
+\end{itemize}
+
+\begin{ghinho}
+Điều kiện quan trọng của supervised learning là phải có dữ liệu và label tương ứng.
+\end{ghinho}
+
+\subsection{Ý nghĩa của chữ ``giám sát''}
+
+Chữ ``giám sát'' ở đây có nghĩa là trong quá trình học, ta cung cấp cho máy câu trả lời đúng.
+
+Ví dụ:
+
+\[
+    \text{ảnh thứ nhất}
+    \rightarrow
+    \text{đây là con chó}
+\]
+
+\[
+    \text{ảnh thứ hai}
+    \rightarrow
+    \text{đây là con mèo}
+\]
+
+Tức là máy không chỉ nhìn ảnh, mà còn được chỉ dẫn rằng ảnh đó thuộc class nào.
+
+\begin{vidu}
+Khi ta đưa ảnh vào và nói rõ ``đây là chó'', ``đây là mèo'', ``đây là xe hơi'', ta đang cung cấp label cho hệ thống học có giám sát.
+\end{vidu}
+
+% ==========================================================
+\section{Data and Label -- Dữ liệu và nhãn}
+
+\subsection{Data là gì?}
+
+Data là dữ liệu đầu vào mà mô hình nhận được.
+
+Ví dụ:
+
+\begin{itemize}
+    \item một tấm ảnh;
+    \item dữ liệu giá cổ phiếu các ngày trước;
+    \item dữ liệu cảm biến của động cơ;
+    \item dữ liệu nhiệt độ, độ rung, áp suất;
+    \item dữ liệu mua hàng của khách hàng.
+\end{itemize}
+
+\subsection{Label là gì?}
+
+Label là kết quả đúng đi kèm với data.
+
+Ví dụ:
+
+\begin{itemize}
+    \item ảnh con chó có label là ``chó'';
+    \item ảnh con mèo có label là ``mèo'';
+    \item dữ liệu 3 ngày giá cổ phiếu có label là giá ngày tiếp theo cần dự đoán;
+    \item dữ liệu cảm biến máy có label là trạng thái bình thường hoặc cần bảo trì.
+\end{itemize}
+
+\begin{ghinho}
+Trong supervised learning, label đóng vai trò như đáp án để mô hình học cách ánh xạ input sang output.
+\end{ghinho}
+
+% ==========================================================
+\section{Image Classification Example -- Ví dụ phân loại ảnh}
+
+\subsection{Input và label}
+
+Giả sử ta huấn luyện mô hình phân loại ảnh chó và mèo.
+
+Mỗi mẫu huấn luyện có dạng:
+
+\[
+    (\text{ảnh}, \text{label})
+\]
+
+Ví dụ:
+
+\[
+    (\text{ảnh con chó}, \text{chó})
+\]
+
+\[
+    (\text{ảnh con mèo}, \text{mèo})
+\]
+
+Ở đây:
+
+\begin{itemize}
+    \item input là ảnh;
+    \item label là tên class: chó hoặc mèo.
+\end{itemize}
+
+\subsection{Mục tiêu học}
+
+Mục tiêu là học một hàm:
+
+\[
+    f(\text{ảnh}) = \text{class}
+\]
+
+Sau khi học xong, nếu đưa một ảnh mới vào, mô hình có thể dự đoán ảnh đó là chó hay mèo.
+
+\[
+    \text{ảnh mới}
+    \rightarrow
+    f
+    \rightarrow
+    \text{dự đoán class}
+\]
+
+\begin{ghinho}
+Phân loại ảnh là một ví dụ điển hình của supervised learning vì mỗi ảnh trong tập train cần có label.
+\end{ghinho}
+
+% ==========================================================
+\section{Stock Price Prediction Example -- Ví dụ dự đoán giá cổ phiếu}
+
+\subsection{Mô tả bài toán}
+
+Giả sử ta muốn dự đoán giá cổ phiếu của một ngày dựa trên giá của các ngày trước đó.
+
+Ví dụ, dùng giá của ba ngày trước để dự đoán giá của ngày hiện tại.
+
+Nếu ký hiệu giá cổ phiếu theo ngày là:
+
+\[
+    p_1,p_2,p_3,p_4,\ldots
+\]
+
+Ta có thể tạo một mẫu dữ liệu như sau:
+
+\[
+    x =
+    \begin{bmatrix}
+    p_2\\
+    p_3\\
+    p_4
+    \end{bmatrix}
+\]
+
+và label là:
+
+\[
+    y=p_1
+\]
+
+Tức là:
+
+\[
+    \text{data} = \text{giá của ba ngày trước}
+\]
+
+\[
+    \text{label} = \text{giá của ngày cần dự đoán}
+\]
+
+\begin{luuy}
+Khi huấn luyện, label phải là giá đã biết trong quá khứ. Khi sử dụng mô hình thật để dự đoán tương lai, giá tương lai chưa biết nên không phải là label trong dữ liệu huấn luyện hiện tại.
+\end{luuy}
+
+\subsection{Tạo nhiều mẫu huấn luyện}
+
+Không chỉ dùng một đoạn dữ liệu, ta phải tạo rất nhiều cặp data-label.
+
+Ví dụ:
+
+\[
+    (p_2,p_3,p_4) \rightarrow p_1
+\]
+
+\[
+    (p_3,p_4,p_5) \rightarrow p_2
+\]
+
+\[
+    (p_4,p_5,p_6) \rightarrow p_3
+\]
+
+Tùy cách đánh số thời gian, ý tưởng quan trọng là dùng một cửa sổ các ngày trước để dự đoán một ngày mục tiêu đã biết.
+
+\begin{ghinho}
+Trong dự đoán chuỗi thời gian, ta thường tạo nhiều cặp input-label bằng cách trượt một cửa sổ thời gian trên dữ liệu quá khứ.
+\end{ghinho}
+
+% ==========================================================
+\section{Need for Large Data -- Nhu cầu dữ liệu lớn}
+
+\subsection{Một vài mẫu là chưa đủ}
+
+Để mô hình học tốt, ta cần nhiều dữ liệu.
+
+Với bài toán ảnh, có thể cần:
+
+\[
+    \text{hàng ngàn ảnh}
+\]
+
+\[
+    \text{hàng chục ngàn ảnh}
+\]
+
+\[
+    \text{hàng triệu ảnh}
+\]
+
+thậm chí:
+
+\[
+    \text{hàng trăm triệu ảnh}
+\]
+
+\subsection{Dữ liệu là điều kiện cần}
+
+Có nhiều dữ liệu là rất quan trọng, nhưng chưa đủ.
+
+Ta còn cần:
+
+\begin{itemize}
+    \item mô hình phù hợp;
+    \item phương pháp huấn luyện phù hợp;
+    \item dữ liệu đủ đa dạng;
+    \item label đủ chính xác;
+    \item quá trình tối ưu tốt.
+\end{itemize}
+
+\begin{canhbao}
+Dữ liệu là điều kiện cần, không phải điều kiện đủ. Nếu mô hình không phù hợp hoặc cách huấn luyện sai, có nhiều dữ liệu vẫn chưa chắc học tốt.
+\end{canhbao}
+
+% ==========================================================
+\section{Face Recognition Example -- Ví dụ nhận diện khuôn mặt}
+
+\subsection{Facebook tagging}
+
+Trong bài học, giảng viên nhắc đến ví dụ nhận diện khuôn mặt trên Facebook.
+
+Trước đây, khi upload ảnh lên, người dùng thường phải tự gắn thẻ từng người trong ảnh.
+
+Khi đó người dùng đã cung cấp:
+
+\[
+    \text{data} = \text{ảnh khuôn mặt}
+\]
+
+\[
+    \text{label} = \text{tên người}
+\]
+
+Ví dụ:
+
+\[
+    \text{khuôn mặt A}
+    \rightarrow
+    \text{Nguyễn Văn A}
+\]
+
+\subsection{Máy học từ dữ liệu gắn nhãn}
+
+Khi có rất nhiều ảnh và tên người tương ứng, hệ thống có thể học hàm:
+
+\[
+    f(\text{khuôn mặt}) = \text{tên người}
+\]
+
+Sau khi huấn luyện tốt, hệ thống có thể tự gợi ý tên người trong ảnh mới.
+
+\begin{ghinho}
+Việc người dùng gắn thẻ ảnh chính là một cách cung cấp label cho hệ thống học có giám sát.
+\end{ghinho}
+
+% ==========================================================
+\section{Predictive Maintenance Example -- Ví dụ bảo trì dự đoán}
+
+\subsection{Bảo trì định kỳ và bảo trì dự đoán}
+
+Trong công nghiệp, bảo trì truyền thống thường là bảo trì định kỳ.
+
+Ví dụ:
+
+\[
+    \text{cứ sau một khoảng thời gian cố định thì kiểm tra máy}
+\]
+
+Nhưng cách này có thể không tối ưu:
+
+\begin{itemize}
+    \item có lúc kiểm tra nhưng máy chưa có vấn đề;
+    \item có lúc máy hỏng trước lần kiểm tra tiếp theo.
+\end{itemize}
+
+Bảo trì dự đoán cố gắng dự đoán khi nào máy cần bảo trì dựa trên dữ liệu cảm biến.
+
+\subsection{Dữ liệu cảm biến}
+
+Các thiết bị công nghiệp có thể thu thập nhiều loại dữ liệu:
+
+\begin{itemize}
+    \item độ rung;
+    \item nhiệt độ;
+    \item áp suất;
+    \item âm thanh;
+    \item dòng điện;
+    \item điện áp;
+    \item nồng độ khí hòa tan trong dầu của máy biến thế;
+    \item các trạng thái vận hành khác.
+\end{itemize}
+
+Các dữ liệu này là input cho mô hình học máy.
+
+\subsection{Label trong bảo trì dự đoán}
+
+Label có thể là:
+
+\begin{itemize}
+    \item máy bình thường;
+    \item máy sắp hỏng;
+    \item cần bảo trì;
+    \item còn bao nhiêu ngày trước khi hỏng;
+    \item loại lỗi có thể xảy ra.
+\end{itemize}
+
+Nếu có data và label như vậy, đây là một bài toán supervised learning.
+
+\begin{vidu}
+Dữ liệu độ rung của động cơ là input. Trạng thái ``bình thường'' hoặc ``cần bảo trì'' là label. Mô hình học cách dự đoán trạng thái máy từ tín hiệu rung.
+\end{vidu}
+
+% ==========================================================
+\section{Unsupervised Learning -- Học không giám sát}
+
+\subsection{Định nghĩa}
+
+\textit{Unsupervised Learning} là học không giám sát.
+
+Trong loại học này, ta chỉ có:
+
+\[
+    \text{data}
+\]
+
+nhưng không có:
+
+\[
+    \text{label}
+\]
+
+Tức là dữ liệu không đi kèm đáp án đúng.
+
+\[
+    x_1,x_2,\ldots,x_N
+\]
+
+Không có các cặp:
+
+\[
+    (x_i,y_i)
+\]
+
+\begin{ghinho}
+Unsupervised learning chỉ dùng dữ liệu không nhãn. Mục tiêu thường là tìm cấu trúc ẩn trong dữ liệu.
+\end{ghinho}
+
+\subsection{Không phải bài toán nào cũng dùng unsupervised learning được}
+
+Nếu muốn nhận diện tên một người trong ảnh, nhưng chỉ có ảnh mà không có tên người, thì hệ thống không thể tự biết người đó tên gì.
+
+Ví dụ, nếu Facebook chỉ có ảnh khuôn mặt nhưng không có label tên người, thì hệ thống không thể tự suy ra chính xác tên của từng người.
+
+\begin{canhbao}
+Unsupervised learning không phải là phép màu. Không có label thì mô hình không thể giải quyết mọi bài toán cần label cụ thể như nhận diện danh tính.
+\end{canhbao}
+
+% ==========================================================
+\section{Clustering -- Phân nhóm dữ liệu}
+
+\subsection{Clustering là gì?}
+
+Một bài toán rất phổ biến trong unsupervised learning là:
+
+\[
+    \text{clustering}
+\]
+
+hay:
+
+\[
+    \text{phân nhóm}
+\]
+
+Mục tiêu là chia dữ liệu thành các nhóm sao cho các mẫu trong cùng một nhóm giống nhau hơn so với các mẫu ở nhóm khác.
+
+\[
+    \text{data}
+    \rightarrow
+    \text{groups/clusters}
+\]
+
+\begin{ghinho}
+Clustering là bài toán tìm các nhóm tự nhiên trong dữ liệu mà không cần label có sẵn.
+\end{ghinho}
+
+\subsection{Không có label ban đầu}
+
+Trong clustering, ban đầu ta không biết:
+
+\[
+    \text{khách hàng số 1 thuộc nhóm nào}
+\]
+
+\[
+    \text{khách hàng số 3 thuộc nhóm nào}
+\]
+
+\[
+    \text{khách hàng số 1000 thuộc nhóm nào}
+\]
+
+Thuật toán sẽ tự tìm ra các nhóm dựa trên sự giống nhau giữa các mẫu dữ liệu.
+
+% ==========================================================
+\section{Customer Segmentation Example -- Ví dụ phân nhóm khách hàng}
+
+\subsection{Dữ liệu khách hàng}
+
+Giả sử ta là một công ty thương mại điện tử như Amazon.
+
+Ta có rất nhiều dữ liệu khách hàng, ví dụ:
+
+\begin{itemize}
+    \item giới tính;
+    \item độ tuổi;
+    \item nơi sống;
+    \item lịch sử mua hàng;
+    \item tần suất mua hàng;
+    \item giá trị đơn hàng;
+    \item loại sản phẩm thường mua;
+    \item thời điểm thường mua hàng trong ngày;
+    \item thói quen tiêu dùng.
+\end{itemize}
+
+Những dữ liệu này không nhất thiết có label sẵn.
+
+\subsection{Mục tiêu phân nhóm}
+
+Dựa trên dữ liệu, ta muốn chia khách hàng thành các nhóm.
+
+Ví dụ:
+
+\begin{itemize}
+    \item nhóm thích mua hàng xa xỉ;
+    \item nhóm thường mua đồ nhà bếp;
+    \item nhóm thích đồ thể thao;
+    \item nhóm mua hàng vào buổi tối;
+    \item nhóm mua hàng giá trị cao;
+    \item nhóm mua hàng thường xuyên.
+\end{itemize}
+
+\subsection{Ứng dụng vào quảng cáo}
+
+Sau khi phân nhóm, công ty có thể quảng cáo phù hợp hơn.
+
+Ví dụ:
+
+\begin{itemize}
+    \item quảng cáo du thuyền, trang sức cao cấp cho nhóm khách hàng xa xỉ;
+    \item quảng cáo nồi, máy xay sinh tố, dụng cụ làm bánh cho nhóm thích đồ nhà bếp;
+    \item quảng cáo bóng, vợt tennis, gậy golf cho nhóm thích thể thao.
+\end{itemize}
+
+\begin{vidu}
+Nếu quảng cáo đồ thể thao cho nhóm khách hàng thích nấu ăn, hiệu quả có thể thấp. Nếu quảng cáo đúng sản phẩm cho đúng nhóm, khả năng bán hàng sẽ cao hơn.
+\end{vidu}
+
+\subsection{Vì sao đây là unsupervised learning?}
+
+Vì ban đầu ta chỉ có dữ liệu khách hàng, chưa có label nhóm.
+
+Ta không biết trước:
+
+\[
+    \text{khách hàng A thuộc nhóm 1}
+\]
+
+\[
+    \text{khách hàng B thuộc nhóm 2}
+\]
+
+Thuật toán sẽ tự phân nhóm dựa trên các đặc điểm giống nhau.
+
+\[
+    \text{data khách hàng}
+    \rightarrow
+    \text{clusters khách hàng}
+\]
+
+\begin{ghinho}
+Phân nhóm khách hàng là một ví dụ điển hình của unsupervised learning vì dữ liệu không có label nhóm từ trước.
+\end{ghinho}
+
+% ==========================================================
+\section{Supervised vs Unsupervised Learning -- So sánh học có giám sát và không giám sát}
+
+\subsection{Khác nhau cốt lõi}
+
+Điểm khác nhau quan trọng nhất là label.
+
+\[
+    \text{Supervised Learning}
+    \Rightarrow
+    \text{có data và label}
+\]
+
+\[
+    \text{Unsupervised Learning}
+    \Rightarrow
+    \text{chỉ có data, không có label}
+\]
+
+\subsection{Bảng so sánh}
+
+\begin{center}
+\begin{tabular}{p{0.28\textwidth}p{0.31\textwidth}p{0.31\textwidth}}
+\toprule
+Tiêu chí & Supervised Learning & Unsupervised Learning \\
+\midrule
+Dữ liệu & Có data và label & Chỉ có data \\
+Mục tiêu & Học ánh xạ input sang output đúng & Tìm cấu trúc ẩn trong dữ liệu \\
+Ví dụ chính & Phân loại ảnh, dự đoán giá, bảo trì dự đoán & Phân nhóm khách hàng \\
+Output mong muốn & Label hoặc giá trị dự đoán & Nhóm, cấu trúc, pattern \\
+Cần người gắn nhãn? & Có & Không nhất thiết \\
+Dạng dữ liệu train & $(x_i,y_i)$ & $x_i$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Ví dụ phân biệt nhanh}
+
+Ảnh con chó đi kèm label ``chó'':
+
+\[
+    \text{supervised learning}
+\]
+
+Dữ liệu khách hàng không có nhãn, thuật toán tự chia nhóm:
+
+\[
+    \text{unsupervised learning}
+\]
+
+\begin{ghinho}
+Nếu có đáp án đúng đi kèm từng mẫu, thường là supervised learning. Nếu không có đáp án đúng và mục tiêu là tìm cấu trúc dữ liệu, thường là unsupervised learning.
+\end{ghinho}
+
+% ==========================================================
+\section{Brief Note on Reinforcement Learning -- Ghi chú ngắn về học tăng cường}
+
+\subsection{Reinforcement learning là gì?}
+
+\textit{Reinforcement Learning} thường được dịch là:
+
+\[
+    \text{học tăng cường}
+\]
+
+hoặc:
+
+\[
+    \text{học củng cố}
+\]
+
+Trong bài học, giảng viên chỉ nhắc sơ lược rằng loại học này tổng quát hơn hai loại trên và sẽ được học kỹ hơn ở phần sau.
+
+\subsection{Vì sao cần reinforcement learning?}
+
+Có những bài toán không phù hợp với supervised learning hoặc unsupervised learning.
+
+Ví dụ:
+
+\[
+    \text{dạy máy chơi cờ vua, cờ tướng, cờ vây}
+\]
+
+Trong các trò chơi này, số tình huống có thể xảy ra là rất lớn.
+
+Ta khó có thể gắn label đúng cho mọi trạng thái:
+
+\[
+    \text{trạng thái bàn cờ}
+    \rightarrow
+    \text{nước đi đúng}
+\]
+
+Vì có vô số tình huống, supervised learning theo kiểu gắn nhãn từng trường hợp là không thực tế.
+
+\subsection{Ví dụ chơi cờ}
+
+Với bài toán chơi cờ, máy cần học cách chọn hành động qua tương tác với môi trường.
+
+Nó không chỉ đơn giản là phân loại ảnh hay phân nhóm dữ liệu.
+
+Các trò chơi như:
+
+\begin{itemize}
+    \item cờ vua;
+    \item cờ tướng;
+    \item cờ vây;
+\end{itemize}
+
+thường được nhắc đến như ví dụ phù hợp với reinforcement learning.
+
+\begin{luuy}
+Trong bài này, chỉ cần nhớ reinforcement learning là nhóm học khác, thường dùng cho các bài toán ra quyết định tuần tự. Chi tiết sẽ học sau.
+\end{luuy}
+
+% ==========================================================
+\section{Training and Using a Model -- Huấn luyện và sử dụng mô hình}
+
+\subsection{Giai đoạn huấn luyện}
+
+Trong giai đoạn huấn luyện, ta đưa dữ liệu vào mô hình để mô hình học hàm $f$.
+
+Với supervised learning:
+
+\[
+    (x_i,y_i)
+    \rightarrow
+    \text{training}
+    \rightarrow
+    f
+\]
+
+Mô hình so sánh output dự đoán với label thật để điều chỉnh tham số.
+
+\subsection{Giai đoạn sử dụng}
+
+Sau khi mô hình đã được huấn luyện, ta có thể đưa input mới vào để dự đoán output.
+
+\[
+    x_{\text{new}}
+    \rightarrow
+    f
+    \rightarrow
+    \hat{y}
+\]
+
+Ở giai đoạn sử dụng, ta thường không có label thật ngay lập tức.
+
+\begin{vidu}
+Khi dùng mô hình dự đoán giá cổ phiếu ngày mai, ta chưa biết giá ngày mai. Mô hình chỉ nhận input hiện tại và đưa ra dự đoán.
+\end{vidu}
+
+% ==========================================================
+\section{Common Misunderstandings -- Một số hiểu nhầm thường gặp}
+
+\subsection{Hiểu nhầm 1: Có dữ liệu là đủ}
+
+Có dữ liệu là cần thiết, nhưng chưa đủ.
+
+Mô hình còn cần:
+
+\begin{itemize}
+    \item kiến trúc phù hợp;
+    \item thuật toán học phù hợp;
+    \item quá trình huấn luyện tốt;
+    \item dữ liệu sạch;
+    \item dữ liệu đại diện cho thực tế.
+\end{itemize}
+
+\subsection{Hiểu nhầm 2: Không giám sát nghĩa là máy tự biết mọi thứ}
+
+Unsupervised learning không có label, nên nó không thể tự biết những thông tin cụ thể không có trong dữ liệu.
+
+Ví dụ, nếu chỉ có ảnh khuôn mặt mà không có tên người, thuật toán có thể nhóm các khuôn mặt giống nhau, nhưng không thể tự biết tên thật của từng người.
+
+\subsection{Hiểu nhầm 3: Supervised learning chỉ dùng cho classification}
+
+Supervised learning không chỉ dùng cho phân loại.
+
+Nó còn dùng cho regression.
+
+Ví dụ:
+
+\[
+    \text{dự đoán giá cổ phiếu}
+\]
+
+\[
+    \text{dự đoán nhiệt độ}
+\]
+
+\[
+    \text{dự đoán thời gian còn lại trước khi máy hỏng}
+\]
+
+Các bài toán này có output là giá trị liên tục.
+
+% ==========================================================
+\section{Technical Glossary -- Bảng thuật ngữ chuyên ngành}
+
+\small
+\begin{longtable}{p{0.27\textwidth}p{0.48\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Thuật ngữ} & \textbf{Giải thích} & \textbf{Ví dụ} \\
+\midrule
+\endhead
+
+Artificial Intelligence & Trí Tuệ Nhân Tạo, lĩnh vực làm cho máy thực hiện nhiệm vụ thông minh. & Nhận dạng ảnh. \\
+
+Machine Learning & Máy học, cho máy học quy luật từ dữ liệu. & Học phân loại chó/mèo. \\
+
+Supervised Learning & Học có giám sát, dữ liệu có label. & Ảnh chó kèm label chó. \\
+
+Unsupervised Learning & Học không giám sát, dữ liệu không có label. & Phân nhóm khách hàng. \\
+
+Reinforcement Learning & Học tăng cường/học củng cố, học thông qua hành động và phản hồi. & Máy chơi cờ. \\
+
+Data & Dữ liệu đầu vào cho mô hình. & Ảnh, cảm biến, giá cổ phiếu. \\
+
+Label & Nhãn đúng đi kèm dữ liệu. & Chó, mèo, giá cổ phiếu. \\
+
+Input & Đầu vào của mô hình. & Ảnh đầu vào. \\
+
+Output & Đầu ra của mô hình. & Class dự đoán. \\
+
+Function $f$ & Hàm ánh xạ input sang output mà mô hình học được. & $y=f(x)$. \\
+
+Training & Quá trình huấn luyện mô hình từ dữ liệu. & Train CNN phân loại ảnh. \\
+
+Prediction & Dự đoán output cho input mới. & Dự đoán giá cổ phiếu. \\
+
+Classification & Bài toán phân loại vào class rời rạc. & Chó/mèo/xe hơi. \\
+
+Regression & Bài toán dự đoán giá trị liên tục. & Giá cổ phiếu. \\
+
+Clustering & Phân nhóm dữ liệu không nhãn. & Nhóm khách hàng. \\
+
+Customer segmentation & Phân nhóm khách hàng dựa trên hành vi. & Nhóm thích đồ xa xỉ. \\
+
+Predictive maintenance & Bảo trì dự đoán dựa trên dữ liệu cảm biến. & Dự đoán máy sắp hỏng. \\
+
+Sensor data & Dữ liệu thu được từ cảm biến. & Độ rung, nhiệt độ. \\
+
+\bottomrule
+\end{longtable}
+\normalsize
+
+% ==========================================================
+\section{Key Concepts Summary -- Tóm tắt kiến thức trọng tâm}
+
+\subsection{Các ý chính cần nhớ}
+
+\begin{enumerate}
+    \item Machine Learning là việc máy học quy luật từ dữ liệu để thực hiện một tác vụ.
+    \item Có thể hình dung mô hình học máy như một hàm $y=f(x)$.
+    \item Trước khi train, hàm $f$ chưa đủ tốt để dùng.
+    \item Sau khi train tốt, mô hình có thể dự đoán output cho input mới.
+    \item Supervised learning cần cả data và label.
+    \item Label là đáp án đúng đi kèm dữ liệu.
+    \item Phân loại ảnh chó/mèo là ví dụ supervised learning.
+    \item Dự đoán giá cổ phiếu từ dữ liệu quá khứ cũng có thể là supervised learning.
+    \item Nhận diện khuôn mặt có thể học từ ảnh và tên người được gắn nhãn.
+    \item Bảo trì dự đoán có thể dùng dữ liệu cảm biến và label trạng thái máy.
+    \item Unsupervised learning chỉ có data, không có label.
+    \item Clustering là bài toán điển hình của unsupervised learning.
+    \item Phân nhóm khách hàng giúp quảng cáo đúng đối tượng hơn.
+    \item Unsupervised learning không thể tự biết label cụ thể nếu label không có trong dữ liệu.
+    \item Reinforcement learning là nhóm học khác, phù hợp với bài toán ra quyết định như chơi cờ.
+\end{enumerate}
+
+\subsection{Công thức và mô hình tư duy quan trọng}
+
+\subsection*{Mô hình học máy}
+
+\[
+    y=f(x)
+\]
+
+\subsection*{Supervised learning data}
+
+\[
+    D =
+    \{(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)\}
+\]
+
+\subsection*{Unsupervised learning data}
+
+\[
+    D =
+    \{x_1,x_2,\ldots,x_N\}
+\]
+
+\subsection*{Clustering}
+
+\[
+    \{x_1,x_2,\ldots,x_N\}
+    \rightarrow
+    \{C_1,C_2,\ldots,C_K\}
+\]
+
+Trong đó $C_1,C_2,\ldots,C_K$ là các nhóm dữ liệu được thuật toán tìm ra.
+
+% ==========================================================
+\section{Review Questions -- Câu hỏi ôn tập}
+
+\begin{enumerate}
+    \item Machine Learning là gì?
+    \item Vì sao máy cần được huấn luyện trước khi thực hiện tác vụ?
+    \item Hàm $f$ trong mô hình học máy biểu diễn điều gì?
+    \item Supervised learning là gì?
+    \item Điều kiện quan trọng nhất của supervised learning là gì?
+    \item Data và label khác nhau như thế nào?
+    \item Trong bài toán phân loại ảnh chó/mèo, đâu là data và đâu là label?
+    \item Trong bài toán dự đoán giá cổ phiếu, label được hiểu như thế nào?
+    \item Vì sao cần nhiều dữ liệu khi huấn luyện mô hình?
+    \item Vì sao dữ liệu nhiều chưa chắc đã đủ?
+    \item Ví dụ Facebook tagging liên quan gì đến supervised learning?
+    \item Predictive maintenance là gì?
+    \item Unsupervised learning là gì?
+    \item Unsupervised learning khác supervised learning ở điểm nào quan trọng nhất?
+    \item Clustering là gì?
+    \item Vì sao phân nhóm khách hàng là unsupervised learning?
+    \item Vì sao nếu không có tên người, mô hình không thể tự biết danh tính chính xác trong ảnh?
+    \item Reinforcement learning thường phù hợp với kiểu bài toán nào?
+\end{enumerate}
+
+% ==========================================================
+\section{Practice Exercises -- Bài tập vận dụng}
+
+\subsection*{Bài tập 1: Xác định data và label}
+\addcontentsline{toc}{section}{Bài tập 1: Xác định data và label}
+
+Với mỗi bài toán sau, hãy xác định data và label nếu đây là supervised learning:
+
+\begin{enumerate}
+    \item Phân loại email là spam hay không spam.
+    \item Dự đoán giá nhà.
+    \item Nhận dạng ảnh chó, mèo, xe hơi.
+    \item Dự đoán máy công nghiệp có cần bảo trì hay không.
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item Data: nội dung email; label: spam hoặc không spam.
+    \item Data: diện tích, vị trí, số phòng, tuổi nhà; label: giá nhà.
+    \item Data: ảnh; label: chó, mèo hoặc xe hơi.
+    \item Data: dữ liệu cảm biến máy; label: cần bảo trì hoặc chưa cần bảo trì.
+\end{enumerate}
+
+\subsection*{Bài tập 2: Supervised hay unsupervised?}
+\addcontentsline{toc}{section}{Bài tập 2: Supervised hay unsupervised?}
+
+Xác định mỗi bài toán sau thuộc supervised learning hay unsupervised learning:
+
+\begin{enumerate}
+    \item Dữ liệu khách hàng không có nhãn, yêu cầu chia thành các nhóm khách hàng tương tự nhau.
+    \item Ảnh X-quang có nhãn bệnh hoặc không bệnh, yêu cầu huấn luyện mô hình chẩn đoán.
+    \item Dữ liệu giao dịch mua hàng, yêu cầu tìm các nhóm sản phẩm thường được mua cùng nhau.
+    \item Dữ liệu ảnh có label chó/mèo, yêu cầu phân loại ảnh mới.
+\end{enumerate}
+
+\subsection*{Lời giải gợi ý}
+
+\begin{enumerate}
+    \item Unsupervised learning.
+    \item Supervised learning.
+    \item Unsupervised learning.
+    \item Supervised learning.
+\end{enumerate}
+
+\subsection*{Bài tập 3: Ví dụ phân nhóm khách hàng}
+\addcontentsline{toc}{section}{Bài tập 3: Ví dụ phân nhóm khách hàng}
+
+Một cửa hàng online có dữ liệu khách hàng gồm:
+
+\begin{itemize}
+    \item tuổi;
+    \item giới tính;
+    \item số lần mua hàng mỗi tháng;
+    \item tổng số tiền đã chi;
+    \item loại sản phẩm thường mua.
+\end{itemize}
+
+Hãy đề xuất ba nhóm khách hàng có thể được phát hiện bằng clustering.
+
+\subsection*{Lời giải gợi ý}
+
+Có thể phân thành:
+
+\begin{enumerate}
+    \item Nhóm khách hàng mua hàng xa xỉ, tổng chi tiêu cao.
+    \item Nhóm khách hàng mua đồ gia dụng hoặc nhà bếp thường xuyên.
+    \item Nhóm khách hàng trẻ, mua nhiều đồ thể thao hoặc công nghệ.
+\end{enumerate}
+
+\subsection*{Bài tập 4: Tạo mẫu dữ liệu chuỗi thời gian}
+\addcontentsline{toc}{section}{Bài tập 4: Tạo mẫu dữ liệu chuỗi thời gian}
+
+Giả sử có giá cổ phiếu theo ngày:
+
+\[
+    p_1,p_2,p_3,p_4,p_5,p_6
+\]
+
+Ta muốn dùng giá của 3 ngày trước để dự đoán ngày tiếp theo. Hãy tạo các cặp data-label có thể dùng để train.
+
+\subsection*{Lời giải gợi ý}
+
+Các cặp có thể là:
+
+\[
+    (p_1,p_2,p_3) \rightarrow p_4
+\]
+
+\[
+    (p_2,p_3,p_4) \rightarrow p_5
+\]
+
+\[
+    (p_3,p_4,p_5) \rightarrow p_6
+\]
+
+Trong đó mỗi bộ ba giá là data, giá ngày tiếp theo là label.
+
+\subsection*{Bài tập 5: Giải thích ngắn}
+\addcontentsline{toc}{section}{Bài tập 5: Giải thích ngắn}
+
+Giải thích vì sao clustering khách hàng không cần label ban đầu.
+
+\subsection*{Lời giải gợi ý}
+
+Clustering không cần biết trước khách hàng thuộc nhóm nào. Thuật toán chỉ cần dữ liệu đặc trưng của khách hàng, sau đó tự tìm các nhóm dựa trên sự giống nhau giữa các khách hàng. Vì vậy, ban đầu không cần label nhóm.
+
+% ==========================================================
+\section*{Conclusion -- Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+Bài học giới thiệu hai nhóm kỹ thuật học quan trọng trong machine learning: supervised learning và unsupervised learning. Trong supervised learning, dữ liệu huấn luyện gồm cả input và label. Mô hình học cách ánh xạ input sang output đúng, ví dụ như phân loại ảnh chó/mèo, dự đoán giá cổ phiếu, nhận diện khuôn mặt hoặc bảo trì dự đoán trong công nghiệp.
+
+Trong unsupervised learning, dữ liệu không có label. Mục tiêu thường là tìm cấu trúc ẩn trong dữ liệu, ví dụ phân nhóm khách hàng theo thói quen mua sắm. Sau khi phân nhóm, doanh nghiệp có thể quảng cáo đúng đối tượng hơn, bán sản phẩm phù hợp hơn và khai thác dữ liệu hiệu quả hơn.
+
+Điểm khác biệt cốt lõi cần nhớ là: supervised learning có data và label, còn unsupervised learning chỉ có data. Ngoài ra, bài học cũng nhắc sơ lược đến reinforcement learning, một nhóm học phù hợp với các bài toán ra quyết định phức tạp như chơi cờ, nơi không thể gắn nhãn đầy đủ cho mọi tình huống.
