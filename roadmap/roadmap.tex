@@ -1,0 +1,461 @@
+\documentclass[12pt,a4paper]{article}
+
+% Hỗ trợ tiếng Việt với pdfLaTeX
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{lmodern}
+
+% Toán học và định dạng
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\geometry{
+    top=2.2cm,
+    bottom=2.2cm,
+    left=2.3cm,
+    right=2.3cm
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\renewcommand{\arraystretch}{1.25}
+
+\title{\textbf{Đánh giá nền tảng ANN, CNN, AlexNet\\và lộ trình học Reinforcement Learning}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Kết luận}
+
+\textbf{Bạn đã đủ nền tảng để bắt đầu học RL ở mức nhập môn}, đặc biệt là \textbf{tabular Q-Learning}. Tuy nhiên, ANN/CNN/AlexNet \textbf{không phải các kiến thức nền trực tiếp quan trọng nhất của RL}.
+
+Bạn chưa nên nhảy thẳng vào \textbf{Deep Reinforcement Learning như DQN, PPO hoặc Actor--Critic}. Trước tiên cần bổ sung một số kiến thức về xác suất, quá trình Markov và các thuật toán RL cơ bản.
+
+Theo lộ trình hiện tại, bạn đã hoàn thành phần lớn \textbf{ANN/Backpropagation}, \textbf{CNN} và \textbf{AlexNet 1}; trong khi các nội dung \textbf{Q-Learning} vẫn chưa học.
+
+\section{Những gì bạn đã học có ích thế nào cho RL?}
+
+\subsection{ANN và Backpropagation: rất hữu ích cho Deep RL}
+
+Bạn đã học:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Cấu trúc mạng neural.
+    \item Forward propagation và backpropagation.
+    \item Gradient descent.
+    \item Softmax.
+    \item Vanishing gradient.
+    \item Underfitting và overfitting.
+\end{itemize}
+
+Đây là nền tảng tốt để sau này hiểu:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Mạng Q trong DQN.
+    \item Policy network.
+    \item Value network.
+    \item Actor và Critic.
+    \item Cách tối ưu loss trong Deep RL.
+\end{itemize}
+
+\subsection{CNN: chỉ cần trong một số bài toán RL}
+
+CNN hữu ích khi trạng thái của môi trường là hình ảnh, chẳng hạn:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Chơi game Atari từ khung hình.
+    \item Điều khiển robot bằng camera.
+    \item Xe tự hành.
+    \item Điều hướng dựa trên hình ảnh.
+\end{itemize}
+
+Với các môi trường ban đầu như FrozenLake, Taxi, CartPole hoặc MountainCar, bạn \textbf{không cần CNN}.
+
+\subsection{AlexNet: không phải điều kiện tiên quyết}
+
+AlexNet giúp bạn hiểu một kiến trúc CNN cụ thể, nhưng không giúp nhiều cho RL nhập môn. Bạn không cần hoàn thành AlexNet 2 hoặc phần Matlab AlexNet trước khi học RL.
+
+\section{Các phần trong lộ trình hiện tại: phần nào cần cho RL?}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}p{4.1cm}
+    >{\centering\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}X
+}
+\toprule
+\textbf{Chủ đề trong sheet} &
+\textbf{Có cần trước RL không?} &
+\textbf{Nhận xét} \\
+\midrule
+Supervised và Unsupervised Learning &
+Nên biết &
+Cần hiểu RL khác supervised learning ở điểm nào. \\
+
+Linear Regression &
+Nên học &
+Hữu ích để hiểu function approximation, prediction và loss. \\
+
+KNN &
+Không bắt buộc &
+Có thể bỏ qua trước khi học RL. \\
+
+K-Means &
+Không bắt buộc &
+Không liên quan trực tiếp đến RL cơ bản. \\
+
+SVM &
+Không bắt buộc &
+Không phải nền tảng của RL. \\
+
+Perceptron &
+Không cần học lại &
+ANN bạn đã học đã bao hàm ý tưởng này. \\
+
+AlexNet 2 &
+Không bắt buộc &
+Chỉ cần khi quan tâm đến CNN chuyên sâu. \\
+
+Q-Learning &
+Bắt buộc &
+Đây là điểm bắt đầu trực tiếp của RL. \\
+
+RNN/LSTM &
+Chưa cần &
+Chỉ cần sau này với trạng thái không quan sát đầy đủ hoặc dữ liệu chuỗi. \\
+
+Genetic Algorithm &
+Không bắt buộc &
+Là hướng tối ưu khác, không phải nền tảng RL. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Như vậy, bạn \textbf{không cần quay lại học toàn bộ KNN, K-Means và SVM rồi mới bắt đầu RL}.
+
+Trong các nội dung chưa học của sheet, phần nên bổ sung nhất là:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Khái niệm supervised, unsupervised và reinforcement learning.
+    \item Linear regression ở mức cơ bản.
+    \item Các nội dung Q-Learning.
+\end{enumerate}
+
+\section{Những kiến thức còn thiếu nhưng sheet chưa đề cập đầy đủ}
+
+\subsection{Xác suất và kỳ vọng --- bắt buộc}
+
+Bạn cần hiểu:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Biến ngẫu nhiên.
+    \item Xác suất có điều kiện.
+    \item Phân phối xác suất.
+    \item Kỳ vọng $\mathbb{E}[X]$.
+    \item Trung bình có trọng số theo xác suất.
+    \item Sampling.
+    \item Variance ở mức cơ bản.
+\end{itemize}
+
+Trong RL, phần thưởng và trạng thái tiếp theo thường mang tính ngẫu nhiên. Giá trị của một trạng thái thực chất là \textbf{kỳ vọng của tổng phần thưởng trong tương lai}:
+
+\begin{equation}
+V^\pi(s)
+=
+\mathbb{E}_{\pi}
+\left[
+\sum_{t=0}^{\infty}
+\gamma^t R_{t+1}
+\;\middle|\;
+S_0=s
+\right].
+\end{equation}
+
+Nếu chưa hiểu kỳ vọng, công thức value function và Bellman equation sẽ khá khó tiếp cận.
+
+\subsection{Markov Decision Process --- bắt buộc}
+
+Đây là nền tảng quan trọng nhất của RL.
+
+Bạn cần phân biệt rõ:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Agent}: tác nhân học.
+    \item \textbf{Environment}: môi trường.
+    \item \textbf{State $s$}: trạng thái.
+    \item \textbf{Action $a$}: hành động.
+    \item \textbf{Reward $r$}: phần thưởng.
+    \item \textbf{Transition}: cách môi trường chuyển trạng thái.
+    \item \textbf{Policy $\pi(a\mid s)$}: chiến lược chọn hành động.
+    \item \textbf{Episode}: một lượt tương tác hoàn chỉnh.
+    \item \textbf{Terminal state}: trạng thái kết thúc.
+    \item \textbf{Discount factor $\gamma$}: mức coi trọng phần thưởng tương lai.
+    \item \textbf{Return $G_t$}: tổng phần thưởng tích lũy.
+\end{itemize}
+
+Bạn cũng cần hiểu \textbf{Markov property}:
+
+\begin{quote}
+Khi biết trạng thái hiện tại, tương lai không phụ thuộc trực tiếp vào toàn bộ lịch sử trước đó.
+\end{quote}
+
+\subsection{Value function và Bellman equation --- bắt buộc}
+
+Cần hiểu ba đại lượng:
+
+\begin{equation}
+V^\pi(s),
+\end{equation}
+
+là giá trị của trạng thái khi đi theo policy $\pi$.
+
+\begin{equation}
+Q^\pi(s,a),
+\end{equation}
+
+là giá trị của việc thực hiện hành động $a$ tại trạng thái $s$, sau đó đi theo policy $\pi$.
+
+\begin{equation}
+A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s),
+\end{equation}
+
+là mức độ hành động $a$ tốt hơn hoặc kém hơn mức trung bình tại trạng thái $s$.
+
+Bellman equation diễn tả ý tưởng:
+
+\begin{equation}
+\text{Giá trị hiện tại}
+=
+\text{phần thưởng trước mắt}
++
+\text{giá trị tương lai}.
+\end{equation}
+
+Đây là cầu nối trực tiếp dẫn đến Q-Learning.
+
+\subsection{Dynamic Programming --- rất nên học trước Q-Learning}
+
+Nên biết:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Policy evaluation.
+    \item Policy improvement.
+    \item Policy iteration.
+    \item Value iteration.
+\end{itemize}
+
+Dynamic Programming giả sử đã biết mô hình môi trường. Q-Learning thì không cần biết trước mô hình, nhưng cách cập nhật Q-Learning bắt nguồn từ Bellman optimality equation.
+
+\subsection{Exploration và exploitation --- bắt buộc}
+
+Agent phải cân bằng giữa:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Exploitation}: chọn hành động đang được cho là tốt nhất.
+    \item \textbf{Exploration}: thử hành động khác để tìm lựa chọn tốt hơn.
+\end{itemize}
+
+Cần hiểu ít nhất:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Random policy.
+    \item Greedy policy.
+    \item $\epsilon$-greedy.
+    \item Cách giảm dần epsilon.
+    \item Vì sao chỉ chọn hành động tốt nhất hiện tại có thể khiến agent mắc kẹt.
+\end{itemize}
+
+\subsection{Monte Carlo, Temporal Difference và SARSA --- nên biết}
+
+Không nên chỉ học duy nhất Q-Learning. Trình tự hợp lý là:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Multi-armed bandit.
+    \item Monte Carlo prediction.
+    \item Temporal Difference, đặc biệt là TD(0).
+    \item SARSA.
+    \item Q-Learning.
+\end{enumerate}
+
+Công thức Q-Learning:
+
+\begin{equation}
+Q(s_t,a_t)
+\leftarrow
+Q(s_t,a_t)
++
+\alpha
+\left[
+r_{t+1}
++
+\gamma \max_a Q(s_{t+1},a)
+-
+Q(s_t,a_t)
+\right].
+\end{equation}
+
+Trong đó:
+
+\begin{equation}
+\underbrace{
+r_{t+1}
++
+\gamma \max_a Q(s_{t+1},a)
+-
+Q(s_t,a_t)
+}_{\text{TD error}}
+\end{equation}
+
+là sai lệch giữa giá trị mục tiêu mới và giá trị Q hiện tại.
+
+\subsection{Python, NumPy và môi trường RL --- cần cho thực hành}
+
+Bạn nên có khả năng:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Viết vòng lặp \texttt{for}, \texttt{while}.
+    \item Dùng hàm và class cơ bản.
+    \item Làm việc với NumPy array.
+    \item Lập chỉ mục ma trận.
+    \item Sampling ngẫu nhiên.
+    \item Vẽ reward theo episode.
+    \item Đọc API của môi trường.
+\end{itemize}
+
+Công cụ thực hành phù hợp:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Python.
+    \item NumPy.
+    \item Matplotlib.
+    \item Gymnasium.
+    \item PyTorch khi chuyển sang Deep RL.
+\end{itemize}
+
+Không nên chỉ học Q-Learning bằng Matlab nếu mục tiêu dài hạn là nghiên cứu hoặc làm dự án AI hiện đại.
+
+\section{Điều kiện để chuyển từ RL cơ bản sang Deep RL}
+
+Sau khi làm được Q-Learning bằng Q-table, bạn mới nên chuyển sang DQN.
+
+Trước DQN cần hiểu:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Function approximation.
+    \item Regression với neural network.
+    \item Mean squared error.
+    \item Gradient descent.
+    \item Input state và output Q-values.
+    \item Replay buffer.
+    \item Mini-batch sampling.
+    \item Target network.
+    \item Temporal-difference target.
+    \item Vì sao huấn luyện neural network trực tiếp trên dữ liệu RL dễ mất ổn định.
+\end{itemize}
+
+Bạn đã có phần lớn nền tảng neural network cho đoạn này. Phần còn thiếu chủ yếu là \textbf{kiến thức RL}, không phải kiến thức CNN.
+
+Sau DQN mới nên học:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Policy Gradient.
+    \item REINFORCE.
+    \item Actor--Critic.
+    \item Advantage Actor--Critic.
+    \item PPO.
+\end{itemize}
+
+\section{Lộ trình phù hợp nhất với tình trạng hiện tại}
+
+\subsection{Giai đoạn 1 --- Bổ sung nền tảng tối thiểu}
+
+Học:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Supervised, unsupervised và reinforcement learning khác nhau thế nào.
+    \item Linear regression, loss MSE và function approximation.
+    \item Xác suất, kỳ vọng và sampling.
+    \item Khái niệm Markov property.
+\end{enumerate}
+
+Không cần chờ hoàn thành KNN, K-Means và SVM.
+
+\subsection{Giai đoạn 2 --- RL dạng bảng}
+
+Học theo thứ tự:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Agent--environment interaction.
+    \item State, action, reward, policy.
+    \item Return và discount factor.
+    \item MDP.
+    \item State-value và action-value.
+    \item Bellman equation.
+    \item Policy iteration và value iteration.
+    \item Monte Carlo.
+    \item TD learning.
+    \item SARSA.
+    \item Q-Learning.
+\end{enumerate}
+
+Thực hành:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Multi-armed bandit.
+    \item GridWorld.
+    \item FrozenLake.
+    \item Taxi.
+\end{itemize}
+
+\subsection{Giai đoạn 3 --- Deep RL}
+
+Sau khi tự cài đặt được Q-Learning:
+
+\begin{enumerate}[leftmargin=1.8em]
+    \item Function approximation.
+    \item DQN.
+    \item Experience replay.
+    \item Target network.
+    \item Double DQN.
+    \item Policy Gradient.
+    \item Actor--Critic.
+    \item PPO.
+\end{enumerate}
+
+Thực hành ban đầu với CartPole và LunarLander; chưa cần dùng ảnh nên chưa cần CNN.
+
+\section{Checklist sẵn sàng}
+
+Bạn có thể bắt đầu Q-Learning khi trả lời được các câu sau:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item State, action và reward khác nhau thế nào?
+    \item Policy là gì?
+    \item Episode kết thúc khi nào?
+    \item Return khác reward tức thời thế nào?
+    \item Discount factor $\gamma$ có tác dụng gì?
+    \item Kỳ vọng toán học là gì?
+    \item $V(s)$ khác $Q(s,a)$ thế nào?
+    \item Bellman equation thể hiện ý tưởng gì?
+    \item Exploration khác exploitation thế nào?
+    \item Learning rate $\alpha$ điều khiển điều gì?
+\end{itemize}
+
+\textbf{Đánh giá hiện tại:} bạn đã sẵn sàng bắt đầu phần nhập môn RL, nhưng nên dành một chặng ngắn bổ sung \textbf{xác suất + MDP + Bellman equation} trước hoặc học song song với nội dung Q-Learning. CNN và AlexNet hiện tại đã nhiều hơn mức cần thiết cho RL cơ bản.
+
+\end{document}
