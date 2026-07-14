@@ -1,21 +1,90 @@
-\documentclass[12pt,a4paper]{article}
+% !TEX program = pdflatex
+\documentclass[12pt,a4paper]{report}
 
-% Vietnamese support for pdfLaTeX
+% =========================
+% CẤU HÌNH CƠ BẢN CHO PDFLATEX
+% =========================
 \usepackage[utf8]{inputenc}
 \usepackage[T5]{fontenc}
 \usepackage[vietnamese]{babel}
-\usepackage{lmodern}
+\usepackage{indentfirst}
+\usepackage[a4paper,margin=2.5cm]{geometry}
 
-% Mathematics and layout
 \usepackage{amsmath,amssymb}
-\usepackage{geometry}
-\usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{longtable}
+\usepackage{graphicx}
 \usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{enumitem}
-\usepackage{microtype}
-\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+
+% =========================
+% VIỆT HÓA MỘT SỐ TÊN MỤC
+% =========================
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\bibname}{Tài liệu tham khảo}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+% =========================
+% FIX TOC: increase space for 3-digit page numbers
+% =========================
+\makeatletter
+\renewcommand{\@pnumwidth}{2em}  % default 1.55em, increase for 3-digit pages
+\renewcommand{\@tocrmarg}{3em}   % right margin
+\makeatother
+
+% =========================
+% ĐỊNH DẠNG HYPERLINK
+% =========================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+% =========================
+% HỘP GHI CHÚ
+% =========================
+\newtcolorbox{ghinho}{
+    colback=blue!4,
+    colframe=blue!60!black,
+    title=Ghi nhớ,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{vidu}{
+    colback=green!4,
+    colframe=green!50!black,
+    title=Ví dụ minh họa,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{luuy}{
+    colback=orange!6,
+    colframe=orange!70!black,
+    title=Lưu ý,
+    fonttitle=\bfseries,
+    arc=2mm
+}
+
+\newtcolorbox{canhbao}{
+    colback=red!4,
+    colframe=red!60!black,
+    title=Cảnh báo,
+    fonttitle=\bfseries,
+    arc=2mm
+}
 
 \geometry{top=2.2cm,bottom=2.2cm,left=2.3cm,right=2.3cm}
 \setlength{\parindent}{0pt}
@@ -31,6 +100,8 @@
 \maketitle
 \tableofcontents
 \newpage
+
+\chapter{EXPLAIN SOME DEFINITIONS}
 
 \section{Bức tranh tổng quát}
 
@@ -74,6 +145,8 @@ Các kiến thức cốt lõi của RL là Markov Decision Process, policy, valu
 \section{KNN --- K-Nearest Neighbors}
 
 \subsection{KNN là gì?}
+
+\href{https://www.youtube.com/watch?v=KarBce2DeVE}{Click video YouTube này}.
 
 KNN dự đoán một mẫu mới bằng cách tìm \(K\) mẫu gần nó nhất trong dữ liệu đã biết.
 
@@ -402,6 +475,8 @@ Perceptron có thể xem là dạng đơn giản nhất của function approxima
 \section{RNN và LSTM}
 
 \subsection{RNN là gì?}
+
+\href{https://www.youtube.com/watch?v=a4G3UaDaMwQ}{Click video YouTube này}.
 
 RNN, hay Recurrent Neural Network, là mạng neural dành cho dữ liệu có thứ tự.
 
