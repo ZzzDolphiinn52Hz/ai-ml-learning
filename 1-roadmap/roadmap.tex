@@ -188,6 +188,61 @@ S_0=s
 
 Nếu chưa hiểu kỳ vọng, công thức value function và Bellman equation sẽ khá khó tiếp cận.
 
+\textbf{Lý thuyết cơ bản:}
+
+\textit{Xác suất có điều kiện:}
+\begin{equation}
+P(A|B) = \frac{P(A \cap B)}{P(B)}
+\end{equation}
+
+\textit{Luật xác suất toàn phần:}
+\begin{equation}
+P(A) = \sum_{i} P(A|B_i) P(B_i)
+\end{equation}
+
+\textit{Kỳ vọng của biến ngẫu nhiên rời rạc:}
+\begin{equation}
+\mathbb{E}[X] = \sum_{x} x \cdot P(X=x)
+\end{equation}
+
+\textit{Kỳ vọng của biến ngẫu nhiên liên tục:}
+\begin{equation}
+\mathbb{E}[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx
+\end{equation}
+
+\textit{Tính chất kỳ vọng:}
+\begin{equation}
+\mathbb{E}[aX + bY] = a\mathbb{E}[X] + b\mathbb{E}[Y]
+\end{equation}
+
+\textit{Variance:}
+\begin{equation}
+\text{Var}(X) = \mathbb{E}[(X - \mathbb{E}[X])^2] = \mathbb{E}[X^2] - (\mathbb{E}[X])^2
+\end{equation}
+
+\textbf{Ví dụ 1:} Giả sử agent ở trạng thái $s$ và có 3 hành động có thể thực hiện. Hành động $a_1$ có 70\% xác suất nhận reward $+10$ và 30\% xác suất nhận $-5$. Kỳ vọng reward của $a_1$ là:
+
+\begin{equation}
+\mathbb{E}[R|a_1] = 0.7 \times 10 + 0.3 \times (-5) = 7 - 1.5 = 5.5
+\end{equation}
+
+Agent cần so sánh kỳ vọng này với các hành động khác để quyết định tối ưu.
+
+\textbf{Ví dụ 2 (Return trong RL):} Agent thực hiện 4 bước với rewards: $R_1=1, R_2=0, R_3=5, R_4=10$. Với $\gamma=0.9$, return tại bước đầu tiên:
+
+\begin{equation}
+G_0 = R_1 + \gamma R_2 + \gamma^2 R_3 + \gamma^3 R_4 = 1 + 0.9(0) + 0.81(5) + 0.729(10) = 1 + 0 + 4.05 + 7.29 = 12.34
+\end{equation}
+
+Nếu môi trường stochastic, agent phải tính $\mathbb{E}[G_0]$ trên nhiều trajectories khác nhau.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto, Reinforcement Learning: An Introduction (2nd ed.)}, Chapter 3 --- giới thiệu expected return và vai trò của kỳ vọng trong RL.
+    \item \textit{Khan Academy --- Probability and Statistics} (\url{https://www.khanacademy.org/math/statistics-probability}) --- nền tảng xác suất và kỳ vọng.
+    \item \textit{MIT 18.05 Introduction to Probability and Statistics} --- khóa học xác suất cơ bản với ứng dụng.
+\end{itemize}
+
 \subsection{Markov Decision Process --- bắt buộc}
 
 Đây là nền tảng quan trọng nhất của RL.
@@ -213,6 +268,68 @@ Bạn cũng cần hiểu \textbf{Markov property}:
 \begin{quote}
 Khi biết trạng thái hiện tại, tương lai không phụ thuộc trực tiếp vào toàn bộ lịch sử trước đó.
 \end{quote}
+
+\textbf{Lý thuyết cơ bản:}
+
+MDP được định nghĩa bởi tuple $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item $\mathcal{S}$: tập trạng thái (state space)
+    \item $\mathcal{A}$: tập hành động (action space)
+    \item $P(s'|s,a)$: xác suất chuyển trạng thái (transition probability)
+    \item $R(s,a,s')$: hàm reward
+    \item $\gamma \in [0,1]$: discount factor
+\end{itemize}
+
+\textit{Dynamics của môi trường:}
+\begin{equation}
+p(s',r|s,a) = P(S_{t+1}=s', R_{t+1}=r \mid S_t=s, A_t=a)
+\end{equation}
+
+\textit{Markov property:}
+\begin{equation}
+P(S_{t+1}=s', R_{t+1}=r \mid S_0, A_0, R_1, \ldots, S_t, A_t) = P(S_{t+1}=s', R_{t+1}=r \mid S_t, A_t)
+\end{equation}
+
+Tương lai chỉ phụ thuộc vào hiện tại, không phụ thuộc lịch sử.
+
+\textit{Return (tổng reward tích lũy):}
+\begin{equation}
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
+\end{equation}
+
+\textit{Policy:} ánh xạ từ trạng thái sang xác suất hành động
+\begin{equation}
+\pi(a|s) = P(A_t=a \mid S_t=s)
+\end{equation}
+
+Deterministic policy: $a = \pi(s)$. Stochastic policy: $a \sim \pi(\cdot|s)$.
+
+\textbf{Ví dụ 1 --- GridWorld 4×4:} Agent đứng tại ô $(2,3)$. Có 4 hành động: lên/xuống/trái/phải. Mỗi bước nhận $-1$ reward. Đích là góc $(4,4)$ với reward $0$ và kết thúc episode. Đây là MDP hữu hạn với:
+\begin{itemize}[leftmargin=1.5em]
+    \item $\mathcal{S}$: 16 trạng thái (ô vuông)
+    \item $\mathcal{A}$: 4 hành động
+    \item $R(s,a,s')$: $-1$ mỗi bước, $0$ tại đích
+    \item $\gamma$: thường dùng $0.9$ hoặc $0.99$
+\end{itemize}
+
+Policy tối ưu $\pi^*$ sẽ chọn đường ngắn nhất đến đích. Nếu đứng ở $(2,3)$ và đích ở $(4,4)$: đi phải 2 bước, đi xuống 1 bước $\Rightarrow$ total return $G = -1 + 0.9(-1) + 0.81(0) = -1.9$.
+
+\textbf{Ví dụ 2 --- Recycling Robot:} Robot thu gom rác, có 2 trạng thái năng lượng: high/low. Hành động: search (tìm rác), wait (chờ), recharge (sạc pin). Transition stochastic:
+\begin{itemize}[leftmargin=1.5em]
+    \item Từ high + search: 70\% ở lại high ($r=4$), 30\% xuống low ($r=4$)
+    \item Từ low + search: 100\% depleted ($r=-3$, phải recharge)
+    \item Từ low + recharge: 100\% lên high ($r=0$)
+\end{itemize}
+
+Đây là MDP stochastic. Policy phải cân bằng giữa thu thập reward và duy trì pin.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto (2nd ed.)}, Chapter 3 --- định nghĩa đầy đủ MDP, return, discount factor.
+    \item \textit{David Silver's RL Course, Lecture 2: Markov Decision Processes} (\url{https://www.youtube.com/watch?v=lfHX2hHRMVQ}) --- bài giảng kinh điển về MDP.
+    \item \textit{Berkeley CS285, Lecture 2} --- giải thích Markov property và dynamics.
+\end{itemize}
 
 \subsection{Value function và Bellman equation --- bắt buộc}
 
@@ -248,6 +365,78 @@ Bellman equation diễn tả ý tưởng:
 
 Đây là cầu nối trực tiếp dẫn đến Q-Learning.
 
+\textbf{Lý thuyết cơ bản:}
+
+\textit{State-value function:} kỳ vọng return từ trạng thái $s$ theo policy $\pi$
+\begin{equation}
+V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t=s] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \;\middle|\; S_t=s\right]
+\end{equation}
+
+\textit{Action-value function:} kỳ vọng return từ trạng thái $s$ khi thực hiện hành động $a$, sau đó theo $\pi$
+\begin{equation}
+Q^\pi(s,a) = \mathbb{E}_\pi[G_t \mid S_t=s, A_t=a] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \;\middle|\; S_t=s, A_t=a\right]
+\end{equation}
+
+\textit{Advantage function:} đo lường hành động $a$ tốt hơn trung bình bao nhiêu
+\begin{equation}
+A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)
+\end{equation}
+
+\textbf{Bellman Expectation Equation cho $V^\pi$:}
+
+\begin{equation}
+V^\pi(s) = \sum_{a} \pi(a|s) \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V^\pi(s') \right]
+\end{equation}
+
+Phiên bản đơn giản hóa:
+\begin{equation}
+V^\pi(s) = \sum_{a} \pi(a|s) Q^\pi(s,a)
+\end{equation}
+
+\begin{equation}
+Q^\pi(s,a) = \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V^\pi(s') \right]
+\end{equation}
+
+\textbf{Bellman Optimality Equation:}
+
+Optimal value function:
+\begin{equation}
+V^*(s) = \max_\pi V^\pi(s) = \max_a Q^*(s,a)
+\end{equation}
+
+\begin{equation}
+Q^*(s,a) = \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V^*(s') \right] = \sum_{s',r} p(s',r|s,a) \left[ r + \gamma \max_{a'} Q^*(s',a') \right]
+\end{equation}
+
+Optimal policy:
+\begin{equation}
+\pi^*(a|s) = \begin{cases} 1 & \text{nếu } a = \arg\max_a Q^*(s,a) \\ 0 & \text{ngược lại} \end{cases}
+\end{equation}
+
+\textbf{Ví dụ 1 --- FrozenLake 4×4:} Agent đứng tại ô an toàn $(2,2)$ bên cạnh hố băng $(2,3)$. Nếu rơi xuống hố: $V(\text{hole}) = 0$ (terminal). Nếu đi sang ô khác: nhận $r=0$ và tiếp tục. Tại trạng thái hiện tại $s=(2,2)$ với random policy $\pi(\text{up}|s)=\pi(\text{down}|s)=\pi(\text{left}|s)=\pi(\text{right}|s)=0.25$:
+
+\begin{equation}
+V^\pi(s) = 0.25 \cdot [0 + 0.9 V(s_{\text{up}})] + 0.25 \cdot [0 + 0.9 \cdot 0] + 0.25 \cdot [0 + 0.9 V(s_{\text{left}})] + 0.25 \cdot [0 + 0.9 V(s_{\text{down}})]
+\end{equation}
+
+Nếu đi sang phải rơi xuống hố, giá trị tương lai là $0$. Policy tốt sẽ tránh hướng đó: $\pi(\text{right}|s)=0$.
+
+\textbf{Ví dụ 2 --- Tính $Q$ và $A$:} Giả sử tại trạng thái $s$, $V^\pi(s)=10$. Có 3 hành động:
+\begin{itemize}[leftmargin=1.5em]
+    \item $Q^\pi(s, a_1) = 12 \Rightarrow A^\pi(s,a_1) = 12-10 = +2$ (tốt hơn trung bình)
+    \item $Q^\pi(s, a_2) = 10 \Rightarrow A^\pi(s,a_2) = 10-10 = 0$ (trung bình)
+    \item $Q^\pi(s, a_3) = 7 \Rightarrow A^\pi(s,a_3) = 7-10 = -3$ (kém hơn trung bình)
+\end{itemize}
+
+Policy improvement: tăng $\pi(a_1|s)$, giảm $\pi(a_3|s)$.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto (2nd ed.)}, Chapter 3.5--3.6 --- Bellman equation và optimal policies.
+    \item \textit{David Silver Lecture 2} --- giải thích trực quan Bellman backup diagram.
+    \item \textit{OpenAI Spinning Up: Introduction to RL} (\url{https://spinningup.openai.com/en/latest/spinningup/rl_intro.html}) --- giải thích value function, Bellman equation với code minh họa.
+\end{itemize}
+
 \subsection{Dynamic Programming --- rất nên học trước Q-Learning}
 
 Nên biết:
@@ -260,6 +449,80 @@ Nên biết:
 \end{itemize}
 
 Dynamic Programming giả sử đã biết mô hình môi trường. Q-Learning thì không cần biết trước mô hình, nhưng cách cập nhật Q-Learning bắt nguồn từ Bellman optimality equation.
+
+\textbf{Lý thuyết cơ bản:}
+
+Dynamic Programming giải MDP khi biết đầy đủ dynamics $p(s',r|s,a)$. Gồm 2 thuật toán chính:
+
+\textit{1. Policy Iteration:} gồm 2 bước lặp cho đến hội tụ:
+
+\textbf{Policy Evaluation:} tính $V^\pi(s)$ cho tất cả trạng thái:
+\begin{equation}
+V_{k+1}(s) = \sum_{a} \pi(a|s) \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V_k(s') \right]
+\end{equation}
+
+Lặp cho đến khi $\max_s |V_{k+1}(s) - V_k(s)| < \theta$ (ngưỡng hội tụ nhỏ, ví dụ $10^{-4}$).
+
+\textbf{Policy Improvement:} cập nhật policy bằng cách chọn greedy theo $V$:
+\begin{equation}
+\pi'(s) = \arg\max_a \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V^\pi(s') \right] = \arg\max_a Q^\pi(s,a)
+\end{equation}
+
+Nếu $\pi' = \pi$ thì đã đạt optimal $\pi^*$. Nếu chưa, gán $\pi \leftarrow \pi'$ và quay lại policy evaluation.
+
+\textit{2. Value Iteration:} kết hợp policy improvement vào mỗi bước, tính trực tiếp $V^*(s)$:
+\begin{equation}
+V_{k+1}(s) = \max_a \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V_k(s') \right]
+\end{equation}
+
+Sau khi hội tụ, trích xuất optimal policy:
+\begin{equation}
+\pi^*(s) = \arg\max_a \sum_{s',r} p(s',r|s,a) \left[ r + \gamma V^*(s') \right]
+\end{equation}
+
+Value iteration thường hội tụ nhanh hơn policy iteration nhưng mỗi vòng lặp tốn thời gian hơn.
+
+\textbf{Ví dụ 1 --- GridWorld 2×2:}
+
+Layout:
+\begin{verbatim}
+[S] [ ]
+[ ] [G]
+\end{verbatim}
+
+$S$: start, $G$: goal (terminal, $r=+1$). Reward mỗi bước: $-0.01$. Hành động: up/down/left/right. Deterministic transitions. $\gamma=0.9$.
+
+Khởi tạo: $V_0(S)=0, V_0(\text{middle-right})=0, V_0(\text{bottom-left})=0, V_0(G)=0$.
+
+\textbf{Value Iteration Iteration 1:}
+\begin{itemize}[leftmargin=1.5em]
+    \item $V_1(G) = 0$ (terminal)
+    \item $V_1(\text{middle-right}) = \max\{-0.01 + 0.9 \times 0, \ldots, -0.01 + 0.9 \times 0 + 1\} = \max\{\ldots, 0.99\} = 0.99$ (đi down tới G)
+    \item $V_1(\text{bottom-left})$: tương tự, best action dẫn đến middle-right hoặc gần G
+    \item $V_1(S)$: giá trị từ các trạng thái lân cận
+\end{itemize}
+
+Sau 10--20 vòng lặp, $V$ hội tụ. Policy tối ưu từ $S$: right $\to$ down $\to$ G.
+
+\textbf{Ví dụ 2 --- Policy Iteration trên Recycling Robot:}
+
+Khởi tạo random policy: $\pi_0(\text{search}|\text{high})=0.5, \pi_0(\text{wait}|\text{high})=0.5$.
+
+\textbf{Policy Evaluation:} giải hệ phương trình Bellman cho $V^{\pi_0}$:
+\begin{equation}
+V^{\pi_0}(\text{high}) = 0.5 \cdot [4 + 0.7 \times 0.9 V(\text{high}) + 0.3 \times 0.9 V(\text{low})] + 0.5 \cdot [1 + 0.9 V(\text{high})]
+\end{equation}
+
+Giải hệ này cho $V(\text{high})$ và $V(\text{low})$.
+
+\textbf{Policy Improvement:} với $V$ mới, tính $Q(\text{high}, \text{search})$ và $Q(\text{high}, \text{wait})$. Nếu $Q(\text{high}, \text{search}) > Q(\text{high}, \text{wait})$, cập nhật $\pi_1(\text{search}|\text{high})=1$. Lặp lại cho đến policy không thay đổi.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto (2nd ed.)}, Chapter 4 --- Dynamic Programming với policy iteration và value iteration.
+    \item \textit{David Silver Lecture 3: Planning by Dynamic Programming} (\url{https://www.youtube.com/watch?v=Nd1-UUMVfz4}).
+    \item \textit{Berkeley CS285 Lecture 8} --- giải thích policy iteration và value iteration.
+\end{itemize}
 
 \subsection{Exploration và exploitation --- bắt buộc}
 
@@ -280,6 +543,94 @@ Cần hiểu ít nhất:
     \item Vì sao chỉ chọn hành động tốt nhất hiện tại có thể khiến agent mắc kẹt.
 \end{itemize}
 
+\textbf{Lý thuyết cơ bản:}
+
+Exploration-exploitation tradeoff là vấn đề cốt lõi của RL. Agent phải quyết định:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Exploit}: chọn hành động có $Q$ value cao nhất hiện tại để tối đa hóa reward ngay lập tức.
+    \item \textbf{Explore}: thử hành động ít được chọn để cập nhật ước lượng $Q$, có thể tìm được hành động tốt hơn.
+\end{itemize}
+
+\textit{Greedy policy:} luôn exploit
+\begin{equation}
+\pi(s) = \arg\max_a Q(s,a)
+\end{equation}
+
+Nhược điểm: nếu ước lượng $Q$ ban đầu không chính xác, agent sẽ stuck ở local optimum.
+
+\textit{Random policy:} luôn explore
+\begin{equation}
+\pi(a|s) = \frac{1}{|\mathcal{A}|} \quad \forall a
+\end{equation}
+
+Nhược điểm: không tận dụng kiến thức đã học, return thấp.
+
+\textit{$\epsilon$-greedy policy:} cân bằng explore-exploit
+\begin{equation}
+\pi(a|s) =
+\begin{cases}
+1 - \epsilon + \frac{\epsilon}{|\mathcal{A}|} & \text{nếu } a = \arg\max_{a'} Q(s,a') \\
+\frac{\epsilon}{|\mathcal{A}|} & \text{nếu } a \neq \arg\max_{a'} Q(s,a')
+\end{cases}
+\end{equation}
+
+Với xác suất $1-\epsilon$: chọn hành động tốt nhất (exploit). Với xác suất $\epsilon$: chọn ngẫu nhiên (explore).
+
+\textit{Boltzmann exploration (softmax):}
+\begin{equation}
+\pi(a|s) = \frac{\exp(Q(s,a)/\tau)}{\sum_{a'} \exp(Q(s,a')/\tau)}
+\end{equation}
+
+$\tau$ (temperature): lớn $\to$ gần random, nhỏ $\to$ gần greedy.
+
+\textit{Upper Confidence Bound (UCB):} chọn hành động có upper confidence cao nhất:
+\begin{equation}
+a_t = \arg\max_a \left[ Q_t(a) + c \sqrt{\frac{\ln t}{N_t(a)}} \right]
+\end{equation}
+
+$N_t(a)$: số lần chọn $a$. Term thứ hai khuyến khích chọn hành động ít được thử.
+
+\textbf{Ví dụ 1 --- Multi-armed Bandit:}
+
+Có 3 máy đánh bạc (arms), true expected rewards: $Q^*(a_1)=1.0, Q^*(a_2)=2.5, Q^*(a_3)=1.5$ (chưa biết). Ban đầu: $Q_0(a_1)=Q_0(a_2)=Q_0(a_3)=0$.
+
+Lượt 1: thử $a_1$, nhận $r=1.2$. Cập nhật $Q(a_1)=1.2$.
+
+Lượt 2 với $\epsilon=0.1$:
+\begin{itemize}[leftmargin=1.5em]
+    \item Xác suất 0.9: chọn $a_1$ (có $Q$ cao nhất)
+    \item Xác suất 0.1: chọn ngẫu nhiên, có thể thử $a_2$ hoặc $a_3$
+\end{itemize}
+
+Giả sử thử $a_2$, nhận $r=3.0$. Cập nhật $Q(a_2)=3.0$ (cao nhất).
+
+Lượt 3--1000: phần lớn chọn $a_2$ (exploit), thỉnh thoảng thử $a_1, a_3$ (explore).
+
+Nếu greedy thuần túy: có thể stuck ở $a_1$ và không bao giờ khám phá $a_2$ tốt hơn.
+
+\textbf{Ví dụ 2 --- Epsilon decay schedule:}
+
+\begin{equation}
+\epsilon_t = \max(\epsilon_{\min}, \epsilon_{\text{start}} \times \text{decay}^t)
+\end{equation}
+
+Với $\epsilon_{\text{start}}=1.0$, $\text{decay}=0.995$, $\epsilon_{\min}=0.01$:
+\begin{itemize}[leftmargin=1.5em]
+    \item Episode 1: $\epsilon=1.0$ (pure exploration)
+    \item Episode 100: $\epsilon \approx 0.606$
+    \item Episode 500: $\epsilon \approx 0.082$
+    \item Episode 1000: $\epsilon = 0.01$ (mostly exploitation)
+\end{itemize}
+
+Chiến lược này giúp agent explore nhiều lúc đầu để học môi trường, sau đó exploit để tối ưu performance.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto (2nd ed.)}, Chapter 2 --- Multi-armed Bandits và exploration strategies.
+    \item \textit{David Silver Lecture 4: Model-Free Prediction} --- giải thích exploration trong context RL.
+    \item \textit{OpenAI Spinning Up: Exploration strategies} --- so sánh $\epsilon$-greedy, Boltzmann, UCB.
+\end{itemize}
+
 \subsection{Monte Carlo, Temporal Difference và SARSA --- nên biết}
 
 Không nên chỉ học duy nhất Q-Learning. Trình tự hợp lý là:
@@ -292,7 +643,57 @@ Không nên chỉ học duy nhất Q-Learning. Trình tự hợp lý là:
     \item Q-Learning.
 \end{enumerate}
 
-Công thức Q-Learning:
+\textbf{Lý thuyết cơ bản:}
+
+Dynamic Programming cần biết trước model $p(s',r|s,a)$. Model-free methods học trực tiếp từ experience mà không cần model.
+
+\textit{1. Monte Carlo (MC):} Học từ complete episodes. Cập nhật $V(s)$ sau khi episode kết thúc bằng return thực tế $G_t$:
+
+\begin{equation}
+V(s) \leftarrow V(s) + \alpha [G_t - V(s)]
+\end{equation}
+
+với $G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots + R_T$ (T: terminal step).
+
+\textbf{First-visit MC:} chỉ cập nhật lần đầu tiên gặp $s$ trong episode.
+
+\textbf{Every-visit MC:} cập nhật mọi lần gặp $s$.
+
+Ưu điểm: không bias (ước lượng $G_t$ chính xác). Nhược điểm: phải đợi episode kết thúc, high variance.
+
+\textit{2. Temporal Difference TD(0):} Học sau mỗi bước. Cập nhật $V(s)$ bằng bootstrapping từ $V(s')$:
+
+\begin{equation}
+V(s) \leftarrow V(s) + \alpha [\underbrace{r + \gamma V(s')}_{\text{TD target}} - V(s)]
+\end{equation}
+
+\begin{equation}
+\text{TD error: } \delta_t = r + \gamma V(s') - V(s)
+\end{equation}
+
+Ưu điểm: học online (không cần chờ episode kết thúc), low variance. Nhược điểm: có bias (bootstrap từ ước lượng $V(s')$ chưa chính xác).
+
+\textit{3. SARSA (State-Action-Reward-State-Action) --- on-policy TD control:}
+
+\begin{equation}
+Q(s_t,a_t) \leftarrow Q(s_t,a_t) + \alpha \left[ r_{t+1} + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t) \right]
+\end{equation}
+
+SARSA cập nhật dựa trên hành động $a_{t+1}$ \textbf{thực sự thực hiện} theo policy hiện tại (on-policy). Algorithm:
+\begin{enumerate}[leftmargin=1.8em]
+    \item Khởi tạo $Q(s,a)$ tùy ý
+    \item Lặp mỗi episode:
+    \item \quad Khởi tạo $s$
+    \item \quad Chọn $a$ từ $s$ dùng policy dẫn xuất từ $Q$ (e.g., $\epsilon$-greedy)
+    \item \quad Lặp mỗi bước:
+    \item \quad\quad Thực hiện $a$, quan sát $r, s'$
+    \item \quad\quad Chọn $a'$ từ $s'$ dùng policy dẫn xuất từ $Q$
+    \item \quad\quad $Q(s,a) \leftarrow Q(s,a) + \alpha[r + \gamma Q(s',a') - Q(s,a)]$
+    \item \quad\quad $s \leftarrow s'; a \leftarrow a'$
+    \item \quad cho đến $s$ terminal
+\end{enumerate}
+
+\textit{4. Q-Learning --- off-policy TD control:}
 
 \begin{equation}
 Q(s_t,a_t)
@@ -306,10 +707,8 @@ r_{t+1}
 \gamma \max_a Q(s_{t+1},a)
 -
 Q(s_t,a_t)
-\right].
+\right]
 \end{equation}
-
-Trong đó:
 
 \begin{equation}
 \underbrace{
@@ -318,10 +717,68 @@ r_{t+1}
 \gamma \max_a Q(s_{t+1},a)
 -
 Q(s_t,a_t)
-}_{\text{TD error}}
+}_{\text{TD error } \delta_t}
 \end{equation}
 
-là sai lệch giữa giá trị mục tiêu mới và giá trị Q hiện tại.
+Q-Learning cập nhật bằng $\max_a Q(s_{t+1},a)$ bất kể hành động thực tế là gì (off-policy) --- nó học policy tối ưu trực tiếp. Behavior policy có thể là $\epsilon$-greedy (explore), nhưng target policy là greedy (exploit).
+
+\textbf{So sánh MC vs TD vs DP:}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.5cm}XXX}
+\toprule
+& \textbf{DP} & \textbf{MC} & \textbf{TD} \\
+\midrule
+Model & Cần & Không cần & Không cần \\
+Bootstrap & Có & Không & Có \\
+Đợi episode kết thúc & Không & Có & Không \\
+Bias & Không & Không & Có \\
+Variance & Thấp & Cao & Trung bình \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Ví dụ 1 --- FrozenLake 4×4 với MC:}
+
+Episode 1: $S_0 \to S_1 \to S_2 \to \text{hole (fail)}$. Rewards: $0, 0, 0$. $G_0 = 0$. Cập nhật $V(S_0) \leftarrow V(S_0) + \alpha[0 - V(S_0)]$ (giảm).
+
+Episode 2: $S_0 \to S_4 \to S_8 \to \ldots \to \text{goal}$. Rewards: $0, 0, \ldots, 1$. $G_0 = \gamma^{10} \times 1 \approx 0.35$. Cập nhật $V(S_0)$ tăng lên.
+
+Sau nhiều episodes, $V(S_0)$ hội tụ đến giá trị trung bình.
+
+\textbf{Ví dụ 2 --- TD(0) trên cùng trajectory:}
+
+Bước 1: $S_0 \to S_1$, $r=0$. TD target: $0 + 0.9 V(S_1)$. Nếu $V(S_1)=0.5$, cập nhật $V(S_0)$ ngay dựa trên 0.45 (không đợi episode kết thúc).
+
+\textbf{Ví dụ 3 --- Cliff Walking với SARSA vs Q-Learning:}
+
+Layout: agent đi từ start (bottom-left) đến goal (bottom-right). Giữa có cliff (vách đá): step vào $\to$ $r=-100$, reset về start.
+
+\textbf{SARSA} với $\epsilon$-greedy ($\epsilon=0.1$):
+\begin{itemize}[leftmargin=1.5em]
+    \item Khi học, SARSA biết nó sẽ thỉnh thoảng explore (0.1 xác suất random) $\to$ có thể step vào cliff nếu đi sát.
+    \item Vì update dựa trên $a_{t+1}$ thực tế (có khả năng explore), SARSA học policy \textbf{an toàn}: đi xa cliff (đường dài hơn nhưng ít risk).
+    \item $Q^\text{SARSA}(s_{\text{near cliff}}, \text{down}) < Q(s, \text{up})$ (penalty từ exploration mistakes).
+\end{itemize}
+
+\textbf{Q-Learning} với $\epsilon$-greedy:
+\begin{itemize}[leftmargin=1.5em]
+    \item Update dựa trên $\max_a Q(s',a)$ (giả định greedy).
+    \item Q-Learning học policy \textbf{tối ưu theo greedy}: đi sát cliff (đường ngắn nhất).
+    \item Nhưng trong execution với $\epsilon$-greedy, vẫn có 0.1 xác suất explore $\to$ đôi khi rơi xuống cliff.
+    \item $Q^*(s_{\text{near cliff}}, \text{down})$ cao (vì assume greedy không explore).
+\end{itemize}
+
+Return: Q-Learning học policy tốt hơn (theo lý thuyết), nhưng SARSA an toàn hơn trong quá trình training với exploration noise.
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Sutton \& Barto (2nd ed.)}, Chapter 5 (Monte Carlo), Chapter 6 (TD Learning, SARSA, Q-Learning) --- giải thích chi tiết và so sánh.
+    \item \textit{David Silver Lecture 4 \& 5} --- Model-Free Prediction và Control.
+    \item \textit{Denny Britz RL GitHub repo} (\url{https://github.com/dennybritz/reinforcement-learning}) --- code Python minh họa MC, TD, SARSA, Q-Learning.
+\end{itemize}
 
 \subsection{Python, NumPy và môi trường RL --- cần cho thực hành}
 
@@ -348,6 +805,122 @@ Công cụ thực hành phù hợp:
 \end{itemize}
 
 Không nên chỉ học Q-Learning bằng Matlab nếu mục tiêu dài hạn là nghiên cứu hoặc làm dự án AI hiện đại.
+
+\textbf{Lý thuyết cơ bản:}
+
+Để implement RL algorithms, cần:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{NumPy}: lưu Q-table, V-table dưới dạng array, thao tác ma trận.
+    \item \textbf{Gymnasium}: thư viện môi trường RL chuẩn (kế thừa OpenAI Gym).
+    \item \textbf{Matplotlib}: vẽ learning curve (reward theo episode).
+\end{itemize}
+
+\textit{Gymnasium API:}
+\begin{verbatim}
+env = gym.make("FrozenLake-v1")
+observation, info = env.reset()
+action = env.action_space.sample()  # hoặc chọn theo policy
+observation, reward, terminated, truncated, info = env.step(action)
+done = terminated or truncated
+\end{verbatim}
+
+\textit{Q-table:} ma trận 2D $Q[s, a]$ với kích thước $|\mathcal{S}| \times |\mathcal{A}|$. Khởi tạo:
+\begin{verbatim}
+Q = np.zeros([n_states, n_actions])
+# hoặc optimistic initialization:
+Q = np.ones([n_states, n_actions]) * 5.0
+\end{verbatim}
+
+\textbf{Ví dụ 1 --- Code Q-Learning với Gymnasium:}
+
+\begin{verbatim}
+import gymnasium as gym
+import numpy as np
+import matplotlib.pyplot as plt
+
+env = gym.make("FrozenLake-v1", is_slippery=False)
+Q = np.zeros([env.observation_space.n, env.action_space.n])
+alpha = 0.1   # learning rate
+gamma = 0.99  # discount factor
+epsilon = 1.0
+epsilon_decay = 0.995
+epsilon_min = 0.01
+n_episodes = 10000
+
+rewards_per_episode = []
+
+for episode in range(n_episodes):
+    s, _ = env.reset()
+    done = False
+    total_reward = 0
+
+    while not done:
+        # Epsilon-greedy action selection
+        if np.random.rand() < epsilon:
+            a = env.action_space.sample()  # explore
+        else:
+            a = np.argmax(Q[s])  # exploit
+
+        s_next, r, terminated, truncated, _ = env.step(a)
+        done = terminated or truncated
+
+        # Q-Learning update
+        Q[s, a] += alpha * (r + gamma * np.max(Q[s_next]) - Q[s, a])
+
+        s = s_next
+        total_reward += r
+
+    # Decay epsilon
+    epsilon = max(epsilon_min, epsilon * epsilon_decay)
+    rewards_per_episode.append(total_reward)
+
+# Plot learning curve
+plt.plot(rewards_per_episode)
+plt.xlabel('Episode')
+plt.ylabel('Total Reward')
+plt.show()
+
+# Optimal policy
+policy = np.argmax(Q, axis=1)
+print("Optimal policy:", policy)
+\end{verbatim}
+
+\textbf{Ví dụ 2 --- SARSA implementation:}
+
+Khác biệt chính: SARSA cần chọn $a'$ trước khi update, Q-Learning dùng $\max_a Q(s',a)$.
+
+\begin{verbatim}
+# Inside episode loop, after reset:
+a = epsilon_greedy_action(Q, s, epsilon)  # chọn a đầu tiên
+
+while not done:
+    s_next, r, terminated, truncated, _ = env.step(a)
+    done = terminated or truncated
+
+    a_next = epsilon_greedy_action(Q, s_next, epsilon)  # chọn a'
+
+    # SARSA update (dùng a' thực tế, không phải max)
+    Q[s, a] += alpha * (r + gamma * Q[s_next, a_next] - Q[s, a])
+
+    s, a = s_next, a_next
+\end{verbatim}
+
+\textbf{Ví dụ 3 --- Môi trường phổ biến cho RL cơ bản:}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{FrozenLake-v1}: 4×4 grid, tránh holes, đến goal. Discrete state/action. Tốt cho tabular Q-Learning.
+    \item \texttt{Taxi-v3}: taxi pick up và drop off passenger. 500 states, 6 actions.
+    \item \texttt{CliffWalking-v0}: cliff walking example, so sánh SARSA vs Q-Learning.
+    \item \texttt{CartPole-v1}: cân bằng cột trên xe. Continuous state (4D), discrete action (2). Cần function approximation hoặc discretization.
+\end{itemize}
+
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textit{Gymnasium Documentation} (\url{https://gymnasium.farama.org/}) --- thư viện môi trường RL chuẩn (kế thừa OpenAI Gym).
+    \item \textit{NumPy Quickstart Tutorial} (\url{https://numpy.org/doc/stable/user/quickstart.html}) --- nền tảng NumPy cho RL.
+    \item \textit{Python Data Science Handbook} (Jake VanderPlas) --- Python, NumPy, Matplotlib.
+    \item \textit{Denny Britz RL repo} --- code mẫu Q-Learning với Gymnasium/Gym.
+\end{itemize}
 
 \section{Điều kiện để chuyển từ RL cơ bản sang Deep RL}
 
