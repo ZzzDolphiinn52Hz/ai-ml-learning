@@ -1,0 +1,42 @@
+\subsection{Làm quen doanh nghiệp và thiết lập môi trường làm việc}
+\noindent{\small\textit{Tuần 1: 04/05/2026 -- 08/05/2026}}\par
+\subsubsection{Mô tả công việc}
+\begin{center}
+\includegraphics[width=4cm]{ubuntu.png}
+\includegraphics[width=4cm]{jetsonagx.png}
+\end{center}
+
+Trong tuần đầu tiên, em tập trung làm quen với môi trường làm việc tại Bosch Global Software Technologies Vietnam, tiếp nhận các nội dung đào tạo bắt buộc và chuẩn bị nền tảng phần cứng, phần mềm phục vụ cho quá trình thực tập tại nhóm Robotics. Các công việc được thực hiện theo quy trình và dưới sự phân công, hướng dẫn của người phụ trách.
+
+\paragraph{Đào tạo hội nhập, an toàn và bảo mật.}
+Trước khi bắt đầu công việc chuyên môn, em tham gia các buổi training về quy định của công ty và quy trình làm việc tại phòng Lab. Nội dung đầu tiên là an toàn lao động và phòng cháy chữa cháy, bao gồm nhận biết lối thoát hiểm, vị trí tập kết khi có sự cố, vị trí đặt thiết bị chữa cháy và cách báo cho người phụ trách khi phát hiện nguy cơ mất an toàn. Khi thao tác trong Lab, người sử dụng phải tuân thủ hướng dẫn vận hành thiết bị, giữ khu vực làm việc gọn gàng, không tự ý thay đổi kết nối phần cứng hoặc sử dụng thiết bị khi chưa được bàn giao. Qua đó, em hiểu rằng an toàn không chỉ là phản ứng khi sự cố xảy ra mà còn là quá trình chủ động nhận diện và hạn chế rủi ro trong từng thao tác hằng ngày.
+
+Em cũng được hướng dẫn về quy định gửi, nhận và lưu trữ tài liệu nội bộ. Tài liệu cần được phân loại theo phạm vi sử dụng và chỉ được chia sẻ cho đúng người, đúng nhóm thông qua các kênh đã được công ty phê duyệt. Trước khi gửi, người thực hiện cần kiểm tra người nhận, quyền truy cập, nội dung tệp đính kèm và tránh chuyển tiếp thông tin nội bộ sang email cá nhân, dịch vụ lưu trữ công cộng hoặc bên thứ ba khi chưa được phép. Các tài liệu kỹ thuật, mã nguồn, thông tin dự án và dữ liệu liên quan đến khách hàng đều phải được xử lý theo nguyên tắc bảo mật và theo đúng phạm vi công việc được giao.
+
+Đối với việc sử dụng các công cụ AI trong công việc, em được lưu ý không nhập mã nguồn độc quyền, tài liệu nội bộ, dữ liệu khách hàng, thông tin định danh hoặc các thông tin chưa được phép công bố vào công cụ AI công cộng. Chỉ những công cụ và tài khoản đã được doanh nghiệp cho phép mới được sử dụng cho mục đích công việc; kết quả do AI tạo ra cần được người sử dụng kiểm tra lại về tính chính xác, bản quyền và khả năng làm lộ thông tin trước khi đưa vào tài liệu hoặc sản phẩm. Nội dung này giúp em hình thành thói quen xem xét nguồn dữ liệu đầu vào và mức độ bảo mật trước khi sử dụng AI hỗ trợ giải quyết một bài toán kỹ thuật.
+
+Thông qua các buổi training, em nhận thấy môi trường doanh nghiệp có quy trình rõ ràng và minh bạch: mỗi đầu việc đều có người phụ trách, phạm vi trách nhiệm và bước kiểm duyệt cụ thể. Khi cần cài đặt phần mềm, truy cập tài nguyên hoặc chia sẻ tài liệu, nhân viên phải thực hiện đúng kênh và nhận được sự chấp thuận phù hợp thay vì tự ý xử lý. Cách tổ chức này giúp công việc có thể được theo dõi, truy vết và giảm rủi ro liên quan đến an toàn cũng như bảo mật thông tin.
+
+\paragraph{Cài đặt Ubuntu cho NVIDIA Jetson AGX Orin.}
+Sau phần đào tạo, em bắt đầu thiết lập bộ kit NVIDIA Jetson AGX Orin. Em tìm hiểu và cài đặt NVIDIA SDK Manager trên máy host Ubuntu để tải bộ JetPack SDK, tạo image hệ điều hành và flash Ubuntu xuống board Jetson. Trong quá trình chuẩn bị, em học cách xác định đúng dòng Jetson, phiên bản phần cứng và phiên bản JetPack tương thích. Việc chọn chính xác cấu hình là cần thiết vì mỗi loại board có bootloader, driver và các thành phần hệ thống khác nhau; lựa chọn sai có thể làm quá trình flash thất bại hoặc khiến thiết bị khởi động không ổn định.
+
+Quy trình cài đặt gồm kiểm tra kết nối USB giữa máy host và board, đưa Jetson về chế độ Force Recovery, xác nhận thiết bị đã được nhận diện, lựa chọn các thành phần cần cài trong SDK Manager, tải image và thực hiện flash. Sau khi hệ điều hành khởi động, em hoàn tất các thiết lập ban đầu như tài khoản người dùng, mạng, múi giờ và kiểm tra phiên bản hệ điều hành. Em đồng thời quan sát cách SDK Manager quản lý các gói bổ trợ dành cho Jetson để chuẩn bị cho những công việc cần CUDA và các thư viện tăng tốc ở giai đoạn sau.
+
+Một vấn đề em gặp phải là ước tính chưa đúng dung lượng lưu trữ cần thiết. Ngoài dung lượng của tệp tải về, SDK Manager còn cần không gian để giải nén gói cài đặt, tạo image và lưu các tệp tạm; vì vậy dung lượng thực tế lớn hơn đáng kể so với kích thước hiển thị ban đầu. Em kiểm tra lại dung lượng trống, xác định các thư mục chiếm nhiều bộ nhớ, dọn các tệp không còn cần thiết và chỉ chọn những thành phần phù hợp trước khi thực hiện lại. Từ lỗi này, em rút ra rằng cần đọc yêu cầu hệ thống, dự phòng dung lượng cho cả quá trình giải nén và tạo image, đồng thời kiểm tra nguồn điện, cáp kết nối và trạng thái Recovery trước mỗi lần flash để tránh phải lặp lại quy trình.
+
+\paragraph{Làm quen với Linux và quản lý tài nguyên hệ thống.}
+Trên Ubuntu của Jetson, em thực hành làm việc bằng giao diện dòng lệnh (CLI), bao gồm di chuyển giữa các thư mục, tạo và chỉnh sửa tệp, quản lý quyền truy cập, tìm kiếm tệp, xem tiến trình và kiểm tra thông tin phần cứng. Việc sử dụng CLI giúp em thao tác thuận tiện hơn trên thiết bị nhúng, đặc biệt trong trường hợp làm việc từ xa hoặc không có đầy đủ môi trường đồ họa.
+
+Em tìm hiểu cách Linux quản lý các tài nguyên như CPU, RAM, dung lượng lưu trữ, tiến trình và thiết bị ngoại vi. Bên cạnh các lệnh hệ thống cơ bản, em cài đặt và sử dụng các công cụ có giao diện trực quan trên terminal như \texttt{htop} và \texttt{btop} để theo dõi mức sử dụng CPU, bộ nhớ, tải hệ thống và các tiến trình đang chạy. Các công cụ này hỗ trợ nhận biết tiến trình tiêu thụ nhiều tài nguyên và đánh giá tình trạng của board trong lúc cài đặt hoặc chạy ứng dụng.
+
+Ngoài ra, em làm quen với \texttt{systemd} để quản lý các dịch vụ của hệ thống. Em thực hành kiểm tra trạng thái, khởi động, dừng, khởi động lại và xem log của service bằng \texttt{systemctl} và \texttt{journalctl}. Qua đó, em hiểu được mối liên hệ giữa kernel, tiến trình người dùng và các dịch vụ được tự động khởi chạy, đồng thời có cơ sở để chẩn đoán khi một dịch vụ không hoạt động như mong đợi.
+
+\subsubsection{Kết quả/kiến thức đạt được}
+\begin{itemize}
+    \item Nắm được các yêu cầu cơ bản về an toàn lao động, phòng cháy chữa cháy và quy định sử dụng phòng Lab.
+    \item Hiểu nguyên tắc phân loại, lưu trữ và chia sẻ tài liệu nội bộ; nhận thức rõ trách nhiệm bảo mật khi sử dụng công cụ AI trong công việc.
+    \item Biết quy trình cài NVIDIA SDK Manager, lựa chọn cấu hình JetPack phù hợp và flash Ubuntu cho Jetson AGX Orin.
+    \item Có kinh nghiệm kiểm tra dung lượng, kết nối và trạng thái thiết bị để xử lý một số lỗi trong quá trình tạo image và cài đặt hệ điều hành.
+    \item Sử dụng được các thao tác CLI cơ bản, theo dõi tài nguyên bằng \texttt{htop}, \texttt{btop} và quản lý dịch vụ Linux bằng \texttt{systemd}.
+\end{itemize}
+Những kiến thức trên tạo nền tảng để em tiếp tục triển khai Docker, ROS~2 và các ứng dụng robotics trên thiết bị nhúng trong các tuần tiếp theo.

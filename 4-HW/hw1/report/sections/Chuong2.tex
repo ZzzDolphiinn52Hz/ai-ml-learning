@@ -1,0 +1,159 @@
+\section{Giải thích mã nguồn}
+Chương này đi theo \textsf{src/basic.py}. Tệp gồm năm khối, đúng với các mục comment trong mã: sinh dữ liệu, các hàm của PLA, chạy thuật toán, vẽ đường phân tách, và hoạt họa từng lần cập nhật. Mỗi mục dưới đây trích đúng khối tương ứng rồi giải thích khối đó làm gì.
+
+\subsection{Khối 1: Sinh hai lớp điểm}
+Ba dòng đầu nhập NumPy để tính trên mảng, Matplotlib để vẽ, và \textsf{FuncAnimation} để xuất từng khung hình. Phần sinh dữ liệu là Listing~\ref{lst:data}. Số dòng in bên cạnh mã trùng với số dòng trong \textsf{src/basic.py}.
+
+\lstinputlisting[
+  language=Python,
+  firstline=1,
+  lastline=42,
+  firstnumber=1,
+  caption={Sinh hai lớp điểm trên mặt phẳng và ghép thành ma trận học.},
+  label=lst:data
+]{../src/basic.py}
+
+\textsf{np.random.seed(2)} cố định chuỗi số ngẫu nhiên. Mọi lần chạy sau đó tạo cùng tập điểm, cùng trọng số ban đầu và cùng thứ tự xáo trộn trong PLA.
+
+Hai lớp là hai đám điểm Gauss hai chiều. Lớp \(+1\) có tâm \([2, 2]\), lớp \(-1\) có tâm \([4, 2]\). Cùng ma trận hiệp phương sai
+\[
+\begin{bmatrix} 0.3 & 0.2 \\ 0.2 & 0.3 \end{bmatrix}
+\]
+nên mỗi đám hơi kéo theo đường chéo, nhưng hai tâm vẫn cách nhau theo phương ngang. Mỗi lớp lấy \(N = 5\) điểm, nên cả tập có \(10\) điểm.
+
+\textsf{multivariate\_normal} trả về mảng cỡ \((N, 2)\): mỗi hàng là một điểm. Mã chuyển vị thành \textsf{X0}, \textsf{X1} cỡ \((2, N)\) để mỗi \textit{cột} là một điểm. Cách xếp này giúp lấy điểm thứ \(i\) bằng \textsf{X[:, i]}.
+
+\textsf{X\_points} ghép hai lớp theo cột, cỡ \((2, 10)\). Nhãn được ghép tương ứng: năm số \(+1\) rồi năm số \(-1\), nên \textsf{y} cỡ \((1, 10)\). Comment trong tệp ghi shape \((2, 40)\) và \((1, 40)\); đó là dấu vết của một ví dụ cũ với nhiều điểm hơn. Với \(N = 5\) đang dùng, số cột đúng là \(2N = 10\).
+
+Hàng toàn số \(1\) được ghép lên trên \textsf{X\_points}, tạo ra \textsf{X} cỡ \((3, 10)\). Hàng \(0\) là hằng số \(1\) của hệ số tự do, hàng \(1\) là hoành độ, hàng \(2\) là tung độ. Đây chính là các vector \(\bar{\mathbf{x}}\) ở \eqref{eq:predict}, xếp thành các cột.
+
+\subsection{Khối 2: Các hàm của PLA}
+Khối này gồm năm hàm. Chúng tách riêng phép lấy dấu, dự đoán một điểm, dự đoán cả tập, kiểm tra hội tụ và vòng lặp cập nhật.
+
+\subsubsection{Hàm lấy dấu}
+\lstinputlisting[
+  language=Python,
+  firstline=48,
+  lastline=54,
+  firstnumber=48,
+  caption={Hàm dấu dùng trong luật dự đoán.},
+  label=lst:sign
+]{../src/basic.py}
+
+\textsf{sign\_of} làm đúng quy ước \(\mathrm{sign}\) ở chương~\ref{eq:predict}: dương ra \(1\), âm ra \(-1\), bằng \(0\) thì ra \(0\). Không gộp trường hợp \(0\) vào một trong hai lớp, vì điểm nằm trên biên chưa được phân loại đúng.
+
+\subsubsection{Dự đoán một điểm}
+\lstinputlisting[
+  language=Python,
+  firstline=57,
+  lastline=69,
+  firstnumber=57,
+  caption={Tính \(\mathrm{sign}(\mathbf{w}^\top \mathbf{x})\) cho một cột của \textsf{X}.},
+  label=lst:pred1
+]{../src/basic.py}
+
+\textsf{w} và \textsf{x} đều có shape \((3, 1)\). Vòng lặp cộng \(w_0 \cdot 1 + w_1 x_1 + w_2 x_2\), tức tích vô hướng \(\mathbf{w}^\top \bar{\mathbf{x}}\), rồi trả về dấu của tổng. Hàm không dùng \textsf{np.dot} để từng số hạng của công thức \eqref{eq:predict} hiện rõ trong mã.
+
+\subsubsection{Dự đoán cả tập}
+\lstinputlisting[
+  language=Python,
+  firstline=72,
+  lastline=79,
+  firstnumber=72,
+  caption={Áp dụng dự đoán cho mọi cột của ma trận dữ liệu.},
+  label=lst:predall
+]{../src/basic.py}
+
+\textsf{X\_data.shape[1]} là số điểm. Cột \(i\) được \textsf{reshape(3, 1)} rồi đưa vào \textsf{predict\_one}. Kết quả là một danh sách Python dài bằng số điểm, không phải mảng NumPy; các hàm phía sau chỉ cần so sánh từng phần tử với nhãn.
+
+\subsubsection{Kiểm tra hội tụ}
+\lstinputlisting[
+  language=Python,
+  firstline=82,
+  lastline=89,
+  firstnumber=82,
+  caption={Dừng khi không còn điểm nào bị gán sai nhãn.},
+  label=lst:conv
+]{../src/basic.py}
+
+Hàm trả về \textsf{True} chỉ khi mọi dự đoán trùng nhãn. So sánh là \(\neq\), nên dự đoán \(0\) không khớp \(+1\) hay \(-1\) và bị tính là chưa hội tụ. Đây đúng định nghĩa tách được tuyến tính ở chương trước: tồn tại \(\mathbf{w}\) sao cho dấu của \(\mathbf{w}^\top \bar{\mathbf{x}}_i\) bằng \(y_i\) với mọi \(i\).
+
+\subsubsection{Vòng lặp cập nhật}
+\lstinputlisting[
+  language=Python,
+  firstline=92,
+  lastline=124,
+  firstnumber=92,
+  caption={PLA xáo trộn thứ tự điểm và sửa trọng số mỗi lần dự đoán sai.},
+  label=lst:pla
+]{../src/basic.py}
+
+\textsf{w\_history} bắt đầu bằng trọng số khởi tạo. \textsf{mis\_points} ghi chỉ số của những điểm gây ra một lần cập nhật, theo đúng thứ tự các lần đó xảy ra.
+
+Mỗi vòng \textsf{while} xáo một hoán vị của \(0, 1, \ldots, 9\). Với từng chỉ số trong hoán vị, chương trình lấy cột tương ứng của \textsf{X} và nhãn ở hàng \(0\) của \textsf{y}. Nếu dấu dự đoán khác nhãn, điểm đó được ghi vào \textsf{mis\_points} và trọng số được sửa bằng
+\[
+\mathbf{w}_{\text{mới}} = \mathbf{w}_{\text{cũ}} + y_i \, \bar{\mathbf{x}}_i,
+\]
+đúng luật \eqref{eq:update}. Vector mới được nối vào cuối \textsf{w\_history}.
+
+Kiểm tra hội tụ nằm \textit{sau} cả lượt duyệt, không nằm ngay sau từng điểm. Vì vậy một lượt có thể sửa trọng số nhiều lần. Khi \textsf{has\_converged} đúng, hàm trả về toàn bộ lịch sử trọng số và danh sách điểm đã gây cập nhật. Nếu dữ liệu không tách được tuyến tính, \textsf{while True} không thoát.
+
+\subsection{Khối 3: Chạy PLA}
+\lstinputlisting[
+  language=Python,
+  firstline=128,
+  lastline=133,
+  firstnumber=128,
+  caption={Khởi tạo trọng số ngẫu nhiên và chạy PLA trên tập vừa sinh.},
+  label=lst:run
+]{../src/basic.py}
+
+\textsf{d = 3} là số hàng của \textsf{X}. Trọng số ban đầu là một cột Gauss chuẩn, shape \((3, 1)\). Vì \textsf{seed} đã đặt ở khối 1, vector này không đổi giữa các lần chạy.
+
+Với seed \(2\), chương trình in ra \(20\) chỉ số điểm bị phân loại sai trước khi hội tụ:
+\[
+[3, 8, 0, 9, 4, 3, 6, 2, 7, 1, 6, 4, 8, 0, 5, 1, 5, 1, 8, 4].
+\]
+Chỉ số \(0\) đến \(4\) thuộc lớp \(+1\), chỉ số \(5\) đến \(9\) thuộc lớp \(-1\). Cả hai lớp đều xuất hiện trong danh sách, nghĩa là biên ban đầu cắt qua cả hai đám điểm và phải được kéo dần. \textsf{w\_history} có \(21\) phần tử: một vector khởi tạo cộng \(20\) lần cập nhật.
+
+\subsection{Khối 4: Vẽ đường phân tách}
+\lstinputlisting[
+  language=Python,
+  firstline=139,
+  lastline=152,
+  firstnumber=139,
+  caption={Đổi phương trình biên thành đoạn thẳng trong cửa sổ đồ thị.},
+  label=lst:line
+]{../src/basic.py}
+
+Đường cần vẽ vẫn là \(w_0 + w_1 x + w_2 y = 0\). Khi \(w_2 \neq 0\), giải tung độ
+\[
+y = -\frac{w_1 x + w_0}{w_2}
+\]
+tại hai mép \(x = 0\) và \(x = 6\), đúng bề rộng cửa sổ sẽ dùng ở khối 5. Không còn vẽ đoạn từ \(-100\) đến \(100\) rồi để trục cắt bớt.
+
+Nếu \(w_2 = 0\), biên là đường đứng \(x = -w_0 / w_1\), vẽ trong khoảng \(y\) từ \(-2\) đến \(4\).
+
+\subsection{Khối 5: Hoạt họa từng lần cập nhật}
+\lstinputlisting[
+  language=Python,
+  firstline=158,
+  lastline=190,
+  firstnumber=158,
+  caption={Mỗi khung hình là một trọng số, vẽ bằng giao diện Matplotlib mặc định.},
+  label=lst:anim
+]{../src/basic.py}
+
+\textsf{viz\_alg\_1d\_2} nhận \textsf{w\_history}. \textsf{n\_iter} là số vector trọng số, bằng \(21\) với seed \(2\).
+
+Mỗi khung chỉ dùng các lệnh vẽ cơ bản:
+\begin{itemize}
+  \item Tam giác xanh là lớp \(+1\), chấm đỏ là lớp \(-1\). Chú giải nằm ở góc hình.
+  \item Trục hiện số, có nhãn \(x\), \(y\), lưới và giới hạn \([0, 6] \times [-2, 4]\). Không ẩn vạch chia.
+  \item Khung \(i\) vẽ đúng \(\mathbf{w}\) thứ \(i\). Với \(i < 20\), một vòng tròn rỗng khoanh điểm vừa bị phân loại sai. Tọa độ lấy ở hàng \(1\) và hàng \(2\) của \textsf{X}. Khung cuối chỉ còn đường thẳng đã hội tụ.
+  \item Tiêu đề ghi bước hiện tại trên tổng số \(20\) lần cập nhật.
+\end{itemize}
+
+\textsf{FuncAnimation} chạy đúng \(21\) khung, mỗi khung \(800\,\mathrm{ms}\), rồi ghi \textsf{pla\_vis.gif}. Không còn hai khung thừa để giữ hình cuối.
+
+Nhìn lại cả năm khối, dữ liệu ở khối 1 tạo đúng cặp \((\bar{\mathbf{x}}, y)\) của mô hình tuyến tính; khối 2 thực hiện \eqref{eq:predict} và \eqref{eq:update} cho đến khi dấu dự đoán trùng nhãn; khối 3 chạy một lần với trọng số ngẫu nhiên; khối 4 và khối 5 chỉ đổi \(\mathbf{w}\) thành đường thẳng và chiếu lại lịch sử các lần sai.
