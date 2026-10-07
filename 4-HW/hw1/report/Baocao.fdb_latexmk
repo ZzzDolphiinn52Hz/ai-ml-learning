@@ -1,11 +1,11 @@
 # Fdb version 4
-["pdflatex"] 1791413250.7064 "f:/TuanAnhStudy/ai-ml/ai-ml-learning/4-HW/hw1/report/Baocao.tex" "Baocao.pdf" "Baocao" 1791413253.56312 0
+["pdflatex"] 1791414193.2583 "f:/TuanAnhStudy/ai-ml/ai-ml-learning/4-HW/hw1/report/Baocao.tex" "Baocao.pdf" "Baocao" 1791414200.38509 0
   "../src/basic.py" 1790161787 5198 f10cdcd390f0f0f893b67ac76c7b5c11 ""
-  "Baocao.aux" 1791413253 5528 c764315495630912a6161f7e87c65357 "pdflatex"
-  "Baocao.lof" 1791413253 121 b7be92556210d1f87abe2634afaf59d4 "pdflatex"
-  "Baocao.out" 1791413253 2845 30b5e79fb525710894a1dfcb429e8d95 "pdflatex"
-  "Baocao.tex" 1791413251 7231 4a9f2a51c3c31361f8a49a0be275bb0e ""
-  "Baocao.toc" 1791413253 1516 1c68158ac38124aa038ca5c7920e4cdf "pdflatex"
+  "Baocao.aux" 1791414199 5539 b794f2d1872afca3fbcce88d9d47bc08 "pdflatex"
+  "Baocao.lof" 1791414199 121 b7be92556210d1f87abe2634afaf59d4 "pdflatex"
+  "Baocao.out" 1791414199 2897 2b098de9b5f9df9071252570623a5064 "pdflatex"
+  "Baocao.tex" 1791414187 7231 4a9f2a51c3c31361f8a49a0be275bb0e ""
+  "Baocao.toc" 1791414199 1527 913eb797a80d16b542d83c84d988a7ec "pdflatex"
   "C:/Users/PC/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1790306083 91099 06696fb5b9905652ecc912196d85f119 ""
   "C:/Users/PC/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcss0800.pk" 1787102362 8608 0edb8420407fc6938d7f1a1b96c5921b ""
   "C:/Users/PC/AppData/Local/MiKTeX/fonts/tfm/public/rsfs/rsfs10.tfm" 1787102357 688 37338d6ab346c2f1466b29e195316aa4 ""
@@ -261,10 +261,10 @@
   "C:/Users/PC/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "C:/Users/PC/AppData/Local/Programs/MiKTeX/tex/latex/zref/zref-abspage.sty" 1773584792 2269 91cd03da61ab1da00145ba8a81560051 ""
   "C:/Users/PC/AppData/Local/Programs/MiKTeX/tex/latex/zref/zref-base.sty" 1773584792 20785 8db5f0a2b2ce96dda9fac87ccab29449 ""
-  "f:/TuanAnhStudy/ai-ml/ai-ml-learning/4-HW/hw1/report/Baocao.tex" 1791413251 7231 4a9f2a51c3c31361f8a49a0be275bb0e ""
+  "f:/TuanAnhStudy/ai-ml/ai-ml-learning/4-HW/hw1/report/Baocao.tex" 1791414187 7231 4a9f2a51c3c31361f8a49a0be275bb0e ""
   "images/../images/two-class.png" 1790170351 11317 f99da2480e11e804dc9d9da64babc123 ""
   "images/hcmut.png" 1787102640 111831 b24753cc69c36b6cf2c303b6d24afed4 ""
-  "sections/Chuong1.tex" 1791413247 3438 a561d4c210d75875a0c82b1c0a57e400 ""
+  "sections/Chuong1.tex" 1791414187 3449 b7b989467f863c22e8487f26f86f006c ""
   "sections/Chuong2.tex" 1790161803 9771 220d3cb57a9221239c945cfb66ea67c1 ""
   "use images/../images/two-class.png" 1790170351 11317 f99da2480e11e804dc9d9da64babc123 ""
   (generated)
