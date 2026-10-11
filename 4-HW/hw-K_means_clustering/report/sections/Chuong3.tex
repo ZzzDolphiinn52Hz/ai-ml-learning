@@ -14,7 +14,6 @@ $640\times480$, lượng dữ liệu màu thô là
 \begin{equation}
     640\times480\times24=7\,372\,800\ \text{bit}.
 \end{equation}
-
 \textbf{Sau khi giảm màu, minh họa với $K=16$:} Mỗi điểm ảnh chỉ cần một
 chỉ số trong tập $\{0,1,2,\ldots,15\}$, nên chỉ số cần 4 bit. Một bảng màu
 lưu giá trị RGB ứng với từng chỉ số. Chẳng hạn, bảng màu minh họa ban đầu
@@ -67,7 +66,7 @@ webcam và đóng cửa sổ hiển thị sau khi chụp hoặc gặp lỗi.
   label={lst:compression-original}
 ]{../src/k-means-img_compression.py}
 
-Ảnh được lưu trong thư mục \texttt{src} có kích thước
+Ảnh được lưu có kích thước
 $640\times480$ điểm ảnh. Với ảnh RGB có chiều cao $H$, chiều rộng $W$,
 lệnh \texttt{reshape} biến mảng ảnh $(H,W,3)$ thành ma trận
 $X\in\mathbb{R}^{HW\times3}$. Ở đây $X$ có kích thước $(307\,200,3)$:

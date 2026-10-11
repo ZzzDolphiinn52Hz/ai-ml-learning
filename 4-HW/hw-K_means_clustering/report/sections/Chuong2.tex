@@ -132,14 +132,14 @@ ban đầu. Những điểm nằm ở vùng giao nhau được xếp vào cụm 
 
 \subsection{So sánh với việc dùng thư viện Scikit-learn}
 
-Để kiểm tra kết quả, tệp \texttt{k-means-scikit\_learn.py} chạy lại chương trình
-tự cài đặt để lấy đúng ma trận $X$, sau đó phân cụm cùng dữ liệu bằng
+Để kiểm tra kết quả, file \texttt{k-means-scikit\_learn.py} chạy lại chương trình
+lấy đúng ma trận $X$ như file \texttt{k-means-ex1-103.py}, sau đó phân cụm cùng dữ liệu bằng
 \texttt{sklearn.cluster.KMeans} với $K=3$, \texttt{random\_state=0},
 \texttt{n\_init=10} và \texttt{tol=0}. Trước khi so sánh, chương trình ghép các
 tâm gần nhau vì số thứ tự nhãn cụm của hai cách chạy có thể khác nhau. Sau
 khi ghép, ba tâm do Scikit-learn trả về lần lượt là
 $(1.983497,\,1.965881)$, $(3.027029,\,5.956861)$ và
-$(8.074769,\,3.014949)$, trùng với các tâm của chương trình tự cài đặt
+$(8.074769,\,3.014949)$, kết quả gần như trùng với code ban đầu
 đến sáu chữ số thập phân.
 
 \begin{table}[htbp]
@@ -159,10 +159,14 @@ $(8.074769,\,3.014949)$, trùng với các tâm của chương trình tự cài 
 
 Cả $1500/1500$ nhãn đều khớp sau khi ghép nhãn; chỉ số Adjusted Rand bằng
 $1.0$. Hai giá trị inertia trong Bảng~\ref{tab:kmeans-comparison} chỉ khác
-ở sai số làm tròn dấu phẩy động. Số lần lặp $7$ và $6$ không so sánh trực tiếp
-được: mã tự cài đặt đếm số lần tâm thay đổi, còn Scikit-learn báo số vòng
-lặp của lần chạy được chọn trong các lần khởi tạo. Hai cách cũng khởi tạo tâm
-khác nhau, nhưng đã hội tụ đến cùng kết quả phân cụm trong ví dụ này.
+ở sai số làm tròn dấu phẩy động. 
+
+Số lần lặp $7$ và $6$ không so sánh trực tiếp
+được: file tự code đếm số lần tâm thay đổi, còn Scikit-learn báo số vòng
+lặp của lần chạy được chọn trong các lần khởi tạo. 
+
+Hai cách cũng khởi tạo tâm khác nhau, file tự code chọn ba điểm ngẫu nhiên từ dữ liệu, còn Scikit-learn chọn ba điểm ngẫu nhiên từ một tập con gồm 10 lần khởi tạo (K-means++).
+Nhưng đã hội tụ đến cùng kết quả phân cụm trong ví dụ này.
 
 \begin{figure}[htbp]
     \centering

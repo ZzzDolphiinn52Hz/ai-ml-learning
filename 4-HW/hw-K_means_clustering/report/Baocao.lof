@@ -1,5 +1,5 @@
 \contentsline {figure}{\numberline {1}{\ignorespaces Tập dữ liệu gồm 1500 điểm trước khi phân cụm.}}{3}{figure.caption.1}%
-\contentsline {figure}{\numberline {2}{\ignorespaces Kết quả K-means: màu biểu thị nhãn cụm, chấm lớn biểu thị tâm cụm.}}{5}{figure.caption.2}%
-\contentsline {figure}{\numberline {3}{\ignorespaces So sánh trực quan kết quả tự cài đặt (trái) và Scikit-learn (phải): màu thể hiện nhãn cụm đã ghép, dấu X là tâm cụm.}}{6}{figure.caption.4}%
-\contentsline {figure}{\numberline {4}{\ignorespaces So sánh ảnh webcam trước và sau khi giảm số màu.}}{10}{figure.caption.5}%
-\contentsline {figure}{\numberline {5}{\ignorespaces Kích thước tệp JPEG trước và sau khi giảm số màu.}}{10}{figure.caption.6}%
+\contentsline {figure}{\numberline {2}{\ignorespaces Kết quả K-means: màu biểu thị nhãn cụm, chấm lớn biểu thị tâm cụm.}}{6}{figure.caption.2}%
+\contentsline {figure}{\numberline {3}{\ignorespaces So sánh trực quan kết quả tự cài đặt (trái) và Scikit-learn (phải): màu thể hiện nhãn cụm đã ghép, dấu X là tâm cụm.}}{7}{figure.caption.4}%
+\contentsline {figure}{\numberline {4}{\ignorespaces So sánh ảnh webcam trước và sau khi giảm số màu.}}{11}{figure.caption.5}%
+\contentsline {figure}{\numberline {5}{\ignorespaces Kích thước tệp JPEG trước và sau khi giảm số màu.}}{11}{figure.caption.6}%

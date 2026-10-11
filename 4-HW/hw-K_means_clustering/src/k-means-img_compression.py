@@ -9,13 +9,13 @@ from sklearn.cluster import KMeans
 def capture_from_webcam(delay_seconds=3):
     camera = cv2.VideoCapture(0)
     if not camera.isOpened():
-        raise RuntimeError("Khong the mo webcam. Hay kiem tra camera va quyen truy cap.")
+        raise RuntimeError("Cant open webcam. Check access!.")
     try:
         start_time = cv2.getTickCount()
         while True:
             success, frame = camera.read()
             if not success:
-                raise RuntimeError("Khong the doc hinh anh tu webcam.")
+                raise RuntimeError("Cant read img from webcam.")
 
             frame = cv2.flip(frame, 1) # convert to mirror image
             elapsed = (cv2.getTickCount() - start_time) / cv2.getTickFrequency()
@@ -23,7 +23,7 @@ def capture_from_webcam(delay_seconds=3):
             if remaining > 0:
                 cv2.putText(
                     frame,
-                    f"Chup sau {remaining} giay",
+                    f"Shoot in {remaining} seconds...",
                     (30, 50),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
@@ -32,10 +32,10 @@ def capture_from_webcam(delay_seconds=3):
                 )
                 cv2.imshow("Webcam - K-means image compression", frame)
                 if cv2.waitKey(1) & 0xFF == 27:
-                    raise RuntimeError("Da huy viec chup anh.")
+                    raise RuntimeError("User cancelled the image capture.")
             else:
                 if not cv2.imwrite(image_path, frame):
-                    raise RuntimeError(f"Khong the luu anh tai: {image_path}")
+                    raise RuntimeError(f"Cant save image: {image_path}")
                 return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     finally:
         camera.release()
@@ -49,7 +49,7 @@ image_path = os.path.join(
 img = capture_from_webcam()
 print(img.shape) 
 # number of possible colors of each pixel: 256^3 = 16,777,216
-print("Ảnh được lưu tại:", image_path)
+print("Img saved at:", image_path)
 plt.imshow(img)
 plt.axis("on")
 plt.show()
@@ -101,7 +101,7 @@ compressed_image_path = os.path.join(
     "webcam_capture_compressed.jpg",
 )
 plt.imsave(compressed_image_path, img_compressed)
-print("Ảnh compressed được lưu tại:", compressed_image_path)
+print("Img compressed saved at:", compressed_image_path)
 
 plt.imshow(img_compressed)
 plt.axis("on")
