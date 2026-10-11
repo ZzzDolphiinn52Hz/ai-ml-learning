@@ -1,1 +1,4 @@
 \contentsline {figure}{\numberline {1}{\ignorespaces Bài toán phân lớp nhị phân trong 2D}}{2}{figure.caption.1}%
+\contentsline {figure}{\numberline {2}{\ignorespaces Dataset với N = 5}}{4}{figure.caption.2}%
+\contentsline {figure}{\numberline {3}{\ignorespaces Kết quả 20 điểm bị phân loại là sai trước khi hội tụ.}}{8}{figure.caption.3}%
+\contentsline {figure}{\numberline {4}{\ignorespaces Kết quả chạy PLA với \(N = 5\) sau 20 lần cập nhật}}{8}{figure.caption.4}%

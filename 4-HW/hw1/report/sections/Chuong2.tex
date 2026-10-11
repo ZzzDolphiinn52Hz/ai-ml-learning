@@ -1,36 +1,158 @@
-\section{Giải thích mã nguồn}
-Chương này đi theo \textsf{src/basic.py}. Tệp gồm năm khối, đúng với các mục comment trong mã: sinh dữ liệu, các hàm của PLA, chạy thuật toán, vẽ đường phân tách, và hoạt họa từng lần cập nhật. Mỗi mục dưới đây trích đúng khối tương ứng rồi giải thích khối đó làm gì.
+\section{Example 1}
 
-\subsection{Khối 1: Sinh hai lớp điểm}
-Ba dòng đầu nhập NumPy để tính trên mảng, Matplotlib để vẽ, và \textsf{FuncAnimation} để xuất từng khung hình. Phần sinh dữ liệu là Listing~\ref{lst:data}. Số dòng in bên cạnh mã trùng với số dòng trong \textsf{src/basic.py}.
+\subsection{Block 1: Dataset generation}
 
 \lstinputlisting[
   language=Python,
-  firstline=1,
+  firstline=5,
   lastline=42,
   firstnumber=1,
-  caption={Sinh hai lớp điểm trên mặt phẳng và ghép thành ma trận học.},
+  caption={Tạo dataset 2D},
   label=lst:data
 ]{../src/basic.py}
 
-\textsf{np.random.seed(2)} cố định chuỗi số ngẫu nhiên. Mọi lần chạy sau đó tạo cùng tập điểm, cùng trọng số ban đầu và cùng thứ tự xáo trộn trong PLA.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../images/dataset.png}
+    \caption{Dataset với N = 5}
+\end{figure}
 
-Hai lớp là hai đám điểm Gauss hai chiều. Lớp \(+1\) có tâm \([2, 2]\), lớp \(-1\) có tâm \([4, 2]\). Cùng ma trận hiệp phương sai
-\[
-\begin{bmatrix} 0.3 & 0.2 \\ 0.2 & 0.3 \end{bmatrix}
-\]
-nên mỗi đám hơi kéo theo đường chéo, nhưng hai tâm vẫn cách nhau theo phương ngang. Mỗi lớp lấy \(N = 5\) điểm, nên cả tập có \(10\) điểm.
+Với \(N=5\), khối này được thực hiện tuần tự như sau. Ký hiệu
+\(\mathbf{x}_i^{(+)}\) là điểm thuộc lớp \(+1\) và
+\(\mathbf{x}_i^{(-)}\) là điểm thuộc lớp \(-1\), trong đó \(i=1,\ldots,N\).
 
-\textsf{multivariate\_normal} trả về mảng cỡ \((N, 2)\): mỗi hàng là một điểm. Mã chuyển vị thành \textsf{X0}, \textsf{X1} cỡ \((2, N)\) để mỗi \textit{cột} là một điểm. Cách xếp này giúp lấy điểm thứ \(i\) bằng \textsf{X[:, i]}.
+\begin{enumerate}
+  \item \textbf{Chọn tham số của hai lớp.} Với số chiều \(d=2\), hai vector trung bình và ma trận hiệp phương sai là
+  \[
+  \boldsymbol{\mu}_{+}=\begin{bmatrix}2\\2\end{bmatrix},
+  \qquad
+  \boldsymbol{\mu}_{-}=\begin{bmatrix}4\\2\end{bmatrix},
+  \qquad
+  \boldsymbol{\Sigma}=\begin{bmatrix}
+  0.3 & 0.2\\
+  0.2 & 0.3
+  \end{bmatrix}.
+  \]
+  Đặt \(N=5\) và cố định hạt giống ngẫu nhiên bằng
+  \(\textsf{np.random.seed(2)}\), nên các mẫu sinh ra được giữ nguyên giữa các lần chạy.
 
-\textsf{X\_points} ghép hai lớp theo cột, cỡ \((2, 10)\). Nhãn được ghép tương ứng: năm số \(+1\) rồi năm số \(-1\), nên \textsf{y} cỡ \((1, 10)\). Comment trong tệp ghi shape \((2, 40)\) và \((1, 40)\); đó là dấu vết của một ví dụ cũ với nhiều điểm hơn. Với \(N = 5\) đang dùng, số cột đúng là \(2N = 10\).
+  \item \textbf{Sinh từng điểm của hai lớp.} Với \(i=1,\ldots,5\), ta lấy
+  \[
+  \mathbf{x}_i^{(+)}\sim\mathcal{N}(\boldsymbol{\mu}_{+},\boldsymbol{\Sigma}),
+  \qquad
+  \mathbf{x}_i^{(-)}\sim\mathcal{N}(\boldsymbol{\mu}_{-},\boldsymbol{\Sigma}),
+  \qquad
+  \mathbf{x}_i^{(+)},\mathbf{x}_i^{(-)}\in\mathbb{R}^{2}.
+  \]
+  Mỗi \(\mathbf{x}_i^{(+)}\) là một vector cột gồm hai tọa độ:
+  \[
+  \mathbf{x}_i^{(+)}
+  =
+  \begin{bmatrix}
+  x_{i1}^{(+)}\\
+  x_{i2}^{(+)}
+  \end{bmatrix}
+  \in\mathbb{R}^{2\times 1}.
+  \]
+  Do đó, trước khi chuyển vị, dữ liệu của mỗi lớp có dạng
+  \[
+  C_{+}=
+  \begin{bmatrix}
+  (\mathbf{x}_1^{(+)})^{T}\\
+  (\mathbf{x}_2^{(+)})^{T}\\
+  \vdots\\
+  (\mathbf{x}_5^{(+)})^{T}
+  \end{bmatrix}\in\mathbb{R}^{5\times 2},
+  \qquad
+  C_{-}=
+  \begin{bmatrix}
+  (\mathbf{x}_1^{(-)})^{T}\\
+  (\mathbf{x}_2^{(-)})^{T}\\
+  \vdots\\
+  (\mathbf{x}_5^{(-)})^{T}
+  \end{bmatrix}\in\mathbb{R}^{5\times 2}.
+  \]
 
-Hàng toàn số \(1\) được ghép lên trên \textsf{X\_points}, tạo ra \textsf{X} cỡ \((3, 10)\). Hàng \(0\) là hằng số \(1\) của hệ số tự do, hàng \(1\) là hoành độ, hàng \(2\) là tung độ. Đây chính là các vector \(\bar{\mathbf{x}}\) ở \eqref{eq:predict}, xếp thành các cột.
+  \item \textbf{Chuyển vị để mỗi cột là một điểm.}
+  
+  
+  \textsf{X0 = class0.T} và \textsf{X1 = class1.T} tạo
+  \[
+  X_{+}=C_{+}^{T}=
+  \begin{bmatrix}
+  \vert & \vert & & \vert\\
+  \mathbf{x}_1^{(+)} & \mathbf{x}_2^{(+)} & \cdots & \mathbf{x}_5^{(+)}\\
+  \vert & \vert & & \vert
+  \end{bmatrix}\in\mathbb{R}^{2\times 5},
+  \qquad
+  X_{-}=C_{-}^{T}\in\mathbb{R}^{2\times 5}.
+  \]
+  Vì vậy, điểm thứ \(i\) được truy cập bằng cột thứ \(i\) của ma trận tương ứng.
 
-\subsection{Khối 2: Các hàm của PLA}
+  \item \textbf{Ghép hai lớp thành một tập dữ liệu.} Ghép theo chiều cột:
+  \[
+  X_{\mathrm{points}}=[X_{+}\;X_{-}]
+  =
+  \begin{bmatrix}
+  \mathbf{x}_1^{(+)} & \cdots & \mathbf{x}_5^{(+)} &
+  \mathbf{x}_1^{(-)} & \cdots & \mathbf{x}_5^{(-)}
+  \end{bmatrix}
+  \in\mathbb{R}^{2\times 10}.
+  \]
+  Tổng quát, với \(N\) điểm mỗi lớp thì
+  \(X_{\mathrm{points}}\in\mathbb{R}^{2\times 2N}\).
+
+  \item \textbf{Tạo vector nhãn.} Năm cột đầu thuộc lớp \(+1\), năm cột sau thuộc lớp \(-1\):
+  \[
+  \mathbf{y}_{+}=\begin{bmatrix}1&1&1&1&1\end{bmatrix},
+  \qquad
+  \mathbf{y}_{-}=\begin{bmatrix}-1&-1&-1&-1&-1\end{bmatrix},
+  \]
+  \[
+  \mathbf{y}=[\mathbf{y}_{+}\;\mathbf{y}_{-}]
+  =
+  \begin{bmatrix}1&1&1&1&1&-1&-1&-1&-1&-1\end{bmatrix}
+  \in\mathbb{R}^{1\times 10}.
+  \]
+  Với \(2N\) điểm, vector nhãn tổng quát có dạng
+  \[
+  \mathbf{y}=
+  \left[
+  \underbrace{1,\ldots,1}_{N\ \text{lần}},
+  \underbrace{-1,\ldots,-1}_{N\ \text{lần}}
+  \right]
+  \in\mathbb{R}^{1\times 2N}.
+  \]
+
+  \item \textbf{Bổ sung hệ số tự do.} Để biểu diễn đường phân cách
+  \(w_0+w_1x_1+w_2x_2=0\) dưới dạng tích vô hướng, thêm một hàng toàn số \(1\):
+  \[
+  \mathbf{1}_{1\times 10}=\begin{bmatrix}1&1&\cdots&1\end{bmatrix},
+  \qquad
+  X=
+  \begin{bmatrix}
+  \mathbf{1}_{1\times 10}\\
+  X_{\mathrm{points}}
+  \end{bmatrix}
+  \in\mathbb{R}^{3\times 10}.
+  \]
+  Cột thứ \(j\) của \(X\) là vector mở rộng
+  \[
+  \bar{\mathbf{x}}_j=
+  \begin{bmatrix}1\\x_{j1}\\x_{j2}\end{bmatrix}
+  \in\mathbb{R}^{3},
+  \qquad j=1,\ldots,10.
+  \]
+  Do đó, sau khối 1, dữ liệu được đưa vào PLA dưới dạng cặp
+  \((\bar{\mathbf{x}}_j,y_j)\), với \(X\in\mathbb{R}^{3\times 10}\) và
+  \(\mathbf{y}\in\mathbb{R}^{1\times 10}\). Tổng quát với \(N\) điểm mỗi lớp,
+  \(X\in\mathbb{R}^{(d+1)\times 2N}\); trong bài này \(d=2\), nên \(d+1=3\).
+\end{enumerate}
+
+\subsection{Block 2: Các hàm của PLA}
 Khối này gồm năm hàm. Chúng tách riêng phép lấy dấu, dự đoán một điểm, dự đoán cả tập, kiểm tra hội tụ và vòng lặp cập nhật.
 
-\subsubsection{Hàm lấy dấu}
+\subsubsection{Hàm dấu}
 \lstinputlisting[
   language=Python,
   firstline=48,
@@ -39,8 +161,6 @@ Khối này gồm năm hàm. Chúng tách riêng phép lấy dấu, dự đoán 
   caption={Hàm dấu dùng trong luật dự đoán.},
   label=lst:sign
 ]{../src/basic.py}
-
-\textsf{sign\_of} làm đúng quy ước \(\mathrm{sign}\) ở chương~\ref{eq:predict}: dương ra \(1\), âm ra \(-1\), bằng \(0\) thì ra \(0\). Không gộp trường hợp \(0\) vào một trong hai lớp, vì điểm nằm trên biên chưa được phân loại đúng.
 
 \subsubsection{Dự đoán một điểm}
 \lstinputlisting[
@@ -52,9 +172,11 @@ Khối này gồm năm hàm. Chúng tách riêng phép lấy dấu, dự đoán 
   label=lst:pred1
 ]{../src/basic.py}
 
-\textsf{w} và \textsf{x} đều có shape \((3, 1)\). Vòng lặp cộng \(w_0 \cdot 1 + w_1 x_1 + w_2 x_2\), tức tích vô hướng \(\mathbf{w}^\top \bar{\mathbf{x}}\), rồi trả về dấu của tổng. Hàm không dùng \textsf{np.dot} để từng số hạng của công thức \eqref{eq:predict} hiện rõ trong mã.
+\textsf{w} và \textsf{x} đều có shape \((3, 1)\). 
+Vòng lặp cộng \(w_0 \cdot 1 + w_1 x_1 + w_2 x_2\), 
+tức tích vô hướng \(\mathbf{w}^\top \bar{\mathbf{x}}\), rồi trả về dấu của tổng. 
 
-\subsubsection{Dự đoán cả tập}
+\subsubsection{Dự đoán toàn dataset}
 \lstinputlisting[
   language=Python,
   firstline=72,
@@ -64,7 +186,9 @@ Khối này gồm năm hàm. Chúng tách riêng phép lấy dấu, dự đoán 
   label=lst:predall
 ]{../src/basic.py}
 
-\textsf{X\_data.shape[1]} là số điểm. Cột \(i\) được \textsf{reshape(3, 1)} rồi đưa vào \textsf{predict\_one}. Kết quả là một danh sách Python dài bằng số điểm, không phải mảng NumPy; các hàm phía sau chỉ cần so sánh từng phần tử với nhãn.
+\textsf{X\_data.shape[1]} là số điểm. 
+Cột \(i\) được \textsf{reshape(3, 1)} rồi đưa vào \textsf{predict\_one}. 
+Kết quả là một danh sách Python dài bằng số điểm, không phải mảng NumPy; các hàm phía sau chỉ cần so sánh từng phần tử với nhãn.
 
 \subsubsection{Kiểm tra hội tụ}
 \lstinputlisting[
@@ -98,7 +222,7 @@ Mỗi vòng \textsf{while} xáo một hoán vị của \(0, 1, \ldots, 9\). Vớ
 
 Kiểm tra hội tụ nằm \textit{sau} cả lượt duyệt, không nằm ngay sau từng điểm. Vì vậy một lượt có thể sửa trọng số nhiều lần. Khi \textsf{has\_converged} đúng, hàm trả về toàn bộ lịch sử trọng số và danh sách điểm đã gây cập nhật. Nếu dữ liệu không tách được tuyến tính, \textsf{while True} không thoát.
 
-\subsection{Khối 3: Chạy PLA}
+\subsection{Block 3: Chạy PLA}
 \lstinputlisting[
   language=Python,
   firstline=128,
@@ -111,49 +235,23 @@ Kiểm tra hội tụ nằm \textit{sau} cả lượt duyệt, không nằm ngay
 \textsf{d = 3} là số hàng của \textsf{X}. Trọng số ban đầu là một cột Gauss chuẩn, shape \((3, 1)\). Vì \textsf{seed} đã đặt ở khối 1, vector này không đổi giữa các lần chạy.
 
 Với seed \(2\), chương trình in ra \(20\) chỉ số điểm bị phân loại sai trước khi hội tụ:
-\[
-[3, 8, 0, 9, 4, 3, 6, 2, 7, 1, 6, 4, 8, 0, 5, 1, 5, 1, 8, 4].
-\]
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../images/point_classified.png}
+    \caption{Kết quả 20 điểm bị phân loại là sai trước khi hội tụ.}
+\end{figure}
+
+
 Chỉ số \(0\) đến \(4\) thuộc lớp \(+1\), chỉ số \(5\) đến \(9\) thuộc lớp \(-1\). Cả hai lớp đều xuất hiện trong danh sách, nghĩa là biên ban đầu cắt qua cả hai đám điểm và phải được kéo dần. \textsf{w\_history} có \(21\) phần tử: một vector khởi tạo cộng \(20\) lần cập nhật.
 
-\subsection{Khối 4: Vẽ đường phân tách}
-\lstinputlisting[
-  language=Python,
-  firstline=139,
-  lastline=152,
-  firstnumber=139,
-  caption={Đổi phương trình biên thành đoạn thẳng trong cửa sổ đồ thị.},
-  label=lst:line
-]{../src/basic.py}
+\subsection{Block 4: Vẽ đường phân tách}
 
-Đường cần vẽ vẫn là \(w_0 + w_1 x + w_2 y = 0\). Khi \(w_2 \neq 0\), giải tung độ
-\[
-y = -\frac{w_1 x + w_0}{w_2}
-\]
-tại hai mép \(x = 0\) và \(x = 6\), đúng bề rộng cửa sổ sẽ dùng ở khối 5. Không còn vẽ đoạn từ \(-100\) đến \(100\) rồi để trục cắt bớt.
+\subsection{Block 5: Hoạt họa từng lần cập nhật}
 
-Nếu \(w_2 = 0\), biên là đường đứng \(x = -w_0 / w_1\), vẽ trong khoảng \(y\) từ \(-2\) đến \(4\).
-
-\subsection{Khối 5: Hoạt họa từng lần cập nhật}
-\lstinputlisting[
-  language=Python,
-  firstline=158,
-  lastline=190,
-  firstnumber=158,
-  caption={Mỗi khung hình là một trọng số, vẽ bằng giao diện Matplotlib mặc định.},
-  label=lst:anim
-]{../src/basic.py}
-
-\textsf{viz\_alg\_1d\_2} nhận \textsf{w\_history}. \textsf{n\_iter} là số vector trọng số, bằng \(21\) với seed \(2\).
-
-Mỗi khung chỉ dùng các lệnh vẽ cơ bản:
-\begin{itemize}
-  \item Tam giác xanh là lớp \(+1\), chấm đỏ là lớp \(-1\). Chú giải nằm ở góc hình.
-  \item Trục hiện số, có nhãn \(x\), \(y\), lưới và giới hạn \([0, 6] \times [-2, 4]\). Không ẩn vạch chia.
-  \item Khung \(i\) vẽ đúng \(\mathbf{w}\) thứ \(i\). Với \(i < 20\), một vòng tròn rỗng khoanh điểm vừa bị phân loại sai. Tọa độ lấy ở hàng \(1\) và hàng \(2\) của \textsf{X}. Khung cuối chỉ còn đường thẳng đã hội tụ.
-  \item Tiêu đề ghi bước hiện tại trên tổng số \(20\) lần cập nhật.
-\end{itemize}
-
-\textsf{FuncAnimation} chạy đúng \(21\) khung, mỗi khung \(800\,\mathrm{ms}\), rồi ghi \textsf{pla\_vis.gif}. Không còn hai khung thừa để giữ hình cuối.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../images/output.png}
+    \caption{Kết quả chạy PLA với \(N = 5\) sau 20 lần cập nhật}
+\end{figure}
 
 Nhìn lại cả năm khối, dữ liệu ở khối 1 tạo đúng cặp \((\bar{\mathbf{x}}, y)\) của mô hình tuyến tính; khối 2 thực hiện \eqref{eq:predict} và \eqref{eq:update} cho đến khi dấu dự đoán trùng nhãn; khối 3 chạy một lần với trọng số ngẫu nhiên; khối 4 và khối 5 chỉ đổi \(\mathbf{w}\) thành đường thẳng và chiếu lại lịch sử các lần sai.

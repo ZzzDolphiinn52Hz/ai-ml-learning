@@ -46,13 +46,14 @@ f(\tilde{\mathbf{x}}) = \tilde{\mathbf{w}}^{T}\tilde{\mathbf{x}} = 0
 
 - Nếu w là nghiệm của bài toán perceptron, với data mới x chưa gán nhãn
 , ta có thể gán nhãn bằng cách:
-\[
+\begin{equation}
+\label{eq:predict}
 \operatorname{label}(\mathbf{x}) =
 \begin{cases}
 1 & \text{nếu } \mathbf{w}^{T}\mathbf{x} \ge 0,\\
 -1 & \text{o.w.}
 \end{cases}
-\]
+\end{equation}
 
 - Nói cách khác, $\operatorname{label}(\mathbf{x}) =
 \operatorname{sgn}(\mathbf{w}^{T}\mathbf{x})$ với $\operatorname{sgn}$ là hàm xác định dấu,
@@ -77,8 +78,9 @@ J(\mathbf{w}; \mathbf{x}_i, y_i)
 \]
 
 Và tối ưu hàm mất mát bằng Schoolastic Gradient Descent (SGD):
-\[
+\begin{equation}
+\label{eq:update}
 \mathbf{w} \leftarrow \mathbf{w}
 -\eta\left(-y_i\mathbf{x}_i\right)
 = \mathbf{w}+\eta y_i\mathbf{x}_i
-\]
+\end{equation}

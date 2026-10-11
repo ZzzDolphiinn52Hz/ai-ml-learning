@@ -35,6 +35,7 @@
 \usepackage{geometry}
 \usepackage{setspace}
 \usepackage{titlesec}
+\usepackage{float}
 \usepackage{indentfirst}
 \usepackage{epsfig}
 \usepackage{tikz}
@@ -90,28 +91,45 @@
 	}
 }
 \thesislayout
-\lstset{
-language=R,
-basicstyle=\footnotesize\sffamily,
-commentstyle=\ttfamily\color{black},
-numbers=left,
-numberstyle=\ttfamily\color{black}\footnotesize,
-stepnumber=1,
-numbersep=5pt,
-backgroundcolor=\color{white},
-showspaces=false,
-showstringspaces=false,
-showtabs=false,
-frame=single,
-tabsize=2,
-captionpos=b,
-breaklines=true,
-breakatwhitespace=false,
-title=\lstname,
-escapeinside={},
-keywordstyle={},
-morekeywords={}
+
+% Màu và kiểu hiển thị mã nguồn Python.
+\definecolor{codebackground}{RGB}{247,249,252}
+\definecolor{codeframe}{RGB}{203,213,225}
+\definecolor{codekeyword}{RGB}{30,64,175}
+\definecolor{codecomment}{RGB}{22,101,52}
+\definecolor{codestring}{RGB}{180,83,9}
+\definecolor{codenumber}{RGB}{100,116,139}
+
+\lstdefinestyle{pythoncode}{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{codekeyword}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\ttfamily\color{codenumber},
+  numbers=left,
+  stepnumber=1,
+  numbersep=10pt,
+  backgroundcolor=\color{codebackground},
+  frame=single,
+  rulecolor=\color{codeframe},
+  framerule=0.6pt,
+  framesep=6pt,
+  xleftmargin=1.5em,
+  framexleftmargin=1em,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  keepspaces=true,
+  columns=fullflexible,
+  tabsize=4,
+  captionpos=t,
+  breaklines=true,
+  breakatwhitespace=false,
+  aboveskip=1em,
+  belowskip=1em
 }
+\lstset{style=pythoncode}
 %\usepackage{fancyhdr}
 \setlength{\headheight}{40pt}
 \pagestyle{fancy}
@@ -183,7 +201,6 @@ morekeywords={}
 
 % Khoảng cách hình, bảng và chú thích cân đối hơn.
 \captionsetup[figure]{labelfont={small,bf},textfont={small,it},skip=5pt}
-\captionsetup[table]{labelfont={small,bf},textfont={small,it},skip=5pt}
 \setlength{\floatsep}{10pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{12pt plus 2pt minus 3pt}
 \setlength{\intextsep}{10pt plus 2pt minus 2pt}
