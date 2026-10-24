@@ -1,20 +1,24 @@
 """A deterministic GridWorld: 0=up, 1=right, 2=down, 3=left."""
 
 from collections import deque
-import numpy as np
 
 MAP = (
-    "S..#....",
-    ".#.#.#..",
-    ".#...#..",
-    "..##....",
-    "#....#..",
-    "..#.....",
-    "...##.#.",
-    ".......G",
+    ("S", ".", ".", "#", ".", ".", ".", "."),
+    (".", "#", ".", "#", ".", "#", ".", "."),
+    (".", "#", ".", ".", ".", "#", ".", "."),
+    (".", ".", "#", "#", ".", ".", ".", "."),
+    ("#", ".", ".", ".", ".", "#", ".", "."),
+    (".", ".", "#", ".", ".", ".", ".", "."),
+    (".", ".", ".", "#", "#", ".", "#", "."),
+    (".", ".", ".", ".", ".", ".", ".", "G"),
 )
 
-ACTIONS = ((-1, 0), (0, 1), (1, 0), (0, -1))
+ACTIONS = (
+    (-1, 0),
+    (0, 1),
+    (1, 0),
+    (0, -1)
+)
 ACTION_NAMES = ("UP", "RIGHT", "DOWN", "LEFT")
 
 
@@ -26,26 +30,38 @@ class GridWorld:
         assert all(len(row) == self.width for row in self.layout)
         assert sum(row.count("S") for row in self.layout) == 1
         assert sum(row.count("G") for row in self.layout) == 1
-        self.start = next(self.encode(r, c) for r, row in enumerate(self.layout)
-                          for c, ch in enumerate(row) if ch == "S")
-        self.goal = next(self.encode(r, c) for r, row in enumerate(self.layout)
-                         for c, ch in enumerate(row) if ch == "G")
+        self.start = self.find_position("S")
+        self.goal = self.find_position("G")
         self.num_states = self.height * self.width
         self.num_actions = len(ACTIONS)
-        self.free_states = [self.encode(r, c) for r, row in enumerate(self.layout)
-                            for c, ch in enumerate(row) if ch != "#" and ch != "G"]
+        self.free_states = []
+        for row in range(self.height):
+            for col in range(self.width):
+                if self.layout[row][col] not in ("#", "G"):
+                    self.free_states.append(self.encode(row, col))
+
+    def find_position(self, symbol):
+        """Tìm vị trí của S hoặc G và đổi thành state number."""
+        for row in range(self.height):
+            for col in range(self.width):
+                if self.layout[row][col] == symbol:
+                    return self.encode(row, col)
+        raise ValueError(f"Không tìm thấy ký tự {symbol} trong bản đồ")
 
     def encode(self, row, col):
+        """Đổi tọa độ (row, col) thành một state number."""
         return row * self.width + col
 
     def decode(self, state):
+        """Đổi state number thành tọa độ (row, col)."""
         return divmod(int(state), self.width)
 
     def is_wall(self, row, col):
+        """Kiểm tra một ô có phải tường hoặc nằm ngoài bản đồ không."""
         return not (0 <= row < self.height and 0 <= col < self.width) or self.layout[row][col] == "#"
 
     def step(self, state, action):
-        """Return (next_state, reward, terminated). No mutation is required."""
+        """Thực hiện một bước và trả về state mới, reward, done."""
         assert 0 <= int(action) < self.num_actions
         if int(state) == self.goal:
             return self.goal, 0.0, True

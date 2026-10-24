@@ -40,20 +40,18 @@ def text(surface, label, x, y, size=20, color=DARK, bold=False):
     surface.blit(font(size, bold).render(str(label), True, color), (x, y))
 
 
-class Button:
-    def __init__(self, x, y, w, h, label, bg):
-        self.rect = pygame.Rect(x, y, w, h)
-        self.label = label
-        self.bg = bg
+def make_button(x, y, width, height):
+    """Tạo vùng hình chữ nhật dùng làm nút bấm."""
+    return pygame.Rect(x, y, width, height)
 
-    def draw(self, surface, enabled=True):
-        color = self.bg if enabled else (172, 182, 193)
-        pygame.draw.rect(surface, color, self.rect, border_radius=9)
-        letters = font(17, bold=True).render(self.label, True, WHITE)
-        surface.blit(letters, letters.get_rect(center=self.rect.center))
 
-    def clicked(self, pos):
-        return self.rect.collidepoint(pos)
+def draw_button(surface, rect, label, color, enabled=True):
+    """Vẽ một nút bấm. Không cần tạo class riêng cho nút."""
+    if not enabled:
+        color = (172, 182, 193)
+    pygame.draw.rect(surface, color, rect, border_radius=9)
+    letters = font(17, bold=True).render(label, True, WHITE)
+    surface.blit(letters, letters.get_rect(center=rect.center))
 
 
 class RobotApp:
@@ -64,9 +62,9 @@ class RobotApp:
         self.clock = pygame.time.Clock()
         self.env = GridWorld()
         self.agent = QLearningAgent(self.env)
-        self.train_button = Button(PANEL_X, 143, 145, 43, "TRAIN (T)", BLUE)
-        self.play_button = Button(PANEL_X + 158, 143, 145, 43, "PLAY (P)", GREEN)
-        self.reset_button = Button(PANEL_X, 198, 303, 43, "RESET (R)", WALL)
+        self.train_button = make_button(PANEL_X, 143, 145, 43)
+        self.play_button = make_button(PANEL_X + 158, 143, 145, 43)
+        self.reset_button = make_button(PANEL_X, 198, 303, 43)
         self.training = False
         self.playing = False
         self.robot_state = self.env.start
@@ -181,9 +179,11 @@ class RobotApp:
     def draw_panel(self):
         text(self.screen, "Q-LEARNING ROBOT", PANEL_X, 58, 27, DARK, True)
         text(self.screen, "8x8 GridWorld  |  4 actions", PANEL_X, 100, 17, TEXT_MUTED)
-        self.train_button.draw(self.screen, len(self.agent.history) < TRAIN_EPISODES)
-        self.play_button.draw(self.screen, bool(self.agent.history) and not self.training)
-        self.reset_button.draw(self.screen)
+        draw_button(self.screen, self.train_button, "TRAIN (T)", BLUE,
+                    len(self.agent.history) < TRAIN_EPISODES)
+        draw_button(self.screen, self.play_button, "PLAY (P)", GREEN,
+                    bool(self.agent.history) and not self.training)
+        draw_button(self.screen, self.reset_button, "RESET (R)", WALL)
         n = len(self.agent.history)
         pygame.draw.rect(self.screen, BORDER, (PANEL_X, 272, 305, 10), border_radius=5)
         if n:
@@ -232,11 +232,11 @@ class RobotApp:
                     elif event.key == pygame.K_r:
                         self.reset()
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.train_button.clicked(event.pos):
+                    if self.train_button.collidepoint(event.pos):
                         self.start_train()
-                    elif self.play_button.clicked(event.pos):
+                    elif self.play_button.collidepoint(event.pos):
                         self.start_play()
-                    elif self.reset_button.clicked(event.pos):
+                    elif self.reset_button.collidepoint(event.pos):
                         self.reset()
             self.update()
             self.draw()

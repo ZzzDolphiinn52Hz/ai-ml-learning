@@ -1,16 +1,16 @@
 """Tabular Q-learning with epsilon-greedy exploration."""
 
-from dataclasses import dataclass
 import numpy as np
 
 
-@dataclass
 class EpisodeStats:
-    steps: int
-    reward: float
-    success: bool
-    epsilon: float
+    """Kết quả của một episode."""
 
+    def __init__(self, steps, reward, success, epsilon):
+        self.steps = steps
+        self.reward = reward
+        self.success = success
+        self.epsilon = epsilon
 
 class QLearningAgent:
     def __init__(self, env, alpha=0.15, gamma=0.95, epsilon=1.0,
@@ -27,40 +27,47 @@ class QLearningAgent:
         self.reset()
 
     def reset(self):
+        """Xóa bảng Q và bắt đầu học lại từ đầu."""
         self.Q = np.zeros((self.env.num_states, self.env.num_actions), dtype=float)
         self.epsilon = self.initial_epsilon
         self.history = []
 
     def choose_action(self, state, explore=True):
+        """Chọn hành động ngẫu nhiên hoặc hành động tốt nhất hiện tại."""
         if explore and self.rng.random() < self.epsilon:
             return int(self.rng.integers(self.env.num_actions))
         values = self.Q[state]
-        # Random tie-breaking avoids a systematic preference for action UP.
-        best_actions = np.flatnonzero(np.isclose(values, values.max()))
+        # Nếu nhiều hành động cùng tốt, chọn ngẫu nhiên giữa chúng.
+        best_value = max(values)
+        best_actions = [action for action, value in enumerate(values)
+                        if value == best_value]
         return int(self.rng.choice(best_actions))
 
     def update(self, state, action, reward, next_state, done):
-        """Bellman TD update; a terminal transition has no future value."""
-        future = 0.0 if done else float(np.max(self.Q[next_state]))
-        target = reward + self.gamma * future
-        self.Q[state, action] += self.alpha * (target - self.Q[state, action])
+        """Cập nhật một ô trong bảng Q theo công thức Bellman."""
+        future_value = 0 if done else max(self.Q[next_state])
+        target = reward + self.gamma * future_value
+        old_value = self.Q[state, action]
+        self.Q[state, action] = old_value + self.alpha * (target - old_value)
 
     def train_episode(self):
+        """Cho robot chạy một episode và cập nhật bảng Q."""
         state = self.env.random_start(self.rng)
-        total_reward = 0.0
+        total_reward = 0
         success = False
-        steps = 0
-        for steps in range(1, self.max_steps + 1):
+        steps_taken = 0
+        for step in range(1, self.max_steps + 1):
             action = self.choose_action(state, explore=True)
             next_state, reward, done = self.env.step(state, action)
             self.update(state, action, reward, next_state, done)
             total_reward += reward
+            steps_taken = step
             state = next_state
             if done:
                 success = True
                 break
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-        result = EpisodeStats(steps, total_reward, success, self.epsilon)
+        result = EpisodeStats(steps_taken, total_reward, success, self.epsilon)
         self.history.append(result)
         return result
 
